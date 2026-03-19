@@ -20,6 +20,14 @@ workflows:
         script: |
           npm install
 
+      - name: Prepare web assets
+        script: |
+          rm -rf www
+          mkdir -p www
+          cp index.html www/
+          cp styles.css www/
+          cp app.js www/
+
       - name: Add Android platform if missing
         script: |
           if [ ! -d "android" ]; then
