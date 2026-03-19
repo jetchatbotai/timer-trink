@@ -78,58 +78,61 @@
     <nav class="tabs">
       <button class="tab-btn active" data-tab="timerPanel" id="tabTimer">Timer</button>
       <button class="tab-btn" data-tab="pomodoroPanel" id="tabPomodoro">Pomodoro</button>
+      <button class="tab-btn" data-tab="stopwatchPanel" id="tabStopwatch">Stopwatch</button>
       <button class="tab-btn" data-tab="soundsPanel" id="tabSounds">Sounds</button>
     </nav>
 
     <main>
+      <!-- TIMER -->
       <section id="timerPanel" class="panel active">
         <div class="display-wrap">
-          <div class="ring" id="ring"></div>
-          <div id="display" class="display">00:00:00</div>
+          <div class="ring" id="timerRing"></div>
+          <div id="timerDisplay" class="display">00:00:00</div>
         </div>
 
         <div class="quick-row">
-          <button class="chip quick-btn" data-h="0" data-m="1" data-s="0">1m</button>
-          <button class="chip quick-btn" data-h="0" data-m="5" data-s="0">5m</button>
-          <button class="chip quick-btn" data-h="0" data-m="10" data-s="0">10m</button>
-          <button class="chip quick-btn" data-h="0" data-m="25" data-s="0">25m</button>
+          <button class="chip timer-quick-btn" data-h="0" data-m="1" data-s="0">1m</button>
+          <button class="chip timer-quick-btn" data-h="0" data-m="5" data-s="0">5m</button>
+          <button class="chip timer-quick-btn" data-h="0" data-m="10" data-s="0">10m</button>
+          <button class="chip timer-quick-btn" data-h="0" data-m="25" data-s="0">25m</button>
         </div>
 
         <div class="inputs-grid">
           <div class="field">
             <label id="hoursLabel" for="hours">Hours</label>
-            <input id="hours" type="number" min="0" step="1" value="0">
+            <input id="hours" type="number" min="0" step="1" value="0" />
           </div>
           <div class="field">
             <label id="minutesLabel" for="minutes">Minutes</label>
-            <input id="minutes" type="number" min="0" step="1" value="0">
+            <input id="minutes" type="number" min="0" step="1" value="0" />
           </div>
           <div class="field">
             <label id="secondsLabel" for="seconds">Seconds</label>
-            <input id="seconds" type="number" min="0" step="1" value="0">
+            <input id="seconds" type="number" min="0" step="1" value="0" />
           </div>
         </div>
 
         <div class="controls">
-          <button id="startBtn" class="primary">Start</button>
-          <button id="pauseBtn">Pause</button>
-          <button id="resetBtn">Reset</button>
+          <button id="timerStartBtn" class="primary">Start</button>
+          <button id="timerPauseBtn">Pause</button>
+          <button id="timerResetBtn">Reset</button>
         </div>
 
         <div class="toggles">
           <label class="toggle-item">
-            <input type="checkbox" id="soundToggle" checked>
+            <input type="checkbox" id="soundToggle" checked />
             <span id="soundLabel">Sound on</span>
           </label>
           <label class="toggle-item">
-            <input type="checkbox" id="vibrationToggle" checked>
+            <input type="checkbox" id="vibrationToggle" checked />
             <span id="vibrationLabel">Vibration on</span>
           </label>
         </div>
 
-        <div id="status" class="status">Ready</div>
+        <div id="timerStatus" class="status">Ready</div>
       </section>
 
+      <!-- POMODORO -->
       <section id="pomodoroPanel" class="panel">
         <h2 id="pomodoroTitle">Pomodoro</h2>
         <p id="pomodoroDesc" class="panel-text">Choose a focus preset and load it into timer.</p>
@@ -144,11 +147,11 @@
         <div class="inputs-grid inputs-grid-2">
           <div class="field">
             <label id="workLabel" for="pomodoroWork">Work</label>
-            <input id="pomodoroWork" type="number" min="1" step="1" value="25">
+            <input id="pomodoroWork" type="number" min="1" step="1" value="25" />
           </div>
           <div class="field">
             <label id="breakLabel" for="pomodoroBreak">Break</label>
-            <input id="pomodoroBreak" type="number" min="1" step="1" value="5">
+            <input id="pomodoroBreak" type="number" min="1" step="1" value="5" />
           </div>
         </div>
 
@@ -159,22 +162,38 @@
         <div id="pomodoroStatus" class="status">Ready</div>
       </section>
 
+      <!-- STOPWATCH -->
+      <section id="stopwatchPanel" class="panel">
+        <div class="display-wrap small-wrap">
+          <div class="ring stopwatch-ring-static"></div>
+          <div id="stopwatchDisplay" class="display smaller-display">00:00:00.0</div>
+        </div>
+
+        <div class="controls">
+          <button id="swStartBtn" class="primary">Start</button>
+          <button id="swLapBtn">Lap</button>
+          <button id="swResetBtn">Reset</button>
+        </div>
+
+        <div id="stopwatchStatus" class="status">Ready</div>
+
+        <div class="laps-box">
+          <div id="lapsTitle" class="laps-title">Laps</div>
+          <div id="lapsList" class="laps-list"></div>
+        </div>
+      </section>
+
+      <!-- SOUNDS -->
       <section id="soundsPanel" class="panel">
         <h2 id="soundsTitle">Alarm sounds</h2>
         <p id="soundsDesc" class="panel-text">Select a sound and preview it.</p>
 
-        <div class="sound-list">
-          <label class="sound-item"><input type="radio" name="alarmSound" value="classic" checked> <span>Classic Bell</span></label>
-          <label class="sound-item"><input type="radio" name="alarmSound" value="digital"> <span>Digital Beep</span></label>
-          <label class="sound-item"><input type="radio" name="alarmSound" value="soft"> <span>Soft Tone</span></label>
-          <label class="sound-item"><input type="radio" name="alarmSound" value="urgent"> <span>Urgent Alarm</span></label>
-          <label class="sound-item"><input type="radio" name="alarmSound" value="zen"> <span>Zen Chime</span></label>
-          <label class="sound-item"><input type="radio" name="alarmSound" value="retro"> <span>Retro Clock</span></label>
-        </div>
-
-        <div class="controls single">
+        <div class="sound-actions">
           <button id="previewSoundBtn" class="primary">Preview sound</button>
         </div>
+
+        <div id="soundCountLabel" class="sound-count">50 sounds</div>
+        <div id="soundList" class="sound-list"></div>
       </section>
     </main>
   </div>
