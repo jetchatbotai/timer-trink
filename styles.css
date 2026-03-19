@@ -344,6 +344,13 @@ button:hover,
   flex: 1;
 }
 
+.mini-preview-btn {
+  min-width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  padding: 0 12px;
+}
+
 .laps-box {
   display: block;
   margin-top: 12px;
@@ -389,6 +396,52 @@ button:hover,
 .toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.alarm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 20, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 24px;
+}
+
+.alarm-overlay.hidden {
+  display: none;
+}
+
+.alarm-box {
+  width: min(460px, 100%);
+  background: linear-gradient(180deg, rgba(19, 31, 56, 0.98), rgba(13, 24, 46, 0.98));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 24px;
+  padding: 28px 22px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+  text-align: center;
+}
+
+.alarm-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.alarm-message {
+  color: var(--muted);
+  margin-bottom: 18px;
+  font-size: 1.05rem;
+}
+
+.alarm-dismiss-btn {
+  width: 100%;
+  padding: 16px 14px;
+  font-weight: 800;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
 }
 
 .flash {
@@ -474,49 +527,4 @@ button:hover,
   .panel {
     padding: 18px;
   }
-}
-.alarm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(5, 10, 20, 0.72);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  padding: 24px;
-}
-
-.alarm-overlay.hidden {
-  display: none;
-}
-
-.alarm-box {
-  width: min(460px, 100%);
-  background: linear-gradient(180deg, rgba(19, 31, 56, 0.98), rgba(13, 24, 46, 0.98));
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 24px;
-  padding: 28px 22px;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
-  text-align: center;
-}
-
-.alarm-title {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 10px;
-}
-
-.alarm-message {
-  color: var(--muted);
-  margin-bottom: 18px;
-  font-size: 1.05rem;
-}
-
-.alarm-dismiss-btn {
-  width: 100%;
-  padding: 16px 14px;
-  font-weight: 800;
-  border: none;
-  border-radius: 18px;
-  cursor: pointer;
 }
