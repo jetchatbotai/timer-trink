@@ -16,7 +16,7 @@
 body.light {
   --bg1: #eef2ff;
   --bg2: #e0f2fe;
-  --card: rgba(255, 255, 255, 0.75);
+  --card: rgba(255, 255, 255, 0.78);
   --card-border: rgba(255, 255, 255, 0.7);
   --text: #0f172a;
   --muted: #475569;
@@ -24,7 +24,7 @@ body.light {
   --accent-2: #0891b2;
   --btn: rgba(15, 23, 42, 0.08);
   --btn-hover: rgba(15, 23, 42, 0.14);
-  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-bg: rgba(255, 255, 255, 0.85);
   --shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
 }
 
@@ -58,7 +58,7 @@ body {
 
 .card {
   width: 100%;
-  max-width: 470px;
+  max-width: 520px;
   background: var(--card);
   backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
@@ -78,19 +78,17 @@ body {
 .topbar h1 {
   margin: 0;
   font-size: 2rem;
-  line-height: 1.2;
 }
 
 .top-actions {
   display: flex;
-  align-items: center;
   gap: 10px;
+  align-items: center;
 }
 
 .subtitle {
-  margin: 10px 0 22px;
+  margin: 10px 0 18px;
   color: var(--muted);
-  font-size: 0.98rem;
 }
 
 select,
@@ -116,15 +114,56 @@ select option {
   color: #111;
 }
 
-.input-wrap {
-  margin: 18px 0 10px;
+.icon-btn,
+.quick-btn,
+.buttons button,
+.tab-btn,
+.wide-btn {
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: var(--btn);
+  color: var(--text);
+  transition: transform 0.15s ease, background 0.2s ease;
 }
 
-#minutes {
-  width: 100%;
-  padding: 15px 16px;
-  font-size: 1.1rem;
-  text-align: center;
+.icon-btn:hover,
+.quick-btn:hover,
+.buttons button:hover,
+.tab-btn:hover,
+.wide-btn:hover {
+  background: var(--btn-hover);
+  transform: translateY(-1px);
+}
+
+.icon-btn {
+  width: 42px;
+  height: 42px;
+}
+
+.nav-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.tab-btn {
+  padding: 12px 10px;
+  font-weight: 700;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
 }
 
 .timer-ring {
@@ -144,46 +183,51 @@ select option {
     conic-gradient(var(--accent) 0deg, var(--accent-2) 180deg, rgba(255,255,255,0.12) 180deg);
   mask: radial-gradient(circle, transparent 61%, black 62%);
   -webkit-mask: radial-gradient(circle, transparent 61%, black 62%);
-  opacity: 0.95;
   transition: background 0.4s ease;
 }
 
 .display {
   position: relative;
   z-index: 2;
-  font-size: 4rem;
+  font-size: 3.5rem;
   font-weight: 700;
-  letter-spacing: 1px;
 }
 
 .quick-times {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin-bottom: 8px;
-}
-
-.quick-btn,
-.buttons button,
-.icon-btn {
-  border: none;
-  cursor: pointer;
-  border-radius: 14px;
-  background: var(--btn);
-  color: var(--text);
-  transition: transform 0.15s ease, background 0.2s ease;
-}
-
-.quick-btn:hover,
-.buttons button:hover,
-.icon-btn:hover {
-  background: var(--btn-hover);
-  transform: translateY(-1px);
+  margin-bottom: 14px;
 }
 
 .quick-btn {
   padding: 12px 8px;
   font-weight: 700;
+}
+
+.time-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.time-box {
+  text-align: left;
+}
+
+.time-box label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.time-box input {
+  width: 100%;
+  padding: 14px 12px;
+  text-align: center;
+  font-size: 1.05rem;
 }
 
 .buttons {
@@ -203,12 +247,6 @@ select option {
   color: white;
 }
 
-.icon-btn {
-  width: 42px;
-  height: 42px;
-  font-size: 1rem;
-}
-
 .options {
   margin-top: 18px;
   display: grid;
@@ -226,7 +264,60 @@ select option {
 .status {
   margin-top: 16px;
   min-height: 24px;
-  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.section-title {
+  margin: 6px 0 8px;
+}
+
+.section-desc {
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.sound-list {
+  display: grid;
+  gap: 12px;
+  text-align: left;
+}
+
+.sound-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--btn);
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.wide-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px 12px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-card {
+  background: var(--btn);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: left;
+}
+
+.settings-card h3 {
+  margin: 0 0 8px;
+}
+
+.settings-card p {
+  margin: 0;
   color: var(--muted);
 }
 
@@ -240,7 +331,27 @@ select option {
   100% { transform: scale(1); }
 }
 
-@media (max-width: 520px) {
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(40px);
+  background: linear-gradient(135deg, #7c3aed, #06b6d4);
+  color: white;
+  padding: 14px 22px;
+  border-radius: 14px;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 9999;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (max-width: 560px) {
   .card {
     padding: 18px 14px 22px;
     border-radius: 22px;
@@ -266,14 +377,19 @@ select option {
   }
 
   .display {
-    font-size: 3.2rem;
+    font-size: 3rem;
   }
 
   .quick-times {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .buttons {
+  .time-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .buttons,
+  .nav-tabs {
     grid-template-columns: 1fr;
   }
 }
