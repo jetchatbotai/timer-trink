@@ -637,4 +637,179 @@ function startPersistentAlarm({ title, message, onDismiss }) {
 function stopPersistentAlarm() {
   if (alarmState.intervalId) {
     clearInterval(alarmState.intervalId);
-    alarmState.intervalId =
+    alarmState.intervalId = null;
+  }
+  if ("vibrate" in navigator) {
+    navigator.vibrate(0);
+  }
+  alarmState.active = false;
+  alarmOverlay.classList.add("hidden");
+}
+
+function dismissAlarm() {
+  const pending = alarmState.pendingAction;
+  stopPersistentAlarm();
+  alarmState.pendingAction = null;
+  if (typeof pending === "function") {
+    pending();
+  }
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+  document.querySelectorAll(".panel").forEach((panel) => {
+    panel.classList.toggle("active", panel.id === tabId);
+  });
+}
+
+function renderSounds() {
+  soundList.innerHTML = "";
+  SOUND_PRESETS.forEach((preset) => {
+    const label = document.createElement("label");
+    label.className = "sound-item";
+    label.innerHTML = `
+      <input type="radio" name="alarmSound" value="${preset.id}" ${preset.id === selectedSoundId ? "checked" : ""}>
+      <span>${preset.name}</span>
+      <button type="button" class="chip mini-preview-btn" data-sound-id="${preset.id}">▶</button>
+    `;
+    soundList.appendChild(label);
+  });
+
+  soundList.querySelectorAll('input[name="alarmSound"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      selectedSoundId = input.value;
+    });
+  });
+
+  soundList.querySelectorAll(".mini-preview-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedSoundId = btn.dataset.soundId;
+      const radio = soundList.querySelector(`input[value="${selectedSoundId}"]`);
+      if (radio) radio.checked = true;
+      playSelectedSound();
+    });
+  });
+}
+
+function applyLanguage() {
+  const lang = languageSelect.value || "en";
+  document.documentElement.lang = lang;
+  document.documentElement.dir = ["ar", "fa", "ur", "he"].includes(lang) ? "rtl" : "ltr";
+
+  $("subtitle").textContent = t("subtitle");
+  $("tabTimer").textContent = t("timer");
+  $("tabPomodoro").textContent = t("pomodoro");
+  $("tabStopwatch").textContent = t("stopwatch");
+  $("tabSounds").textContent = t("sounds");
+
+  $("hoursLabel").textContent = t("hours");
+  $("minutesLabel").textContent = t("minutes");
+  $("secondsLabel").textContent = t("seconds");
+
+  $("timerStartBtn").textContent = t("start");
+  $("timerPauseBtn").textContent = t("pause");
+  $("timerResetBtn").textContent = t("reset");
+
+  $("soundLabel").textContent = t("soundOn");
+  $("vibrationLabel").textContent = t("vibrationOn");
+
+  $("pomodoroTitle").textContent = t("pomodoroTitle");
+  $("pomodoroDesc").textContent = t("pomodoroDesc");
+  $("workLabel").textContent = t("work");
+  $("breakLabel").textContent = t("break");
+  $("applyPomodoroBtn").textContent = t("applyPomodoro");
+
+  $("swStartBtn").textContent = stopwatchState.running ? t("pause") : t("start");
+  $("swLapBtn").textContent = t("lap");
+  $("swResetBtn").textContent = t("reset");
+
+  $("soundsTitle").textContent = t("soundsTitle");
+  $("soundsDesc").textContent = t("soundsDesc");
+  $("previewSoundBtn").textContent = t("preview");
+  $("soundCountLabel").textContent = t("soundCount");
+  $("lapsTitle").textContent = t("laps");
+
+  dismissAlarmBtn.textContent = t("dismissAlarm");
+
+  if (!timerState.running && timerState.timeLeft === 0) {
+    timerStatus.textContent = t("ready");
+  }
+  if (!stopwatchState.running && stopwatchState.elapsedMs === 0) {
+    stopwatchStatus.textContent = t("ready");
+  }
+  if (!pomodoroStatus.textContent.trim()) {
+    pomodoroStatus.textContent = t("ready");
+  }
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem("timerTrinkTheme");
+  if (saved === "light") {
+    document.body.classList.add("light");
+    themeToggle.textContent = "☀️";
+  } else {
+    themeToggle.textContent = "🌙";
+  }
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("light");
+  const isLight = document.body.classList.contains("light");
+  themeToggle.textContent = isLight ? "☀️" : "🌙";
+  localStorage.setItem("timerTrinkTheme", isLight ? "light" : "dark");
+}
+
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+});
+
+document.querySelectorAll(".timer-quick-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setQuickTimer(
+      clampNumber(btn.dataset.h),
+      clampNumber(btn.dataset.m),
+      clampNumber(btn.dataset.s)
+    );
+  });
+});
+
+document.querySelectorAll(".preset-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    pomodoroWork.value = clampNumber(btn.dataset.work);
+    pomodoroBreak.value = clampNumber(btn.dataset.break);
+    showToast(`${btn.dataset.work}/${btn.dataset.break} Pomodoro`);
+  });
+});
+
+$("timerStartBtn").addEventListener("click", startTimer);
+$("timerPauseBtn").addEventListener("click", pauseTimer);
+$("timerResetBtn").addEventListener("click", resetTimer);
+
+$("applyPomodoroBtn").addEventListener("click", applyPomodoro);
+
+$("swStartBtn").addEventListener("click", () => {
+  toggleStopwatchStartPause();
+  $("swStartBtn").textContent = stopwatchState.running ? t("pause") : t("start");
+});
+$("swLapBtn").addEventListener("click", lapStopwatch);
+$("swResetBtn").addEventListener("click", () => {
+  resetStopwatch();
+  $("swStartBtn").textContent = t("start");
+});
+
+$("previewSoundBtn").addEventListener("click", playSelectedSound);
+dismissAlarmBtn.addEventListener("click", dismissAlarm);
+
+languageSelect.addEventListener("change", applyLanguage);
+themeToggle.addEventListener("click", toggleTheme);
+
+loadTheme();
+renderSounds();
+applyLanguage();
+updateTimerDisplay();
+stopwatchDisplay.textContent = "00:00:00.0";
+timerStatus.textContent = t("ready");
+pomodoroStatus.textContent = t("ready");
+stopwatchStatus.textContent = t("ready");
