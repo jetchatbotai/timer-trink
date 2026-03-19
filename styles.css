@@ -34,8 +34,7 @@ html, body {
   margin: 0;
   min-height: 100%;
   font-family: Arial, sans-serif;
-  background:
-    linear-gradient(135deg, var(--bg1), var(--bg2));
+  background: linear-gradient(135deg, var(--bg1), var(--bg2));
   color: var(--text);
 }
 
@@ -139,7 +138,7 @@ select option {
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-bottom: 18px;
 }
@@ -197,6 +196,11 @@ button:hover,
   place-items: center;
 }
 
+.small-wrap {
+  width: 320px;
+  height: 320px;
+}
+
 .ring {
   position: absolute;
   inset: 0;
@@ -207,12 +211,20 @@ button:hover,
   transition: background 0.35s ease;
 }
 
+.stopwatch-ring-static {
+  background: conic-gradient(var(--primary) 0deg, var(--secondary) 260deg, var(--ring-rest) 260deg);
+}
+
 .display {
   position: relative;
   z-index: 1;
   font-size: 5rem;
   font-weight: 800;
   letter-spacing: 1px;
+}
+
+.smaller-display {
+  font-size: 4rem;
 }
 
 .quick-row,
@@ -265,7 +277,8 @@ button:hover,
   grid-template-columns: 1fr;
 }
 
-.controls button {
+.controls button,
+.sound-actions button {
   padding: 16px 12px;
   font-weight: 700;
 }
@@ -277,7 +290,8 @@ button:hover,
 }
 
 .toggle-item,
-.sound-item {
+.sound-item,
+.laps-box {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -304,9 +318,56 @@ button:hover,
   color: var(--muted);
 }
 
+.sound-actions {
+  margin-bottom: 16px;
+}
+
+.sound-count {
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
 .sound-list {
   display: grid;
-  gap: 14px;
+  gap: 12px;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.sound-item {
+  justify-content: flex-start;
+}
+
+.sound-item span {
+  flex: 1;
+}
+
+.laps-box {
+  display: block;
+  margin-top: 12px;
+}
+
+.laps-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.laps-list {
+  display: grid;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.lap-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 10px 12px;
 }
 
 .toast {
@@ -346,8 +407,17 @@ button:hover,
     height: 300px;
   }
 
+  .small-wrap {
+    width: 270px;
+    height: 270px;
+  }
+
   .display {
     font-size: 4rem;
+  }
+
+  .smaller-display {
+    font-size: 3rem;
   }
 }
 
@@ -384,8 +454,17 @@ button:hover,
     height: 250px;
   }
 
+  .small-wrap {
+    width: 220px;
+    height: 220px;
+  }
+
   .display {
     font-size: 3rem;
+  }
+
+  .smaller-display {
+    font-size: 2.3rem;
   }
 
   .brand {
