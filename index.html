@@ -7,15 +7,18 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
   <div class="app">
     <header class="topbar">
-      <div class="brand-wrap">
-        <div class="brand">⏱ Timer Trink!</div>
-        <div id="subtitle" class="subtitle">Basit, hızlı ve çok dilli zamanlayıcı</div>
+      <div class="brand-group">
+        <h1 class="brand">⏱ Timer Trink!</h1>
+        <p id="subtitle" class="subtitle">Simple timer for focus and daily use</p>
       </div>
 
-      <div class="top-controls">
-        <select id="language" aria-label="Language">
+      <div class="top-actions">
+        <select id="language">
           <option value="tr">Türkçe</option>
           <option value="en">English</option>
           <option value="ru">Русский</option>
@@ -38,154 +41,145 @@
           <option value="ms">Bahasa Melayu</option>
           <option value="vi">Tiếng Việt</option>
           <option value="el">Ελληνικά</option>
+          <option value="cs">Čeština</option>
+          <option value="ro">Română</option>
+          <option value="hu">Magyar</option>
+          <option value="bg">Български</option>
+          <option value="sr">Srpski</option>
+          <option value="hr">Hrvatski</option>
+          <option value="sk">Slovenčina</option>
+          <option value="sl">Slovenščina</option>
+          <option value="da">Dansk</option>
+          <option value="fi">Suomi</option>
+          <option value="no">Norsk</option>
+          <option value="lt">Lietuvių</option>
+          <option value="lv">Latviešu</option>
+          <option value="et">Eesti</option>
+          <option value="he">עברית</option>
+          <option value="th">ไทย</option>
+          <option value="bn">বাংলা</option>
+          <option value="ur">اردو</option>
+          <option value="ta">தமிழ்</option>
+          <option value="te">తెలుగు</option>
+          <option value="ml">മലയാളം</option>
+          <option value="mr">मराठी</option>
+          <option value="gu">ગુજરાતી</option>
+          <option value="pa">ਪੰਜਾਬੀ</option>
+          <option value="sw">Kiswahili</option>
+          <option value="am">አማርኛ</option>
+          <option value="az">Azərbaycanca</option>
+          <option value="kk">Қазақша</option>
         </select>
 
         <button id="themeToggle" class="icon-btn" type="button">🌙</button>
       </div>
     </header>
 
-    <nav class="main-tabs">
-      <button class="tab-btn active" data-tab="timerTab" id="tabTimer">Timer</button>
-      <button class="tab-btn" data-tab="pomodoroTab" id="tabPomodoro">Pomodoro</button>
-      <button class="tab-btn" data-tab="soundsTab" id="tabSounds">Sesler</button>
-      <button class="tab-btn" data-tab="settingsTab" id="tabSettings">Ayarlar</button>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="timerPanel" id="tabTimer">Timer</button>
+      <button class="tab-btn" data-tab="pomodoroPanel" id="tabPomodoro">Pomodoro</button>
+      <button class="tab-btn" data-tab="soundsPanel" id="tabSounds">Sounds</button>
     </nav>
 
-    <main class="content">
-      <!-- TIMER -->
-      <section id="timerTab" class="tab-content active">
-        <div class="hero">
-          <div class="timer-ring">
-            <div class="ring"></div>
-            <div id="display" class="display">00:00:00</div>
+    <main>
+      <section id="timerPanel" class="panel active">
+        <div class="display-wrap">
+          <div class="ring" id="ring"></div>
+          <div id="display" class="display">00:00:00</div>
+        </div>
+
+        <div class="quick-row">
+          <button class="chip quick-btn" data-h="0" data-m="1" data-s="0">1m</button>
+          <button class="chip quick-btn" data-h="0" data-m="5" data-s="0">5m</button>
+          <button class="chip quick-btn" data-h="0" data-m="10" data-s="0">10m</button>
+          <button class="chip quick-btn" data-h="0" data-m="25" data-s="0">25m</button>
+        </div>
+
+        <div class="inputs-grid">
+          <div class="field">
+            <label id="hoursLabel" for="hours">Hours</label>
+            <input id="hours" type="number" min="0" step="1" value="0">
+          </div>
+          <div class="field">
+            <label id="minutesLabel" for="minutes">Minutes</label>
+            <input id="minutes" type="number" min="0" step="1" value="0">
+          </div>
+          <div class="field">
+            <label id="secondsLabel" for="seconds">Seconds</label>
+            <input id="seconds" type="number" min="0" step="1" value="0">
           </div>
         </div>
 
-        <div class="chip-row">
-          <button class="chip quick-btn" data-hours="0" data-minutes="1" data-seconds="0">1m</button>
-          <button class="chip quick-btn" data-hours="0" data-minutes="5" data-seconds="0">5m</button>
-          <button class="chip quick-btn" data-hours="0" data-minutes="10" data-seconds="0">10m</button>
-          <button class="chip quick-btn" data-hours="0" data-minutes="25" data-seconds="0">25m</button>
+        <div class="controls">
+          <button id="startBtn" class="primary">Start</button>
+          <button id="pauseBtn">Pause</button>
+          <button id="resetBtn">Reset</button>
         </div>
 
-        <div class="time-inputs">
-          <div class="time-box">
-            <label id="hoursLabel" for="hours">Saat</label>
-            <input type="number" id="hours" min="0" step="1" value="0" />
-          </div>
-          <div class="time-box">
-            <label id="minutesLabel" for="minutes">Dakika</label>
-            <input type="number" id="minutes" min="0" step="1" value="0" />
-          </div>
-          <div class="time-box">
-            <label id="secondsLabel" for="seconds">Saniye</label>
-            <input type="number" id="seconds" min="0" step="1" value="0" />
-          </div>
-        </div>
-
-        <div class="action-row">
-          <button id="startBtn" class="primary action-btn" type="button">Başlat</button>
-          <button id="pauseBtn" class="action-btn" type="button">Duraklat</button>
-          <button id="resetBtn" class="action-btn" type="button">Sıfırla</button>
-        </div>
-
-        <div class="options-grid">
-          <label class="option-item">
-            <input type="checkbox" id="soundToggle" checked />
-            <span id="soundLabel">Ses açık</span>
+        <div class="toggles">
+          <label class="toggle-item">
+            <input type="checkbox" id="soundToggle" checked>
+            <span id="soundLabel">Sound on</span>
           </label>
-          <label class="option-item">
-            <input type="checkbox" id="vibrationToggle" checked />
-            <span id="vibrationLabel">Titreşim açık</span>
+          <label class="toggle-item">
+            <input type="checkbox" id="vibrationToggle" checked>
+            <span id="vibrationLabel">Vibration on</span>
           </label>
         </div>
 
-        <div id="status" class="status"></div>
+        <div id="status" class="status">Ready</div>
       </section>
 
-      <!-- POMODORO -->
-      <section id="pomodoroTab" class="tab-content">
-        <div class="panel">
-          <h2 id="pomodoroTitle">Pomodoro</h2>
-          <p id="pomodoroDesc" class="panel-desc">Hazır odak döngülerinden birini seç.</p>
+      <section id="pomodoroPanel" class="panel">
+        <h2 id="pomodoroTitle">Pomodoro</h2>
+        <p id="pomodoroDesc" class="panel-text">Choose a focus preset and load it into timer.</p>
 
-          <div class="pomodoro-grid">
-            <button class="preset-btn" data-work="25" data-break="5" data-longbreak="15" data-cycles="4">25 / 5</button>
-            <button class="preset-btn" data-work="50" data-break="10" data-longbreak="20" data-cycles="4">50 / 10</button>
-            <button class="preset-btn" data-work="15" data-break="3" data-longbreak="10" data-cycles="4">15 / 3</button>
-            <button class="preset-btn" data-work="90" data-break="20" data-longbreak="30" data-cycles="2">90 / 20</button>
-          </div>
-
-          <div class="pomodoro-settings">
-            <div class="time-box">
-              <label id="workLabel" for="pomodoroWork">Çalışma</label>
-              <input type="number" id="pomodoroWork" min="1" value="25" />
-            </div>
-            <div class="time-box">
-              <label id="shortBreakLabel" for="pomodoroBreak">Kısa Mola</label>
-              <input type="number" id="pomodoroBreak" min="1" value="5" />
-            </div>
-            <div class="time-box">
-              <label id="longBreakLabel" for="pomodoroLongBreak">Uzun Mola</label>
-              <input type="number" id="pomodoroLongBreak" min="1" value="15" />
-            </div>
-            <div class="time-box">
-              <label id="cyclesLabel" for="pomodoroCycles">Tur</label>
-              <input type="number" id="pomodoroCycles" min="1" value="4" />
-            </div>
-          </div>
-
-          <div class="action-row">
-            <button id="applyPomodoroBtn" class="primary action-btn" type="button">Pomodoro Uygula</button>
-          </div>
-
-          <div id="pomodoroStatus" class="status"></div>
+        <div class="preset-grid">
+          <button class="preset-btn" data-work="25" data-break="5">25 / 5</button>
+          <button class="preset-btn" data-work="50" data-break="10">50 / 10</button>
+          <button class="preset-btn" data-work="15" data-break="3">15 / 3</button>
+          <button class="preset-btn" data-work="90" data-break="20">90 / 20</button>
         </div>
-      </section>
 
-      <!-- SOUNDS -->
-      <section id="soundsTab" class="tab-content">
-        <div class="panel">
-          <h2 id="soundsTitle">Alarm Sesleri</h2>
-          <p id="soundsDesc" class="panel-desc">Bir ses seç ve önizleme yap.</p>
-
-          <div class="sound-list">
-            <label class="sound-item"><input type="radio" name="alarmSound" value="classic" checked /><span>Classic Bell</span></label>
-            <label class="sound-item"><input type="radio" name="alarmSound" value="digital" /><span>Digital Beep</span></label>
-            <label class="sound-item"><input type="radio" name="alarmSound" value="soft" /><span>Soft Tone</span></label>
-            <label class="sound-item"><input type="radio" name="alarmSound" value="urgent" /><span>Urgent Alarm</span></label>
-            <label class="sound-item"><input type="radio" name="alarmSound" value="zen" /><span>Zen Chime</span></label>
-            <label class="sound-item"><input type="radio" name="alarmSound" value="retro" /><span>Retro Clock</span></label>
+        <div class="inputs-grid inputs-grid-2">
+          <div class="field">
+            <label id="workLabel" for="pomodoroWork">Work</label>
+            <input id="pomodoroWork" type="number" min="1" step="1" value="25">
           </div>
-
-          <button id="previewSoundBtn" class="wide-btn" type="button">Sesi Dinle</button>
+          <div class="field">
+            <label id="breakLabel" for="pomodoroBreak">Break</label>
+            <input id="pomodoroBreak" type="number" min="1" step="1" value="5">
+          </div>
         </div>
+
+        <div class="controls single">
+          <button id="applyPomodoroBtn" class="primary">Apply Pomodoro</button>
+        </div>
+
+        <div id="pomodoroStatus" class="status">Ready</div>
       </section>
 
-      <!-- SETTINGS -->
-      <section id="settingsTab" class="tab-content">
-        <div class="panel">
-          <h2 id="settingsTitle">Ayarlar</h2>
-          <p id="settingsDesc" class="panel-desc">Genel uygulama seçenekleri</p>
+      <section id="soundsPanel" class="panel">
+        <h2 id="soundsTitle">Alarm sounds</h2>
+        <p id="soundsDesc" class="panel-text">Select a sound and preview it.</p>
 
-          <div class="settings-grid">
-            <div class="settings-card">
-              <h3 id="themeTitle">Tema</h3>
-              <p id="themeDesc">Koyu veya açık görünüm</p>
-            </div>
-            <div class="settings-card">
-              <h3 id="langTitle">Dil</h3>
-              <p id="langDesc">Arayüz dilini değiştir</p>
-            </div>
-            <div class="settings-card">
-              <h3 id="aboutTitle">Hakkında</h3>
-              <p id="aboutDesc">Timer Trink! çok dilli akıllı zamanlayıcıdır.</p>
-            </div>
-          </div>
+        <div class="sound-list">
+          <label class="sound-item"><input type="radio" name="alarmSound" value="classic" checked> <span>Classic Bell</span></label>
+          <label class="sound-item"><input type="radio" name="alarmSound" value="digital"> <span>Digital Beep</span></label>
+          <label class="sound-item"><input type="radio" name="alarmSound" value="soft"> <span>Soft Tone</span></label>
+          <label class="sound-item"><input type="radio" name="alarmSound" value="urgent"> <span>Urgent Alarm</span></label>
+          <label class="sound-item"><input type="radio" name="alarmSound" value="zen"> <span>Zen Chime</span></label>
+          <label class="sound-item"><input type="radio" name="alarmSound" value="retro"> <span>Retro Clock</span></label>
+        </div>
+
+        <div class="controls single">
+          <button id="previewSoundBtn" class="primary">Preview sound</button>
         </div>
       </section>
     </main>
   </div>
+
+  <div id="toast" class="toast"></div>
 
   <script src="app.js"></script>
 </body>
