@@ -1,0 +1,12 @@
+{
+  "appId": "com.timertrink.app",
+  "appName": "Timer Trink!",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
