@@ -21,9 +21,9 @@
         <select id="language">
           <option value="tr">Türkçe</option>
           <option value="en">English</option>
+          <option value="de">Deutsch</option>
           <option value="ru">Русский</option>
           <option value="zh">中文</option>
-          <option value="de">Deutsch</option>
           <option value="fr">Français</option>
           <option value="es">Español</option>
           <option value="ar">العربية</option>
@@ -83,7 +83,6 @@
     </nav>
 
     <main>
-      <!-- TIMER -->
       <section id="timerPanel" class="panel active">
         <div class="display-wrap">
           <div class="ring" id="timerRing"></div>
@@ -132,7 +131,6 @@
         <div id="timerStatus" class="status">Ready</div>
       </section>
 
-      <!-- POMODORO -->
       <section id="pomodoroPanel" class="panel">
         <h2 id="pomodoroTitle">Pomodoro</h2>
         <p id="pomodoroDesc" class="panel-text">Choose a focus preset and load it into timer.</p>
@@ -162,7 +160,6 @@
         <div id="pomodoroStatus" class="status">Ready</div>
       </section>
 
-      <!-- STOPWATCH -->
       <section id="stopwatchPanel" class="panel">
         <div class="display-wrap small-wrap">
           <div class="ring stopwatch-ring-static"></div>
@@ -183,7 +180,6 @@
         </div>
       </section>
 
-      <!-- SOUNDS -->
       <section id="soundsPanel" class="panel">
         <h2 id="soundsTitle">Alarm sounds</h2>
         <p id="soundsDesc" class="panel-text">Select a sound and preview it.</p>
@@ -192,7 +188,7 @@
           <button id="previewSoundBtn" class="primary">Preview sound</button>
         </div>
 
-        <div id="soundCountLabel" class="sound-count">50 sounds</div>
+        <div id="soundCountLabel" class="sound-count">50 unique sounds</div>
         <div id="soundList" class="sound-list"></div>
       </section>
     </main>
@@ -200,25 +196,14 @@
 
   <div id="toast" class="toast"></div>
 
+  <div id="alarmOverlay" class="alarm-overlay hidden">
+    <div class="alarm-box">
+      <div id="alarmTitle" class="alarm-title">Time is up!</div>
+      <div id="alarmMessage" class="alarm-message">Alarm is ringing</div>
+      <button id="dismissAlarmBtn" class="primary alarm-dismiss-btn">Dismiss</button>
+    </div>
+  </div>
+
   <script src="app.js"></script>
-  <div id="alarmOverlay" class="alarm-overlay hidden">
-  <div class="alarm-box">
-    <div id="alarmTitle" class="alarm-title">Süre doldu!</div>
-    <div id="alarmMessage" class="alarm-message">Alarm çalıyor</div>
-    <button id="dismissAlarmBtn" class="primary alarm-dismiss-btn">Kapat</button>
-  </div>
-  <div id="alarmOverlay" class="alarm-overlay hidden">
-  <div class="alarm-box">
-    <div id="alarmTitle" class="alarm-title">Süre doldu!</div>
-    <div id="alarmMessage" class="alarm-message">Alarm çalıyor</div>
-    <button id="dismissAlarmBtn" class="primary alarm-dismiss-btn">Kapat</button>
-  </div>
-<div id="alarmOverlay" class="alarm-overlay hidden">
-  <div class="alarm-box">
-    <div id="alarmTitle" class="alarm-title">Süre doldu!</div>
-    <div id="alarmMessage" class="alarm-message">Alarm çalıyor</div>
-    <button id="dismissAlarmBtn" class="primary alarm-dismiss-btn">Kapat</button>
-  </div>
-</div>
 </body>
 </html>
