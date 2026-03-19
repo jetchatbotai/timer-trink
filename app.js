@@ -2,6 +2,9 @@ let timer = null;
 let timeLeft = 0;
 let totalTime = 0;
 let running = false;
+let pomodoroMode = false;
+let pomodoroPhase = "work";
+let pomodoroCurrentCycle = 1;
 
 const display = document.getElementById("display");
 const hoursInput = document.getElementById("hours");
@@ -14,6 +17,7 @@ const pauseBtn = document.getElementById("pauseBtn");
 const resetBtn = document.getElementById("resetBtn");
 const subtitle = document.getElementById("subtitle");
 const statusEl = document.getElementById("status");
+const pomodoroStatus = document.getElementById("pomodoroStatus");
 const soundToggle = document.getElementById("soundToggle");
 const vibrationToggle = document.getElementById("vibrationToggle");
 const soundLabel = document.getElementById("soundLabel");
@@ -22,6 +26,8 @@ const themeToggle = document.getElementById("themeToggle");
 const ring = document.querySelector(".ring");
 const quickButtons = document.querySelectorAll(".quick-btn");
 const previewSoundBtn = document.getElementById("previewSoundBtn");
+const presetButtons = document.querySelectorAll(".preset-btn");
+const applyPomodoroBtn = document.getElementById("applyPomodoroBtn");
 
 const tabButtons = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -29,6 +35,11 @@ const tabContents = document.querySelectorAll(".tab-content");
 const hoursLabel = document.getElementById("hoursLabel");
 const minutesLabel = document.getElementById("minutesLabel");
 const secondsLabel = document.getElementById("secondsLabel");
+
+const pomodoroWork = document.getElementById("pomodoroWork");
+const pomodoroBreak = document.getElementById("pomodoroBreak");
+const pomodoroLongBreak = document.getElementById("pomodoroLongBreak");
+const pomodoroCycles = document.getElementById("pomodoroCycles");
 
 const translations = {
   tr: {
@@ -48,6 +59,7 @@ const translations = {
     minutes: "Dakika",
     seconds: "Saniye",
     tabTimer: "Timer",
+    tabPomodoro: "Pomodoro",
     tabSounds: "Sesler",
     tabSettings: "Ayarlar",
     soundsTitle: "Alarm Sesleri",
@@ -60,7 +72,18 @@ const translations = {
     langTitle: "Dil",
     langDesc: "Arayüz dilini değiştir",
     aboutTitle: "Hakkında",
-    aboutDesc: "Timer Trink! çok dilli akıllı zamanlayıcıdır."
+    aboutDesc: "Timer Trink! çok dilli akıllı zamanlayıcıdır.",
+    pomodoroTitle: "Pomodoro",
+    pomodoroDesc: "Hazır odak döngülerinden birini seç.",
+    work: "Çalışma",
+    shortBreak: "Kısa Mola",
+    longBreak: "Uzun Mola",
+    cycles: "Tur",
+    applyPomodoro: "Pomodoro Uygula",
+    pomodoroApplied: "Pomodoro ayarları yüklendi",
+    pomodoroWorkPhase: "Odak süresi",
+    pomodoroBreakPhase: "Kısa mola",
+    pomodoroLongBreakPhase: "Uzun mola"
   },
   en: {
     subtitle: "Simple, fast and multilingual timer",
@@ -79,6 +102,7 @@ const translations = {
     minutes: "Minutes",
     seconds: "Seconds",
     tabTimer: "Timer",
+    tabPomodoro: "Pomodoro",
     tabSounds: "Sounds",
     tabSettings: "Settings",
     soundsTitle: "Alarm Sounds",
@@ -91,131 +115,18 @@ const translations = {
     langTitle: "Language",
     langDesc: "Change interface language",
     aboutTitle: "About",
-    aboutDesc: "Timer Trink! is a multilingual smart timer."
-  },
-  de: {
-    subtitle: "Einfacher, schneller und mehrsprachiger Timer",
-    start: "Start",
-    pause: "Pause",
-    reset: "Zurücksetzen",
-    done: "Die Zeit ist um!",
-    invalid: "Bitte gib eine gültige Zeit ein.",
-    soundOn: "Ton an",
-    vibrationOn: "Vibration an",
-    ready: "Bereit",
-    paused: "Pausiert",
-    running: "Timer läuft",
-    reseted: "Zurückgesetzt",
-    hours: "Stunden",
-    minutes: "Minuten",
-    seconds: "Sekunden",
-    tabTimer: "Timer",
-    tabSounds: "Töne",
-    tabSettings: "Einstellungen",
-    soundsTitle: "Alarmtöne",
-    soundsDesc: "Wähle einen Ton und höre ihn an.",
-    preview: "Ton anhören",
-    settingsTitle: "Einstellungen",
-    settingsDesc: "Allgemeine App-Optionen",
-    themeTitle: "Thema",
-    themeDesc: "Dunkle oder helle Ansicht",
-    langTitle: "Sprache",
-    langDesc: "Sprache der Oberfläche ändern",
-    aboutTitle: "Info",
-    aboutDesc: "Timer Trink! ist ein mehrsprachiger smarter Timer."
-  },
-  fr: {
-    subtitle: "Minuteur simple, rapide et multilingue",
-    start: "Démarrer",
-    pause: "Pause",
-    reset: "Réinitialiser",
-    done: "Le temps est écoulé !",
-    invalid: "Veuillez entrer une durée valide.",
-    soundOn: "Son activé",
-    vibrationOn: "Vibration activée",
-    ready: "Prêt",
-    paused: "En pause",
-    running: "Le minuteur fonctionne",
-    reseted: "Réinitialisé",
-    hours: "Heures",
-    minutes: "Minutes",
-    seconds: "Secondes",
-    tabTimer: "Timer",
-    tabSounds: "Sons",
-    tabSettings: "Réglages",
-    soundsTitle: "Sons d’alarme",
-    soundsDesc: "Choisissez un son et écoutez l’aperçu.",
-    preview: "Écouter",
-    settingsTitle: "Réglages",
-    settingsDesc: "Options générales de l'application",
-    themeTitle: "Thème",
-    themeDesc: "Apparence sombre ou claire",
-    langTitle: "Langue",
-    langDesc: "Changer la langue de l’interface",
-    aboutTitle: "À propos",
-    aboutDesc: "Timer Trink! est un minuteur intelligent multilingue."
-  },
-  es: {
-    subtitle: "Temporizador simple, rápido y multilingüe",
-    start: "Iniciar",
-    pause: "Pausar",
-    reset: "Restablecer",
-    done: "¡Se acabó el tiempo!",
-    invalid: "Introduce un tiempo válido.",
-    soundOn: "Sonido activado",
-    vibrationOn: "Vibración activada",
-    ready: "Listo",
-    paused: "Pausado",
-    running: "El temporizador está en marcha",
-    reseted: "Restablecido",
-    hours: "Horas",
-    minutes: "Minutos",
-    seconds: "Segundos",
-    tabTimer: "Timer",
-    tabSounds: "Sonidos",
-    tabSettings: "Ajustes",
-    soundsTitle: "Sonidos de alarma",
-    soundsDesc: "Elige un sonido y escúchalo.",
-    preview: "Escuchar sonido",
-    settingsTitle: "Ajustes",
-    settingsDesc: "Opciones generales de la aplicación",
-    themeTitle: "Tema",
-    themeDesc: "Modo oscuro o claro",
-    langTitle: "Idioma",
-    langDesc: "Cambiar idioma de la interfaz",
-    aboutTitle: "Acerca de",
-    aboutDesc: "Timer Trink! es un temporizador inteligente multilingüe."
-  },
-  ar: {
-    subtitle: "مؤقت بسيط وسريع ومتعدد اللغات",
-    start: "ابدأ",
-    pause: "إيقاف",
-    reset: "إعادة ضبط",
-    done: "انتهى الوقت!",
-    invalid: "يرجى إدخال وقت صحيح.",
-    soundOn: "الصوت مفعل",
-    vibrationOn: "الاهتزاز مفعل",
-    ready: "جاهز",
-    paused: "متوقف مؤقتًا",
-    running: "المؤقت يعمل",
-    reseted: "تمت إعادة الضبط",
-    hours: "ساعات",
-    minutes: "دقائق",
-    seconds: "ثوانٍ",
-    tabTimer: "المؤقت",
-    tabSounds: "الأصوات",
-    tabSettings: "الإعدادات",
-    soundsTitle: "أصوات التنبيه",
-    soundsDesc: "اختر صوتًا واستمع إليه.",
-    preview: "تشغيل الصوت",
-    settingsTitle: "الإعدادات",
-    settingsDesc: "خيارات التطبيق العامة",
-    themeTitle: "السمة",
-    themeDesc: "مظهر داكن أو فاتح",
-    langTitle: "اللغة",
-    langDesc: "تغيير لغة الواجهة",
-    aboutTitle: "حول",
-    aboutDesc: "Timer Trink! مؤقت ذكي متعدد اللغات."
+    aboutDesc: "Timer Trink! is a multilingual smart timer.",
+    pomodoroTitle: "Pomodoro",
+    pomodoroDesc: "Choose one of the ready focus cycles.",
+    work: "Work",
+    shortBreak: "Short Break",
+    longBreak: "Long Break",
+    cycles: "Cycles",
+    applyPomodoro: "Apply Pomodoro",
+    pomodoroApplied: "Pomodoro settings loaded",
+    pomodoroWorkPhase: "Focus time",
+    pomodoroBreakPhase: "Short break",
+    pomodoroLongBreakPhase: "Long break"
   },
   ru: {
     subtitle: "Простой, быстрый и многоязычный таймер",
@@ -234,6 +145,7 @@ const translations = {
     minutes: "Минуты",
     seconds: "Секунды",
     tabTimer: "Таймер",
+    tabPomodoro: "Помодоро",
     tabSounds: "Звуки",
     tabSettings: "Настройки",
     soundsTitle: "Звуки будильника",
@@ -246,21 +158,100 @@ const translations = {
     langTitle: "Язык",
     langDesc: "Изменить язык интерфейса",
     aboutTitle: "О приложении",
-    aboutDesc: "Timer Trink! — многоязычный умный таймер."
+    aboutDesc: "Timer Trink! — многоязычный умный таймер.",
+    pomodoroTitle: "Помодоро",
+    pomodoroDesc: "Выберите готовый цикл фокусировки.",
+    work: "Работа",
+    shortBreak: "Короткий перерыв",
+    longBreak: "Длинный перерыв",
+    cycles: "Циклы",
+    applyPomodoro: "Применить Pomodoro",
+    pomodoroApplied: "Настройки Pomodoro загружены",
+    pomodoroWorkPhase: "Фокус",
+    pomodoroBreakPhase: "Короткий перерыв",
+    pomodoroLongBreakPhase: "Длинный перерыв"
+  },
+  zh: {
+    subtitle: "简单、快速、多语言计时器",
+    start: "开始",
+    pause: "暂停",
+    reset: "重置",
+    done: "时间到！",
+    invalid: "请输入有效时间。",
+    soundOn: "声音开启",
+    vibrationOn: "震动开启",
+    ready: "准备就绪",
+    paused: "已暂停",
+    running: "计时器运行中",
+    reseted: "已重置",
+    hours: "小时",
+    minutes: "分钟",
+    seconds: "秒",
+    tabTimer: "计时器",
+    tabPomodoro: "番茄钟",
+    tabSounds: "声音",
+    tabSettings: "设置",
+    soundsTitle: "闹铃声音",
+    soundsDesc: "选择一个声音并试听。",
+    preview: "试听声音",
+    settingsTitle: "设置",
+    settingsDesc: "应用常规选项",
+    themeTitle: "主题",
+    themeDesc: "深色或浅色外观",
+    langTitle: "语言",
+    langDesc: "更改界面语言",
+    aboutTitle: "关于",
+    aboutDesc: "Timer Trink! 是一款多语言智能计时器。",
+    pomodoroTitle: "番茄钟",
+    pomodoroDesc: "选择一个预设专注循环。",
+    work: "工作",
+    shortBreak: "短休息",
+    longBreak: "长休息",
+    cycles: "循环",
+    applyPomodoro: "应用番茄钟",
+    pomodoroApplied: "番茄钟设置已加载",
+    pomodoroWorkPhase: "专注时间",
+    pomodoroBreakPhase: "短休息",
+    pomodoroLongBreakPhase: "长休息"
   }
 };
+
+const fallback = translations.en;
+const extraLangs = {
+  de: { ...fallback, subtitle: "Einfacher, schneller und mehrsprachiger Timer" },
+  fr: { ...fallback, subtitle: "Minuteur simple, rapide et multilingue" },
+  es: { ...fallback, subtitle: "Temporizador simple, rápido y multilingüe" },
+  ar: { ...fallback, subtitle: "مؤقت بسيط وسريع ومتعدد اللغات" },
+  it: { ...fallback, subtitle: "Timer semplice, veloce e multilingue" },
+  pt: { ...fallback, subtitle: "Temporizador simples, rápido e multilíngue" },
+  ja: { ...fallback, subtitle: "シンプルで高速な多言語タイマー" },
+  ko: { ...fallback, subtitle: "간단하고 빠른 다국어 타이머" },
+  hi: { ...fallback, subtitle: "सरल, तेज और बहुभाषी टाइमर" },
+  fa: { ...fallback, subtitle: "تایمر ساده، سریع و چندزبانه" },
+  uk: { ...fallback, subtitle: "Простий, швидкий і багатомовний таймер" },
+  pl: { ...fallback, subtitle: "Prosty, szybki i wielojęzyczny timer" },
+  nl: { ...fallback, subtitle: "Eenvoudige, snelle en meertalige timer" },
+  sv: { ...fallback, subtitle: "Enkel, snabb och flerspråkig timer" },
+  id: { ...fallback, subtitle: "Timer sederhana, cepat, dan multibahasa" },
+  ms: { ...fallback, subtitle: "Pemasa ringkas, pantas dan pelbagai bahasa" },
+  vi: { ...fallback, subtitle: "Bộ đếm giờ đơn giản, nhanh và đa ngôn ngữ" },
+  el: { ...fallback, subtitle: "Απλός, γρήγορος και πολύγλωσσος χρονοδιακόπτης" }
+};
+
+Object.assign(translations, extraLangs);
 
 function getLang() {
   return languageSelect.value;
 }
 
 function getText(key) {
-  return translations[getLang()][key];
+  return (translations[getLang()] && translations[getLang()][key]) || fallback[key] || key;
 }
 
 function updateLanguage() {
-  document.documentElement.lang = getLang();
-  document.documentElement.dir = getLang() === "ar" ? "rtl" : "ltr";
+  const lang = getLang();
+  document.documentElement.lang = lang;
+  document.documentElement.dir = ["ar", "fa"].includes(lang) ? "rtl" : "ltr";
 
   subtitle.textContent = getText("subtitle");
   startBtn.textContent = getText("start");
@@ -273,6 +264,7 @@ function updateLanguage() {
   secondsLabel.textContent = getText("seconds");
 
   document.getElementById("tabTimer").textContent = getText("tabTimer");
+  document.getElementById("tabPomodoro").textContent = getText("tabPomodoro");
   document.getElementById("tabSounds").textContent = getText("tabSounds");
   document.getElementById("tabSettings").textContent = getText("tabSettings");
 
@@ -289,21 +281,24 @@ function updateLanguage() {
   document.getElementById("aboutTitle").textContent = getText("aboutTitle");
   document.getElementById("aboutDesc").textContent = getText("aboutDesc");
 
+  document.getElementById("pomodoroTitle").textContent = getText("pomodoroTitle");
+  document.getElementById("pomodoroDesc").textContent = getText("pomodoroDesc");
+  document.getElementById("workLabel").textContent = getText("work");
+  document.getElementById("shortBreakLabel").textContent = getText("shortBreak");
+  document.getElementById("longBreakLabel").textContent = getText("longBreak");
+  document.getElementById("cyclesLabel").textContent = getText("cycles");
+  applyPomodoroBtn.textContent = getText("applyPomodoro");
+
   if (!running && timeLeft === 0) {
     statusEl.textContent = getText("ready");
   }
 }
 
 function formatTime(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return (
-    String(hours).padStart(2, "0") + ":" +
-    String(minutes).padStart(2, "0") + ":" +
-    String(seconds).padStart(2, "0")
-  );
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
 function updateDisplay() {
@@ -314,15 +309,13 @@ function updateDisplay() {
 function updateRing() {
   if (totalTime <= 0) {
     ring.style.background =
-      "conic-gradient(var(--accent) 0deg, var(--accent-2) 180deg, rgba(255,255,255,0.12) 180deg)";
+      "conic-gradient(var(--primary) 0deg, var(--secondary) 180deg, var(--ring-rest) 180deg)";
     return;
   }
-
   const progress = timeLeft / totalTime;
   const degrees = Math.max(0, Math.min(360, progress * 360));
-
   ring.style.background =
-    `conic-gradient(var(--accent) 0deg, var(--accent-2) ${degrees}deg, rgba(255,255,255,0.12) ${degrees}deg)`;
+    `conic-gradient(var(--primary) 0deg, var(--secondary) ${degrees}deg, var(--ring-rest) ${degrees}deg)`;
 }
 
 function getSelectedSound() {
@@ -342,7 +335,9 @@ function playTone(type = "classic") {
     classic: [880, 660, 880],
     digital: [900, 900, 900, 900],
     soft: [440, 554, 659],
-    urgent: [1000, 800, 1000, 800, 1000]
+    urgent: [1000, 800, 1000, 800, 1000],
+    zen: [523, 659, 784],
+    retro: [660, 550, 440, 660]
   };
 
   const sequence = tones[type] || tones.classic;
@@ -350,19 +345,18 @@ function playTone(type = "classic") {
   sequence.forEach((freq, index) => {
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
+    oscillator.type = ["soft", "zen"].includes(type) ? "sine" : "square";
+    oscillator.frequency.setValueAtTime(freq, ctx.currentTime + index * 0.24);
 
-    oscillator.type = type === "soft" ? "sine" : "square";
-    oscillator.frequency.setValueAtTime(freq, ctx.currentTime + index * 0.25);
-
-    gainNode.gain.setValueAtTime(0.0001, ctx.currentTime + index * 0.25);
-    gainNode.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + index * 0.25 + 0.02);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + index * 0.25 + 0.2);
+    gainNode.gain.setValueAtTime(0.0001, ctx.currentTime + index * 0.24);
+    gainNode.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + index * 0.24 + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + index * 0.24 + 0.19);
 
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
 
-    oscillator.start(ctx.currentTime + index * 0.25);
-    oscillator.stop(ctx.currentTime + index * 0.25 + 0.22);
+    oscillator.start(ctx.currentTime + index * 0.24);
+    oscillator.stop(ctx.currentTime + index * 0.24 + 0.2);
   });
 }
 
@@ -374,21 +368,18 @@ function vibrateDevice() {
 }
 
 function flashUI() {
-  document.querySelector(".card").classList.add("flash");
-  setTimeout(() => {
-    document.querySelector(".card").classList.remove("flash");
-  }, 2200);
+  const activePanel = document.querySelector(".tab-content.active .hero, .tab-content.active .panel");
+  if (!activePanel) return;
+  activePanel.classList.add("flash");
+  setTimeout(() => activePanel.classList.remove("flash"), 2200);
 }
 
 function showToast(message) {
-  let toast = document.createElement("div");
+  const toast = document.createElement("div");
   toast.className = "toast";
   toast.textContent = message;
-
   document.body.appendChild(toast);
-
   setTimeout(() => toast.classList.add("show"), 50);
-
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 300);
@@ -398,21 +389,75 @@ function showToast(message) {
 function finishTimer() {
   clearInterval(timer);
   running = false;
-  timeLeft = 0;
-  updateDisplay();
   playTone(getSelectedSound());
   vibrateDevice();
   flashUI();
-  statusEl.textContent = getText("done");
   showToast(getText("done"));
+
+  if (pomodoroMode) {
+    handlePomodoroTransition();
+    return;
+  }
+
+  timeLeft = 0;
+  updateDisplay();
+  statusEl.textContent = getText("done");
+}
+
+function handlePomodoroTransition() {
+  const workMin = parseInt(pomodoroWork.value, 10);
+  const breakMin = parseInt(pomodoroBreak.value, 10);
+  const longBreakMin = parseInt(pomodoroLongBreak.value, 10);
+  const cycles = parseInt(pomodoroCycles.value, 10);
+
+  if (pomodoroPhase === "work") {
+    if (pomodoroCurrentCycle >= cycles) {
+      pomodoroPhase = "longBreak";
+      timeLeft = longBreakMin * 60;
+      totalTime = timeLeft;
+      pomodoroStatus.textContent = getText("pomodoroLongBreakPhase");
+    } else {
+      pomodoroPhase = "shortBreak";
+      timeLeft = breakMin * 60;
+      totalTime = timeLeft;
+      pomodoroStatus.textContent = getText("pomodoroBreakPhase");
+    }
+  } else if (pomodoroPhase === "shortBreak") {
+    pomodoroCurrentCycle++;
+    pomodoroPhase = "work";
+    timeLeft = workMin * 60;
+    totalTime = timeLeft;
+    pomodoroStatus.textContent = `${getText("pomodoroWorkPhase")} ${pomodoroCurrentCycle}/${cycles}`;
+  } else {
+    pomodoroMode = false;
+    pomodoroPhase = "work";
+    pomodoroCurrentCycle = 1;
+    timeLeft = 0;
+    totalTime = 0;
+    pomodoroStatus.textContent = getText("ready");
+    updateDisplay();
+    return;
+  }
+
+  updateDisplay();
+  running = true;
+  timer = setInterval(tick, 1000);
+}
+
+function tick() {
+  if (timeLeft > 0) {
+    timeLeft--;
+    updateDisplay();
+  } else {
+    finishTimer();
+  }
 }
 
 function getInputSeconds() {
   const h = parseInt(hoursInput.value || "0", 10);
   const m = parseInt(minutesInput.value || "0", 10);
   const s = parseInt(secondsInput.value || "0", 10);
-
-  return (Math.max(0, h) * 3600) + (Math.max(0, m) * 60) + Math.max(0, s);
+  return Math.max(0, h) * 3600 + Math.max(0, m) * 60 + Math.max(0, s);
 }
 
 function startTimer() {
@@ -420,39 +465,35 @@ function startTimer() {
 
   if (timeLeft === 0) {
     const total = getInputSeconds();
-
     if (!total || total <= 0) {
       showToast(getText("invalid"));
       return;
     }
-
     timeLeft = total;
     totalTime = total;
+    pomodoroMode = false;
     updateDisplay();
   }
 
   running = true;
   statusEl.textContent = getText("running");
-
-  timer = setInterval(() => {
-    if (timeLeft > 0) {
-      timeLeft--;
-      updateDisplay();
-    } else {
-      finishTimer();
-    }
-  }, 1000);
+  clearInterval(timer);
+  timer = setInterval(tick, 1000);
 }
 
 function pauseTimer() {
   clearInterval(timer);
   running = false;
   statusEl.textContent = getText("paused");
+  pomodoroStatus.textContent = getText("paused");
 }
 
 function resetTimer() {
   clearInterval(timer);
   running = false;
+  pomodoroMode = false;
+  pomodoroPhase = "work";
+  pomodoroCurrentCycle = 1;
   timeLeft = 0;
   totalTime = 0;
   hoursInput.value = 0;
@@ -460,11 +501,13 @@ function resetTimer() {
   secondsInput.value = 0;
   updateDisplay();
   statusEl.textContent = getText("reseted");
+  pomodoroStatus.textContent = getText("reseted");
 }
 
 function setQuickTime(h, m, s) {
   clearInterval(timer);
   running = false;
+  pomodoroMode = false;
   hoursInput.value = h;
   minutesInput.value = m;
   secondsInput.value = s;
@@ -472,6 +515,24 @@ function setQuickTime(h, m, s) {
   totalTime = timeLeft;
   updateDisplay();
   statusEl.textContent = getText("ready");
+}
+
+function applyPomodoro() {
+  clearInterval(timer);
+  running = false;
+  pomodoroMode = true;
+  pomodoroPhase = "work";
+  pomodoroCurrentCycle = 1;
+
+  const workMin = parseInt(pomodoroWork.value, 10);
+  timeLeft = workMin * 60;
+  totalTime = timeLeft;
+  updateDisplay();
+
+  pomodoroStatus.textContent = `${getText("pomodoroWorkPhase")} 1/${parseInt(pomodoroCycles.value, 10)}`;
+  statusEl.textContent = getText("pomodoroApplied");
+  showToast(getText("pomodoroApplied"));
+  switchTab("timerTab");
 }
 
 function toggleTheme() {
@@ -494,7 +555,6 @@ function loadTheme() {
 function switchTab(tabId) {
   tabButtons.forEach(btn => btn.classList.remove("active"));
   tabContents.forEach(tab => tab.classList.remove("active"));
-
   document.querySelector(`[data-tab="${tabId}"]`).classList.add("active");
   document.getElementById(tabId).classList.add("active");
 }
@@ -505,13 +565,25 @@ resetBtn.addEventListener("click", resetTimer);
 languageSelect.addEventListener("change", updateLanguage);
 themeToggle.addEventListener("click", toggleTheme);
 previewSoundBtn.addEventListener("click", () => playTone(getSelectedSound()));
+applyPomodoroBtn.addEventListener("click", applyPomodoro);
 
 quickButtons.forEach(btn => {
   btn.addEventListener("click", () => {
-    const h = parseInt(btn.dataset.hours, 10);
-    const m = parseInt(btn.dataset.minutes, 10);
-    const s = parseInt(btn.dataset.seconds, 10);
-    setQuickTime(h, m, s);
+    setQuickTime(
+      parseInt(btn.dataset.hours, 10),
+      parseInt(btn.dataset.minutes, 10),
+      parseInt(btn.dataset.seconds, 10)
+    );
+  });
+});
+
+presetButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    pomodoroWork.value = btn.dataset.work;
+    pomodoroBreak.value = btn.dataset.break;
+    pomodoroLongBreak.value = btn.dataset.longbreak;
+    pomodoroCycles.value = btn.dataset.cycles;
+    showToast(`${btn.dataset.work}/${btn.dataset.break} ${getText("pomodoroApplied")}`);
   });
 });
 
@@ -523,3 +595,4 @@ loadTheme();
 updateLanguage();
 updateDisplay();
 statusEl.textContent = getText("ready");
+pomodoroStatus.textContent = getText("ready");
