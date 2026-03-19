@@ -15,6 +15,21 @@ const stopwatchState = {
   laps: []
 };
 
+const pomodoroState = {
+  enabled: false,
+  phase: "work", // work | break
+  workMinutes: 25,
+  breakMinutes: 5,
+  pendingResume: false
+};
+
+const alarmState = {
+  intervalId: null,
+  audioContext: null,
+  active: false,
+  pendingAction: null
+};
+
 const languageSelect = $("language");
 const themeToggle = $("themeToggle");
 const toastEl = $("toast");
@@ -33,6 +48,14 @@ const minutesInput = $("minutes");
 const secondsInput = $("seconds");
 const pomodoroWork = $("pomodoroWork");
 const pomodoroBreak = $("pomodoroBreak");
+
+const soundToggle = $("soundToggle");
+const vibrationToggle = $("vibrationToggle");
+
+const alarmOverlay = $("alarmOverlay");
+const alarmTitle = $("alarmTitle");
+const alarmMessage = $("alarmMessage");
+const dismissAlarmBtn = $("dismissAlarmBtn");
 
 const baseTranslations = {
   en: {
@@ -67,7 +90,13 @@ const baseTranslations = {
     soundsDesc: "Select a sound and preview it.",
     preview: "Preview sound",
     laps: "Laps",
-    soundCount: "50 sounds"
+    soundCount: "50 unique sounds",
+    dismissAlarm: "Dismiss",
+    alarmPlaying: "Alarm is ringing",
+    focusFinished: "Focus session finished",
+    breakFinished: "Break finished",
+    workStatus: "Focus period",
+    breakStatus: "Break period"
   },
   tr: {
     subtitle: "Odak ve günlük kullanım için basit zamanlayıcı",
@@ -101,7 +130,13 @@ const baseTranslations = {
     soundsDesc: "Bir ses seç ve önizleme yap.",
     preview: "Sesi dinle",
     laps: "Turlar",
-    soundCount: "50 ses"
+    soundCount: "50 farklı ses",
+    dismissAlarm: "Kapat",
+    alarmPlaying: "Alarm çalıyor",
+    focusFinished: "Odak süresi bitti",
+    breakFinished: "Mola bitti",
+    workStatus: "Odak süresi",
+    breakStatus: "Mola süresi"
   },
   ru: {
     subtitle: "Простой таймер для фокуса и повседневного использования",
@@ -135,7 +170,13 @@ const baseTranslations = {
     soundsDesc: "Выберите звук и прослушайте его.",
     preview: "Прослушать",
     laps: "Круги",
-    soundCount: "50 звуков"
+    soundCount: "50 разных звуков",
+    dismissAlarm: "Закрыть",
+    alarmPlaying: "Будильник звонит",
+    focusFinished: "Сеанс фокуса завершён",
+    breakFinished: "Перерыв завершён",
+    workStatus: "Фокус",
+    breakStatus: "Перерыв"
   },
   zh: {
     subtitle: "适合专注和日常使用的简洁计时器",
@@ -169,150 +210,20 @@ const baseTranslations = {
     soundsDesc: "选择一个声音并试听。",
     preview: "试听声音",
     laps: "计圈",
-    soundCount: "50 个声音"
-  },
-  de: {
-    subtitle: "Einfacher Timer für Fokus und Alltag",
-    timer: "Timer",
-    pomodoro: "Pomodoro",
-    stopwatch: "Stoppuhr",
-    sounds: "Töne",
-    start: "Start",
-    pause: "Pause",
-    reset: "Zurücksetzen",
-    lap: "Runde",
-    soundOn: "Ton an",
-    vibrationOn: "Vibration an",
-    ready: "Bereit",
-    paused: "Pausiert",
-    running: "Timer läuft",
-    stopwatchRunning: "Stoppuhr läuft",
-    reseted: "Zurückgesetzt",
-    invalid: "Bitte gültige Zeit eingeben.",
-    done: "Zeit ist um!",
-    hours: "Stunden",
-    minutes: "Minuten",
-    seconds: "Sekunden",
-    pomodoroTitle: "Pomodoro",
-    pomodoroDesc: "Wähle ein Fokus-Preset und lade es in den Timer.",
-    work: "Arbeit",
-    break: "Pause",
-    applyPomodoro: "Pomodoro anwenden",
-    pomodoroApplied: "Pomodoro in Timer geladen",
-    soundsTitle: "Alarmtöne",
-    soundsDesc: "Wähle einen Ton und höre ihn an.",
-    preview: "Ton anhören",
-    laps: "Runden",
-    soundCount: "50 Töne"
-  },
-  fr: {
-    subtitle: "Minuteur simple pour la concentration et l’usage quotidien",
-    timer: "Minuteur",
-    pomodoro: "Pomodoro",
-    stopwatch: "Chronomètre",
-    sounds: "Sons",
-    start: "Démarrer",
-    pause: "Pause",
-    reset: "Réinitialiser",
-    lap: "Tour",
-    soundOn: "Son activé",
-    vibrationOn: "Vibration activée",
-    ready: "Prêt",
-    paused: "En pause",
-    running: "Le minuteur fonctionne",
-    stopwatchRunning: "Le chronomètre fonctionne",
-    reseted: "Réinitialisé",
-    invalid: "Veuillez saisir une durée valide.",
-    done: "Le temps est écoulé !",
-    hours: "Heures",
-    minutes: "Minutes",
-    seconds: "Secondes",
-    pomodoroTitle: "Pomodoro",
-    pomodoroDesc: "Choisissez un preset de concentration et chargez-le dans le minuteur.",
-    work: "Travail",
-    break: "Pause",
-    applyPomodoro: "Appliquer Pomodoro",
-    pomodoroApplied: "Pomodoro chargé dans le minuteur",
-    soundsTitle: "Sons d’alarme",
-    soundsDesc: "Choisissez un son et écoutez l’aperçu.",
-    preview: "Écouter",
-    laps: "Tours",
-    soundCount: "50 sons"
-  },
-  es: {
-    subtitle: "Temporizador simple para enfoque y uso diario",
-    timer: "Temporizador",
-    pomodoro: "Pomodoro",
-    stopwatch: "Cronómetro",
-    sounds: "Sonidos",
-    start: "Iniciar",
-    pause: "Pausar",
-    reset: "Restablecer",
-    lap: "Vuelta",
-    soundOn: "Sonido activado",
-    vibrationOn: "Vibración activada",
-    ready: "Listo",
-    paused: "Pausado",
-    running: "El temporizador está en marcha",
-    stopwatchRunning: "El cronómetro está en marcha",
-    reseted: "Restablecido",
-    invalid: "Introduce un tiempo válido.",
-    done: "¡Se acabó el tiempo!",
-    hours: "Horas",
-    minutes: "Minutos",
-    seconds: "Segundos",
-    pomodoroTitle: "Pomodoro",
-    pomodoroDesc: "Elige un preset de enfoque y cárgalo en el temporizador.",
-    work: "Trabajo",
-    break: "Descanso",
-    applyPomodoro: "Aplicar Pomodoro",
-    pomodoroApplied: "Pomodoro cargado en el temporizador",
-    soundsTitle: "Sonidos de alarma",
-    soundsDesc: "Elige un sonido y escúchalo.",
-    preview: "Escuchar sonido",
-    laps: "Vueltas",
-    soundCount: "50 sonidos"
-  },
-  ar: {
-    subtitle: "مؤقت بسيط للتركيز والاستخدام اليومي",
-    timer: "المؤقت",
-    pomodoro: "بومودورو",
-    stopwatch: "ساعة إيقاف",
-    sounds: "الأصوات",
-    start: "ابدأ",
-    pause: "إيقاف",
-    reset: "إعادة ضبط",
-    lap: "لفة",
-    soundOn: "الصوت مفعل",
-    vibrationOn: "الاهتزاز مفعل",
-    ready: "جاهز",
-    paused: "متوقف مؤقتًا",
-    running: "المؤقت يعمل",
-    stopwatchRunning: "ساعة الإيقاف تعمل",
-    reseted: "تمت إعادة الضبط",
-    invalid: "يرجى إدخال وقت صحيح.",
-    done: "انتهى الوقت!",
-    hours: "ساعات",
-    minutes: "دقائق",
-    seconds: "ثوانٍ",
-    pomodoroTitle: "بومودورو",
-    pomodoroDesc: "اختر إعداد تركيز جاهز وحمّله في المؤقت.",
-    work: "العمل",
-    break: "الاستراحة",
-    applyPomodoro: "تطبيق بومودورو",
-    pomodoroApplied: "تم تحميل بومودورو إلى المؤقت",
-    soundsTitle: "أصوات التنبيه",
-    soundsDesc: "اختر صوتًا واستمع إليه.",
-    preview: "تشغيل الصوت",
-    laps: "اللفات",
-    soundCount: "50 صوتًا"
+    soundCount: "50 种不同声音",
+    dismissAlarm: "关闭",
+    alarmPlaying: "闹铃正在响",
+    focusFinished: "专注时间结束",
+    breakFinished: "休息结束",
+    workStatus: "专注时间",
+    breakStatus: "休息时间"
   }
 };
 
 const fallbackLanguageCodes = [
-  "it","pt","ja","ko","hi","fa","uk","pl","nl","sv","id","ms","vi","el","cs","ro","hu","bg","sr",
-  "hr","sk","sl","da","fi","no","lt","lv","et","he","th","bn","ur","ta","te","ml","mr","gu","pa",
-  "sw","am","az","kk"
+  "de","fr","es","ar","it","pt","ja","ko","hi","fa","uk","pl","nl","sv","id","ms","vi","el","cs",
+  "ro","hu","bg","sr","hr","sk","sl","da","fi","no","lt","lv","et","he","th","bn","ur","ta","te",
+  "ml","mr","gu","pa","sw","am","az","kk"
 ];
 
 for (const code of fallbackLanguageCodes) {
@@ -321,28 +232,82 @@ for (const code of fallbackLanguageCodes) {
   }
 }
 
-const SOUND_PRESETS = Array.from({ length: 50 }, (_, i) => {
-  const bank = [
-    { name: "Classic Bell", freqs: [880, 660, 880], type: "square" },
-    { name: "Digital Beep", freqs: [900, 900, 900, 900], type: "square" },
-    { name: "Soft Tone", freqs: [440, 554, 659], type: "sine" },
-    { name: "Urgent Alarm", freqs: [1000, 800, 1000, 800, 1000], type: "square" },
-    { name: "Zen Chime", freqs: [523, 659, 784], type: "sine" },
-    { name: "Retro Clock", freqs: [660, 550, 440, 660], type: "triangle" },
-    { name: "Crystal Pulse", freqs: [720, 860, 1020], type: "triangle" },
-    { name: "Morning Ping", freqs: [600, 750, 900], type: "sine" },
-    { name: "Sharp Signal", freqs: [1100, 1100, 900], type: "square" },
-    { name: "Focus Bell", freqs: [700, 840, 700], type: "triangle" }
-  ];
-  const base = bank[i % bank.length];
-  const octave = Math.floor(i / bank.length) * 20;
-  return {
-    id: `sound_${i + 1}`,
-    name: `${i + 1}. ${base.name}`,
-    type: base.type,
-    freqs: base.freqs.map(f => f + octave)
-  };
-});
+const uniqueSoundNames = [
+  "Classic Bell",
+  "Digital Beep",
+  "Soft Tone",
+  "Urgent Alarm",
+  "Zen Chime",
+  "Retro Clock",
+  "Crystal Pulse",
+  "Morning Ping",
+  "Sharp Signal",
+  "Focus Bell",
+  "Forest Birds",
+  "Rain Drift",
+  "Ocean Drop",
+  "Wind Whisper",
+  "Stream Echo",
+  "Night Crickets",
+  "Temple Bowl",
+  "Glass Ripple",
+  "Sunrise Bloom",
+  "Silver Pulse",
+  "Deep Wood",
+  "Water Pebble",
+  "Thunder Mist",
+  "Sky Harp",
+  "Bamboo Air",
+  "Cloud Bell",
+  "River Light",
+  "Aurora Tone",
+  "Meadow Bird",
+  "Cave Drop",
+  "Moon Echo",
+  "Leaf Rustle",
+  "Stone Bell",
+  "Snow Chime",
+  "Fire Spark",
+  "Dawn Chorus",
+  "Blue Lake",
+  "Amber Clock",
+  "Lotus Tone",
+  "Arctic Wind",
+  "Velvet Pulse",
+  "Copper Bell",
+  "Misty Garden",
+  "Night River",
+  "Golden Ping",
+  "Willow Drop",
+  "Echo Reed",
+  "Calm Tide",
+  "Bright Signal",
+  "Silent Grove"
+];
+
+function makeSequence(index) {
+  const base = 320 + (index % 10) * 35;
+  const family = Math.floor(index / 10);
+
+  switch (family) {
+    case 0:
+      return { type: "square", pattern: [base + 300, base + 120, base + 300, base + 180], noteMs: 180, gapMs: 80 };
+    case 1:
+      return { type: "sine", pattern: [base, base + 60, base + 110, base + 170], noteMs: 220, gapMs: 90 };
+    case 2:
+      return { type: "triangle", pattern: [base + 40, base + 95, base + 160, base + 220], noteMs: 170, gapMs: 70 };
+    case 3:
+      return { type: "sawtooth", pattern: [base + 200, base + 150, base + 90, base + 240], noteMs: 150, gapMs: 60 };
+    default:
+      return { type: "sine", pattern: [base, base + 30, base + 80, base + 140, base + 200], noteMs: 200, gapMs: 85 };
+  }
+}
+
+const SOUND_PRESETS = uniqueSoundNames.map((name, index) => ({
+  id: `sound_${index + 1}`,
+  name: `${index + 1}. ${name}`,
+  ...makeSequence(index)
+}));
 
 let selectedSoundId = SOUND_PRESETS[0].id;
 
@@ -416,13 +381,49 @@ function timerTick() {
     updateTimerDisplay();
     return;
   }
+
   stopTimerInternal();
+
+  if (pomodoroState.enabled) {
+    const wasWork = pomodoroState.phase === "work";
+    startPersistentAlarm({
+      title: wasWork ? t("focusFinished") : t("breakFinished"),
+      message: t("alarmPlaying"),
+      onDismiss: () => {
+        if (wasWork) {
+          pomodoroState.phase = "break";
+          timerState.timeLeft = pomodoroState.breakMinutes * 60;
+          timerState.totalTime = timerState.timeLeft;
+          updateTimerDisplay();
+          pomodoroStatus.textContent = `${t("breakStatus")} • ${pomodoroState.breakMinutes}m`;
+        } else {
+          pomodoroState.phase = "work";
+          timerState.timeLeft = pomodoroState.workMinutes * 60;
+          timerState.totalTime = timerState.timeLeft;
+          updateTimerDisplay();
+          pomodoroStatus.textContent = `${t("workStatus")} • ${pomodoroState.workMinutes}m`;
+        }
+        startTimerFromExisting();
+      }
+    });
+    return;
+  }
+
   timerStatus.textContent = t("done");
-  playSelectedSound();
-  vibratePhone();
-  document.querySelector(".panel.active")?.classList.add("flash");
-  setTimeout(() => document.querySelector(".panel.active")?.classList.remove("flash"), 1800);
-  showToast(t("done"));
+  startPersistentAlarm({
+    title: t("done"),
+    message: t("alarmPlaying"),
+    onDismiss: () => {
+      timerStatus.textContent = t("done");
+    }
+  });
+}
+
+function startTimerFromExisting() {
+  stopTimerInternal();
+  timerState.running = true;
+  timerStatus.textContent = t("running");
+  timerState.timerId = setInterval(timerTick, 1000);
 }
 
 function startTimer() {
@@ -434,24 +435,27 @@ function startTimer() {
       showToast(t("invalid"));
       return;
     }
+    pomodoroState.enabled = false;
     timerState.timeLeft = total;
     timerState.totalTime = total;
     updateTimerDisplay();
   }
 
-  stopTimerInternal();
-  timerState.running = true;
-  timerStatus.textContent = t("running");
-  timerState.timerId = setInterval(timerTick, 1000);
+  startTimerFromExisting();
 }
 
 function pauseTimer() {
   stopTimerInternal();
   timerStatus.textContent = t("paused");
+  if (pomodoroState.enabled) {
+    pomodoroStatus.textContent = t("paused");
+  }
 }
 
 function resetTimer() {
   stopTimerInternal();
+  pomodoroState.enabled = false;
+  pomodoroState.phase = "work";
   timerState.timeLeft = 0;
   timerState.totalTime = 0;
   hoursInput.value = 0;
@@ -459,10 +463,13 @@ function resetTimer() {
   secondsInput.value = 0;
   updateTimerDisplay();
   timerStatus.textContent = t("reseted");
+  pomodoroStatus.textContent = t("ready");
+  stopPersistentAlarm();
 }
 
 function setQuickTimer(h, m, s) {
   stopTimerInternal();
+  pomodoroState.enabled = false;
   hoursInput.value = h;
   minutesInput.value = m;
   secondsInput.value = s;
@@ -470,6 +477,7 @@ function setQuickTimer(h, m, s) {
   timerState.totalTime = timerState.timeLeft;
   updateTimerDisplay();
   timerStatus.textContent = t("ready");
+  pomodoroStatus.textContent = t("ready");
 }
 
 function applyPomodoro() {
@@ -482,13 +490,20 @@ function applyPomodoro() {
   }
 
   stopTimerInternal();
+  pomodoroState.enabled = true;
+  pomodoroState.phase = "work";
+  pomodoroState.workMinutes = work;
+  pomodoroState.breakMinutes = brk;
+
   hoursInput.value = 0;
   minutesInput.value = work;
   secondsInput.value = 0;
+
   timerState.timeLeft = work * 60;
   timerState.totalTime = timerState.timeLeft;
   updateTimerDisplay();
-  pomodoroStatus.textContent = `${t("work")}: ${work}m / ${t("break")}: ${brk}m`;
+
+  pomodoroStatus.textContent = `${t("workStatus")} • ${work}m`;
   timerStatus.textContent = t("pomodoroApplied");
   showToast(t("pomodoroApplied"));
   switchTab("timerPanel");
@@ -496,7 +511,9 @@ function applyPomodoro() {
 
 function updateStopwatchDisplay() {
   const now = stopwatchState.running ? Date.now() : stopwatchState.lastStart;
-  const base = stopwatchState.running ? stopwatchState.elapsedMs + (now - stopwatchState.lastStart) : stopwatchState.elapsedMs;
+  const base = stopwatchState.running
+    ? stopwatchState.elapsedMs + (now - stopwatchState.lastStart)
+    : stopwatchState.elapsedMs;
   stopwatchDisplay.textContent = formatStopwatch(base);
 }
 
@@ -528,7 +545,7 @@ function resetStopwatch() {
   renderLaps();
 }
 
-function pauseOrHoldStopwatchStartButton() {
+function toggleStopwatchStartPause() {
   if (!stopwatchState.running) {
     startStopwatch();
     return;
@@ -550,195 +567,74 @@ function renderLaps() {
   });
 }
 
-function playToneSequence(sequence, type) {
-  if (!$("soundToggle").checked) return;
-
+function ensureAudioContext() {
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) return;
+  if (!AudioCtx) return null;
+  if (!alarmState.audioContext) {
+    alarmState.audioContext = new AudioCtx();
+  }
+  return alarmState.audioContext;
+}
 
-  const ctx = new AudioCtx();
-  sequence.forEach((freq, index) => {
+function playPresetOnce(preset) {
+  if (!soundToggle.checked) return;
+
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  const startAt = ctx.currentTime + 0.01;
+  preset.pattern.forEach((freq, index) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const noteStart = startAt + index * ((preset.noteMs + preset.gapMs) / 1000);
+    const noteEnd = noteStart + preset.noteMs / 1000;
 
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime + index * 0.18);
+    osc.type = preset.type;
+    osc.frequency.setValueAtTime(freq, noteStart);
 
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime + index * 0.18);
-    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + index * 0.18 + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + index * 0.18 + 0.14);
+    gain.gain.setValueAtTime(0.0001, noteStart);
+    gain.gain.exponentialRampToValueAtTime(0.18, noteStart + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, noteEnd);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.start(ctx.currentTime + index * 0.18);
-    osc.stop(ctx.currentTime + index * 0.18 + 0.15);
+
+    osc.start(noteStart);
+    osc.stop(noteEnd + 0.02);
   });
 }
 
 function playSelectedSound() {
-  const preset = SOUND_PRESETS.find(s => s.id === selectedSoundId) || SOUND_PRESETS[0];
-  playToneSequence(preset.freqs, preset.type);
+  const preset = SOUND_PRESETS.find((s) => s.id === selectedSoundId) || SOUND_PRESETS[0];
+  playPresetOnce(preset);
 }
 
-function vibratePhone() {
-  if (!$("vibrationToggle").checked) return;
-  if ("vibrate" in navigator) {
-    navigator.vibrate([220, 100, 220, 100, 320]);
+function startPersistentAlarm({ title, message, onDismiss }) {
+  stopPersistentAlarm();
+
+  alarmState.active = true;
+  alarmState.pendingAction = onDismiss || null;
+
+  alarmTitle.textContent = title;
+  alarmMessage.textContent = message;
+  dismissAlarmBtn.textContent = t("dismissAlarm");
+  alarmOverlay.classList.remove("hidden");
+
+  if (vibrationToggle.checked && "vibrate" in navigator) {
+    navigator.vibrate([300, 150, 300, 150, 300, 150, 500]);
   }
+
+  const preset = SOUND_PRESETS.find((s) => s.id === selectedSoundId) || SOUND_PRESETS[0];
+  playPresetOnce(preset);
+  alarmState.intervalId = setInterval(() => {
+    playPresetOnce(preset);
+    if (vibrationToggle.checked && "vibrate" in navigator) {
+      navigator.vibrate([200, 120, 200, 120, 350]);
+    }
+  }, 1800);
 }
 
-function switchTab(tabId) {
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.tab === tabId);
-  });
-  document.querySelectorAll(".panel").forEach(panel => {
-    panel.classList.toggle("active", panel.id === tabId);
-  });
-}
-
-function renderSounds() {
-  soundList.innerHTML = "";
-  SOUND_PRESETS.forEach((preset) => {
-    const label = document.createElement("label");
-    label.className = "sound-item";
-    label.innerHTML = `
-      <input type="radio" name="alarmSound" value="${preset.id}" ${preset.id === selectedSoundId ? "checked" : ""}>
-      <span>${preset.name}</span>
-      <button type="button" class="chip mini-preview-btn" data-sound-id="${preset.id}">▶</button>
-    `;
-    soundList.appendChild(label);
-  });
-
-  soundList.querySelectorAll('input[name="alarmSound"]').forEach((input) => {
-    input.addEventListener("change", () => {
-      selectedSoundId = input.value;
-    });
-  });
-
-  soundList.querySelectorAll(".mini-preview-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      selectedSoundId = btn.dataset.soundId;
-      const radio = soundList.querySelector(`input[value="${selectedSoundId}"]`);
-      if (radio) radio.checked = true;
-      playSelectedSound();
-    });
-  });
-}
-
-function applyLanguage() {
-  const lang = languageSelect.value || "en";
-  document.documentElement.lang = lang;
-  document.documentElement.dir = ["ar", "fa", "ur", "he"].includes(lang) ? "rtl" : "ltr";
-
-  $("subtitle").textContent = t("subtitle");
-  $("tabTimer").textContent = t("timer");
-  $("tabPomodoro").textContent = t("pomodoro");
-  $("tabStopwatch").textContent = t("stopwatch");
-  $("tabSounds").textContent = t("sounds");
-
-  $("hoursLabel").textContent = t("hours");
-  $("minutesLabel").textContent = t("minutes");
-  $("secondsLabel").textContent = t("seconds");
-
-  $("timerStartBtn").textContent = t("start");
-  $("timerPauseBtn").textContent = t("pause");
-  $("timerResetBtn").textContent = t("reset");
-
-  $("soundLabel").textContent = t("soundOn");
-  $("vibrationLabel").textContent = t("vibrationOn");
-
-  $("pomodoroTitle").textContent = t("pomodoroTitle");
-  $("pomodoroDesc").textContent = t("pomodoroDesc");
-  $("workLabel").textContent = t("work");
-  $("breakLabel").textContent = t("break");
-  $("applyPomodoroBtn").textContent = t("applyPomodoro");
-
-  $("swStartBtn").textContent = stopwatchState.running ? t("pause") : t("start");
-  $("swLapBtn").textContent = t("lap");
-  $("swResetBtn").textContent = t("reset");
-
-  $("soundsTitle").textContent = t("soundsTitle");
-  $("soundsDesc").textContent = t("soundsDesc");
-  $("previewSoundBtn").textContent = t("preview");
-  $("soundCountLabel").textContent = t("soundCount");
-  $("lapsTitle").textContent = t("laps");
-
-  if (!timerState.running && timerState.timeLeft === 0) {
-    timerStatus.textContent = t("ready");
-  }
-  if (!stopwatchState.running && stopwatchState.elapsedMs === 0) {
-    stopwatchStatus.textContent = t("ready");
-  }
-  if (!pomodoroStatus.textContent.trim()) {
-    pomodoroStatus.textContent = t("ready");
-  }
-}
-
-function loadTheme() {
-  const saved = localStorage.getItem("timerTrinkTheme");
-  if (saved === "light") {
-    document.body.classList.add("light");
-    themeToggle.textContent = "☀️";
-  } else {
-    themeToggle.textContent = "🌙";
-  }
-}
-
-function toggleTheme() {
-  document.body.classList.toggle("light");
-  const isLight = document.body.classList.contains("light");
-  themeToggle.textContent = isLight ? "☀️" : "🌙";
-  localStorage.setItem("timerTrinkTheme", isLight ? "light" : "dark");
-}
-
-document.querySelectorAll(".tab-btn").forEach((btn) => {
-  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
-});
-
-document.querySelectorAll(".timer-quick-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    setQuickTimer(
-      clampNumber(btn.dataset.h),
-      clampNumber(btn.dataset.m),
-      clampNumber(btn.dataset.s)
-    );
-  });
-});
-
-document.querySelectorAll(".preset-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    pomodoroWork.value = clampNumber(btn.dataset.work);
-    pomodoroBreak.value = clampNumber(btn.dataset.break);
-    showToast(`${btn.dataset.work}/${btn.dataset.break} Pomodoro`);
-  });
-});
-
-$("timerStartBtn").addEventListener("click", startTimer);
-$("timerPauseBtn").addEventListener("click", pauseTimer);
-$("timerResetBtn").addEventListener("click", resetTimer);
-
-$("applyPomodoroBtn").addEventListener("click", applyPomodoro);
-
-$("swStartBtn").addEventListener("click", () => {
-  pauseOrHoldStopwatchStartButton();
-  $("swStartBtn").textContent = stopwatchState.running ? t("pause") : t("start");
-});
-$("swLapBtn").addEventListener("click", lapStopwatch);
-$("swResetBtn").addEventListener("click", () => {
-  resetStopwatch();
-  $("swStartBtn").textContent = t("start");
-});
-
-$("previewSoundBtn").addEventListener("click", playSelectedSound);
-
-languageSelect.addEventListener("change", applyLanguage);
-themeToggle.addEventListener("click", toggleTheme);
-
-loadTheme();
-renderSounds();
-applyLanguage();
-updateTimerDisplay();
-stopwatchDisplay.textContent = "00:00:00.0";
-timerStatus.textContent = t("ready");
-pomodoroStatus.textContent = t("ready");
-stopwatchStatus.textContent = t("ready");
+function stopPersistentAlarm() {
+  if (alarmState.intervalId) {
+    clearInterval(alarmState.intervalId);
+    alarmState.intervalId =
