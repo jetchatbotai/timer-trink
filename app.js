@@ -1,297 +1,176 @@
-let timer = null;
-let timeLeft = 0;
-let totalTime = 0;
-let running = false;
-let pomodoroMode = false;
-let pomodoroPhase = "work";
-let pomodoroCurrentCycle = 1;
+const $ = (id) => document.getElementById(id);
 
-const display = document.getElementById("display");
-const hoursInput = document.getElementById("hours");
-const minutesInput = document.getElementById("minutes");
-const secondsInput = document.getElementById("seconds");
+const state = {
+  timerId: null,
+  running: false,
+  timeLeft: 0,
+  totalTime: 0
+};
 
-const languageSelect = document.getElementById("language");
-const startBtn = document.getElementById("startBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const resetBtn = document.getElementById("resetBtn");
-const subtitle = document.getElementById("subtitle");
-const statusEl = document.getElementById("status");
-const pomodoroStatus = document.getElementById("pomodoroStatus");
-const soundToggle = document.getElementById("soundToggle");
-const vibrationToggle = document.getElementById("vibrationToggle");
-const soundLabel = document.getElementById("soundLabel");
-const vibrationLabel = document.getElementById("vibrationLabel");
-const themeToggle = document.getElementById("themeToggle");
-const ring = document.querySelector(".ring");
-const quickButtons = document.querySelectorAll(".quick-btn");
-const previewSoundBtn = document.getElementById("previewSoundBtn");
-const presetButtons = document.querySelectorAll(".preset-btn");
-const applyPomodoroBtn = document.getElementById("applyPomodoroBtn");
-
-const tabButtons = document.querySelectorAll(".tab-btn");
-const tabContents = document.querySelectorAll(".tab-content");
-
-const hoursLabel = document.getElementById("hoursLabel");
-const minutesLabel = document.getElementById("minutesLabel");
-const secondsLabel = document.getElementById("secondsLabel");
-
-const pomodoroWork = document.getElementById("pomodoroWork");
-const pomodoroBreak = document.getElementById("pomodoroBreak");
-const pomodoroLongBreak = document.getElementById("pomodoroLongBreak");
-const pomodoroCycles = document.getElementById("pomodoroCycles");
+const display = $("display");
+const ring = $("ring");
+const hoursInput = $("hours");
+const minutesInput = $("minutes");
+const secondsInput = $("seconds");
+const languageSelect = $("language");
+const themeToggle = $("themeToggle");
+const statusEl = $("status");
+const pomodoroStatus = $("pomodoroStatus");
+const toastEl = $("toast");
 
 const translations = {
-  tr: {
-    subtitle: "Basit, hızlı ve çok dilli zamanlayıcı",
-    start: "Başlat",
-    pause: "Duraklat",
-    reset: "Sıfırla",
-    done: "Süre doldu!",
-    invalid: "Lütfen geçerli bir süre gir.",
-    soundOn: "Ses açık",
-    vibrationOn: "Titreşim açık",
-    ready: "Hazır",
-    paused: "Duraklatıldı",
-    running: "Zamanlayıcı çalışıyor",
-    reseted: "Sıfırlandı",
-    hours: "Saat",
-    minutes: "Dakika",
-    seconds: "Saniye",
-    tabTimer: "Timer",
-    tabPomodoro: "Pomodoro",
-    tabSounds: "Sesler",
-    tabSettings: "Ayarlar",
-    soundsTitle: "Alarm Sesleri",
-    soundsDesc: "Bir ses seç ve önizleme yap.",
-    preview: "Sesi Dinle",
-    settingsTitle: "Ayarlar",
-    settingsDesc: "Genel uygulama seçenekleri",
-    themeTitle: "Tema",
-    themeDesc: "Koyu veya açık görünüm",
-    langTitle: "Dil",
-    langDesc: "Arayüz dilini değiştir",
-    aboutTitle: "Hakkında",
-    aboutDesc: "Timer Trink! çok dilli akıllı zamanlayıcıdır.",
-    pomodoroTitle: "Pomodoro",
-    pomodoroDesc: "Hazır odak döngülerinden birini seç.",
-    work: "Çalışma",
-    shortBreak: "Kısa Mola",
-    longBreak: "Uzun Mola",
-    cycles: "Tur",
-    applyPomodoro: "Pomodoro Uygula",
-    pomodoroApplied: "Pomodoro ayarları yüklendi",
-    pomodoroWorkPhase: "Odak süresi",
-    pomodoroBreakPhase: "Kısa mola",
-    pomodoroLongBreakPhase: "Uzun mola"
-  },
   en: {
-    subtitle: "Simple, fast and multilingual timer",
+    subtitle: "Simple timer for focus and daily use",
+    timer: "Timer",
+    pomodoro: "Pomodoro",
+    sounds: "Sounds",
     start: "Start",
     pause: "Pause",
     reset: "Reset",
-    done: "Time is up!",
-    invalid: "Please enter a valid time.",
     soundOn: "Sound on",
     vibrationOn: "Vibration on",
     ready: "Ready",
     paused: "Paused",
     running: "Timer is running",
     reseted: "Reset",
+    invalid: "Please enter a valid time.",
+    done: "Time is up!",
     hours: "Hours",
     minutes: "Minutes",
     seconds: "Seconds",
-    tabTimer: "Timer",
-    tabPomodoro: "Pomodoro",
-    tabSounds: "Sounds",
-    tabSettings: "Settings",
-    soundsTitle: "Alarm Sounds",
-    soundsDesc: "Choose a sound and preview it.",
-    preview: "Preview Sound",
-    settingsTitle: "Settings",
-    settingsDesc: "General application options",
-    themeTitle: "Theme",
-    themeDesc: "Dark or light appearance",
-    langTitle: "Language",
-    langDesc: "Change interface language",
-    aboutTitle: "About",
-    aboutDesc: "Timer Trink! is a multilingual smart timer.",
     pomodoroTitle: "Pomodoro",
-    pomodoroDesc: "Choose one of the ready focus cycles.",
+    pomodoroDesc: "Choose a focus preset and load it into timer.",
     work: "Work",
-    shortBreak: "Short Break",
-    longBreak: "Long Break",
-    cycles: "Cycles",
+    break: "Break",
     applyPomodoro: "Apply Pomodoro",
-    pomodoroApplied: "Pomodoro settings loaded",
-    pomodoroWorkPhase: "Focus time",
-    pomodoroBreakPhase: "Short break",
-    pomodoroLongBreakPhase: "Long break"
+    pomodoroApplied: "Pomodoro loaded into timer",
+    soundsTitle: "Alarm sounds",
+    soundsDesc: "Select a sound and preview it.",
+    preview: "Preview sound"
+  },
+  tr: {
+    subtitle: "Odak ve günlük kullanım için basit zamanlayıcı",
+    timer: "Timer",
+    pomodoro: "Pomodoro",
+    sounds: "Sesler",
+    start: "Başlat",
+    pause: "Duraklat",
+    reset: "Sıfırla",
+    soundOn: "Ses açık",
+    vibrationOn: "Titreşim açık",
+    ready: "Hazır",
+    paused: "Duraklatıldı",
+    running: "Zamanlayıcı çalışıyor",
+    reseted: "Sıfırlandı",
+    invalid: "Lütfen geçerli bir süre gir.",
+    done: "Süre doldu!",
+    hours: "Saat",
+    minutes: "Dakika",
+    seconds: "Saniye",
+    pomodoroTitle: "Pomodoro",
+    pomodoroDesc: "Bir odak hazır ayarı seç ve zamanlayıcıya yükle.",
+    work: "Çalışma",
+    break: "Mola",
+    applyPomodoro: "Pomodoro Uygula",
+    pomodoroApplied: "Pomodoro zamanlayıcıya yüklendi",
+    soundsTitle: "Alarm sesleri",
+    soundsDesc: "Bir ses seç ve önizleme yap.",
+    preview: "Sesi dinle"
   },
   ru: {
-    subtitle: "Простой, быстрый и многоязычный таймер",
+    subtitle: "Простой таймер для фокуса и повседневного использования",
+    timer: "Таймер",
+    pomodoro: "Помодоро",
+    sounds: "Звуки",
     start: "Старт",
     pause: "Пауза",
     reset: "Сброс",
-    done: "Время вышло!",
-    invalid: "Введите корректное время.",
     soundOn: "Звук включён",
     vibrationOn: "Вибрация включена",
     ready: "Готово",
     paused: "На паузе",
     running: "Таймер работает",
     reseted: "Сброшено",
+    invalid: "Введите корректное время.",
+    done: "Время вышло!",
     hours: "Часы",
     minutes: "Минуты",
     seconds: "Секунды",
-    tabTimer: "Таймер",
-    tabPomodoro: "Помодоро",
-    tabSounds: "Звуки",
-    tabSettings: "Настройки",
+    pomodoroTitle: "Помодоро",
+    pomodoroDesc: "Выберите пресет и загрузите его в таймер.",
+    work: "Работа",
+    break: "Перерыв",
+    applyPomodoro: "Применить Pomodoro",
+    pomodoroApplied: "Pomodoro загружен в таймер",
     soundsTitle: "Звуки будильника",
     soundsDesc: "Выберите звук и прослушайте его.",
-    preview: "Прослушать",
-    settingsTitle: "Настройки",
-    settingsDesc: "Общие параметры приложения",
-    themeTitle: "Тема",
-    themeDesc: "Светлый или тёмный режим",
-    langTitle: "Язык",
-    langDesc: "Изменить язык интерфейса",
-    aboutTitle: "О приложении",
-    aboutDesc: "Timer Trink! — многоязычный умный таймер.",
-    pomodoroTitle: "Помодоро",
-    pomodoroDesc: "Выберите готовый цикл фокусировки.",
-    work: "Работа",
-    shortBreak: "Короткий перерыв",
-    longBreak: "Длинный перерыв",
-    cycles: "Циклы",
-    applyPomodoro: "Применить Pomodoro",
-    pomodoroApplied: "Настройки Pomodoro загружены",
-    pomodoroWorkPhase: "Фокус",
-    pomodoroBreakPhase: "Короткий перерыв",
-    pomodoroLongBreakPhase: "Длинный перерыв"
+    preview: "Прослушать"
   },
   zh: {
-    subtitle: "简单、快速、多语言计时器",
+    subtitle: "适合专注和日常使用的简洁计时器",
+    timer: "计时器",
+    pomodoro: "番茄钟",
+    sounds: "声音",
     start: "开始",
     pause: "暂停",
     reset: "重置",
-    done: "时间到！",
-    invalid: "请输入有效时间。",
     soundOn: "声音开启",
     vibrationOn: "震动开启",
     ready: "准备就绪",
     paused: "已暂停",
     running: "计时器运行中",
     reseted: "已重置",
+    invalid: "请输入有效时间。",
+    done: "时间到！",
     hours: "小时",
     minutes: "分钟",
     seconds: "秒",
-    tabTimer: "计时器",
-    tabPomodoro: "番茄钟",
-    tabSounds: "声音",
-    tabSettings: "设置",
+    pomodoroTitle: "番茄钟",
+    pomodoroDesc: "选择一个预设并加载到计时器。",
+    work: "工作",
+    break: "休息",
+    applyPomodoro: "应用番茄钟",
+    pomodoroApplied: "番茄钟已加载到计时器",
     soundsTitle: "闹铃声音",
     soundsDesc: "选择一个声音并试听。",
-    preview: "试听声音",
-    settingsTitle: "设置",
-    settingsDesc: "应用常规选项",
-    themeTitle: "主题",
-    themeDesc: "深色或浅色外观",
-    langTitle: "语言",
-    langDesc: "更改界面语言",
-    aboutTitle: "关于",
-    aboutDesc: "Timer Trink! 是一款多语言智能计时器。",
-    pomodoroTitle: "番茄钟",
-    pomodoroDesc: "选择一个预设专注循环。",
-    work: "工作",
-    shortBreak: "短休息",
-    longBreak: "长休息",
-    cycles: "循环",
-    applyPomodoro: "应用番茄钟",
-    pomodoroApplied: "番茄钟设置已加载",
-    pomodoroWorkPhase: "专注时间",
-    pomodoroBreakPhase: "短休息",
-    pomodoroLongBreakPhase: "长休息"
+    preview: "试听声音"
   }
 };
 
-const fallback = translations.en;
-const extraLangs = {
-  de: { ...fallback, subtitle: "Einfacher, schneller und mehrsprachiger Timer" },
-  fr: { ...fallback, subtitle: "Minuteur simple, rapide et multilingue" },
-  es: { ...fallback, subtitle: "Temporizador simple, rápido y multilingüe" },
-  ar: { ...fallback, subtitle: "مؤقت بسيط وسريع ومتعدد اللغات" },
-  it: { ...fallback, subtitle: "Timer semplice, veloce e multilingue" },
-  pt: { ...fallback, subtitle: "Temporizador simples, rápido e multilíngue" },
-  ja: { ...fallback, subtitle: "シンプルで高速な多言語タイマー" },
-  ko: { ...fallback, subtitle: "간단하고 빠른 다국어 타이머" },
-  hi: { ...fallback, subtitle: "सरल, तेज और बहुभाषी टाइमर" },
-  fa: { ...fallback, subtitle: "تایمر ساده، سریع و چندزبانه" },
-  uk: { ...fallback, subtitle: "Простий, швидкий і багатомовний таймер" },
-  pl: { ...fallback, subtitle: "Prosty, szybki i wielojęzyczny timer" },
-  nl: { ...fallback, subtitle: "Eenvoudige, snelle en meertalige timer" },
-  sv: { ...fallback, subtitle: "Enkel, snabb och flerspråkig timer" },
-  id: { ...fallback, subtitle: "Timer sederhana, cepat, dan multibahasa" },
-  ms: { ...fallback, subtitle: "Pemasa ringkas, pantas dan pelbagai bahasa" },
-  vi: { ...fallback, subtitle: "Bộ đếm giờ đơn giản, nhanh và đa ngôn ngữ" },
-  el: { ...fallback, subtitle: "Απλός, γρήγορος και πολύγλωσσος χρονοδιακόπτης" }
-};
+const allLanguages = [
+  "de","fr","es","ar","it","pt","ja","ko","hi","fa","uk","pl","nl","sv","id","ms","vi","el",
+  "cs","ro","hu","bg","sr","hr","sk","sl","da","fi","no","lt","lv","et","he","th","bn","ur",
+  "ta","te","ml","mr","gu","pa","sw","am","az","kk"
+];
 
-Object.assign(translations, extraLangs);
-
-function getLang() {
-  return languageSelect.value;
+for (const code of allLanguages) {
+  if (!translations[code]) translations[code] = { ...translations.en };
 }
 
-function getText(key) {
-  return (translations[getLang()] && translations[getLang()][key]) || fallback[key] || key;
+function t(key) {
+  const lang = languageSelect.value || "en";
+  return (translations[lang] && translations[lang][key]) || translations.en[key] || key;
 }
 
-function updateLanguage() {
-  const lang = getLang();
-  document.documentElement.lang = lang;
-  document.documentElement.dir = ["ar", "fa"].includes(lang) ? "rtl" : "ltr";
+function showToast(message) {
+  toastEl.textContent = message;
+  toastEl.classList.add("show");
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => {
+    toastEl.classList.remove("show");
+  }, 2500);
+}
 
-  subtitle.textContent = getText("subtitle");
-  startBtn.textContent = getText("start");
-  pauseBtn.textContent = getText("pause");
-  resetBtn.textContent = getText("reset");
-  soundLabel.textContent = getText("soundOn");
-  vibrationLabel.textContent = getText("vibrationOn");
-  hoursLabel.textContent = getText("hours");
-  minutesLabel.textContent = getText("minutes");
-  secondsLabel.textContent = getText("seconds");
+function clampNumber(value) {
+  const n = parseInt(value || "0", 10);
+  return Number.isNaN(n) || n < 0 ? 0 : n;
+}
 
-  document.getElementById("tabTimer").textContent = getText("tabTimer");
-  document.getElementById("tabPomodoro").textContent = getText("tabPomodoro");
-  document.getElementById("tabSounds").textContent = getText("tabSounds");
-  document.getElementById("tabSettings").textContent = getText("tabSettings");
-
-  document.getElementById("soundsTitle").textContent = getText("soundsTitle");
-  document.getElementById("soundsDesc").textContent = getText("soundsDesc");
-  previewSoundBtn.textContent = getText("preview");
-
-  document.getElementById("settingsTitle").textContent = getText("settingsTitle");
-  document.getElementById("settingsDesc").textContent = getText("settingsDesc");
-  document.getElementById("themeTitle").textContent = getText("themeTitle");
-  document.getElementById("themeDesc").textContent = getText("themeDesc");
-  document.getElementById("langTitle").textContent = getText("langTitle");
-  document.getElementById("langDesc").textContent = getText("langDesc");
-  document.getElementById("aboutTitle").textContent = getText("aboutTitle");
-  document.getElementById("aboutDesc").textContent = getText("aboutDesc");
-
-  document.getElementById("pomodoroTitle").textContent = getText("pomodoroTitle");
-  document.getElementById("pomodoroDesc").textContent = getText("pomodoroDesc");
-  document.getElementById("workLabel").textContent = getText("work");
-  document.getElementById("shortBreakLabel").textContent = getText("shortBreak");
-  document.getElementById("longBreakLabel").textContent = getText("longBreak");
-  document.getElementById("cyclesLabel").textContent = getText("cycles");
-  applyPomodoroBtn.textContent = getText("applyPomodoro");
-
-  if (!running && timeLeft === 0) {
-    statusEl.textContent = getText("ready");
-  }
+function getInputSeconds() {
+  const h = clampNumber(hoursInput.value);
+  const m = clampNumber(minutesInput.value);
+  const s = clampNumber(secondsInput.value);
+  return h * 3600 + m * 60 + s;
 }
 
 function formatTime(totalSeconds) {
@@ -302,20 +181,113 @@ function formatTime(totalSeconds) {
 }
 
 function updateDisplay() {
-  display.textContent = formatTime(timeLeft);
+  display.textContent = formatTime(state.timeLeft);
   updateRing();
 }
 
 function updateRing() {
-  if (totalTime <= 0) {
-    ring.style.background =
-      "conic-gradient(var(--primary) 0deg, var(--secondary) 180deg, var(--ring-rest) 180deg)";
+  if (state.totalTime <= 0) {
+    ring.style.background = "conic-gradient(var(--primary) 0deg, var(--secondary) 180deg, var(--ring-rest) 180deg)";
     return;
   }
-  const progress = timeLeft / totalTime;
-  const degrees = Math.max(0, Math.min(360, progress * 360));
-  ring.style.background =
-    `conic-gradient(var(--primary) 0deg, var(--secondary) ${degrees}deg, var(--ring-rest) ${degrees}deg)`;
+  const progress = state.timeLeft / state.totalTime;
+  const deg = Math.max(0, Math.min(360, progress * 360));
+  ring.style.background = `conic-gradient(var(--primary) 0deg, var(--secondary) ${deg}deg, var(--ring-rest) ${deg}deg)`;
+}
+
+function stopTimerInternal() {
+  if (state.timerId) {
+    clearInterval(state.timerId);
+    state.timerId = null;
+  }
+  state.running = false;
+}
+
+function tick() {
+  if (state.timeLeft > 0) {
+    state.timeLeft -= 1;
+    updateDisplay();
+    return;
+  }
+  stopTimerInternal();
+  playSelectedSound();
+  vibratePhone();
+  document.querySelector(".panel.active")?.classList.add("flash");
+  setTimeout(() => document.querySelector(".panel.active")?.classList.remove("flash"), 1800);
+  statusEl.textContent = t("done");
+  showToast(t("done"));
+}
+
+function startTimer() {
+  if (state.running) return;
+
+  if (state.timeLeft <= 0) {
+    const total = getInputSeconds();
+    if (total <= 0) {
+      showToast(t("invalid"));
+      return;
+    }
+    state.timeLeft = total;
+    state.totalTime = total;
+    updateDisplay();
+  }
+
+  state.running = true;
+  statusEl.textContent = t("running");
+  stopTimerInternal();
+  state.running = true;
+  state.timerId = setInterval(tick, 1000);
+}
+
+function pauseTimer() {
+  stopTimerInternal();
+  statusEl.textContent = t("paused");
+  pomodoroStatus.textContent = t("paused");
+}
+
+function resetTimer() {
+  stopTimerInternal();
+  state.timeLeft = 0;
+  state.totalTime = 0;
+  hoursInput.value = 0;
+  minutesInput.value = 0;
+  secondsInput.value = 0;
+  updateDisplay();
+  statusEl.textContent = t("reseted");
+  pomodoroStatus.textContent = t("reseted");
+}
+
+function setQuickTime(h, m, s) {
+  stopTimerInternal();
+  hoursInput.value = h;
+  minutesInput.value = m;
+  secondsInput.value = s;
+  state.timeLeft = h * 3600 + m * 60 + s;
+  state.totalTime = state.timeLeft;
+  updateDisplay();
+  statusEl.textContent = t("ready");
+}
+
+function applyPomodoro() {
+  const work = clampNumber($("pomodoroWork").value);
+  const brk = clampNumber($("pomodoroBreak").value);
+
+  if (work <= 0 || brk <= 0) {
+    showToast(t("invalid"));
+    return;
+  }
+
+  stopTimerInternal();
+  hoursInput.value = 0;
+  minutesInput.value = work;
+  secondsInput.value = 0;
+  state.timeLeft = work * 60;
+  state.totalTime = state.timeLeft;
+  updateDisplay();
+  pomodoroStatus.textContent = `${t("work")}: ${work}m / ${t("break")}: ${brk}m`;
+  statusEl.textContent = t("pomodoroApplied");
+  showToast(t("pomodoroApplied"));
+  switchTab("timerPanel");
 }
 
 function getSelectedSound() {
@@ -323,216 +295,110 @@ function getSelectedSound() {
   return selected ? selected.value : "classic";
 }
 
-function playTone(type = "classic") {
-  if (!soundToggle.checked) return;
-
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return;
-
-  const ctx = new AudioContextClass();
-
-  const tones = {
-    classic: [880, 660, 880],
-    digital: [900, 900, 900, 900],
-    soft: [440, 554, 659],
-    urgent: [1000, 800, 1000, 800, 1000],
-    zen: [523, 659, 784],
-    retro: [660, 550, 440, 660]
-  };
-
-  const sequence = tones[type] || tones.classic;
+function playToneSequence(sequence, type) {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return;
+  const ctx = new AudioCtx();
 
   sequence.forEach((freq, index) => {
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    oscillator.type = ["soft", "zen"].includes(type) ? "sine" : "square";
-    oscillator.frequency.setValueAtTime(freq, ctx.currentTime + index * 0.24);
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
 
-    gainNode.gain.setValueAtTime(0.0001, ctx.currentTime + index * 0.24);
-    gainNode.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + index * 0.24 + 0.02);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + index * 0.24 + 0.19);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + index * 0.22);
 
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime + index * 0.22);
+    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + index * 0.22 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + index * 0.22 + 0.18);
 
-    oscillator.start(ctx.currentTime + index * 0.24);
-    oscillator.stop(ctx.currentTime + index * 0.24 + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(ctx.currentTime + index * 0.22);
+    osc.stop(ctx.currentTime + index * 0.22 + 0.19);
   });
 }
 
-function vibrateDevice() {
-  if (!vibrationToggle.checked) return;
+function playSelectedSound() {
+  if (!$("soundToggle").checked) return;
+
+  const sound = getSelectedSound();
+  switch (sound) {
+    case "digital":
+      playToneSequence([900, 900, 900, 900], "square");
+      break;
+    case "soft":
+      playToneSequence([440, 554, 659], "sine");
+      break;
+    case "urgent":
+      playToneSequence([1000, 800, 1000, 800, 1000], "square");
+      break;
+    case "zen":
+      playToneSequence([523, 659, 784], "sine");
+      break;
+    case "retro":
+      playToneSequence([660, 550, 440, 660], "triangle");
+      break;
+    default:
+      playToneSequence([880, 660, 880], "square");
+  }
+}
+
+function vibratePhone() {
+  if (!$("vibrationToggle").checked) return;
   if ("vibrate" in navigator) {
-    navigator.vibrate([250, 120, 250, 120, 350]);
+    navigator.vibrate([220, 100, 220, 100, 360]);
   }
 }
 
-function flashUI() {
-  const activePanel = document.querySelector(".tab-content.active .hero, .tab-content.active .panel");
-  if (!activePanel) return;
-  activePanel.classList.add("flash");
-  setTimeout(() => activePanel.classList.remove("flash"), 2200);
+function switchTab(tabId) {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+  document.querySelectorAll(".panel").forEach(panel => {
+    panel.classList.toggle("active", panel.id === tabId);
+  });
 }
 
-function showToast(message) {
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add("show"), 50);
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
+function applyLanguage() {
+  document.documentElement.lang = languageSelect.value || "en";
+  document.documentElement.dir = ["ar", "fa", "ur", "he"].includes(languageSelect.value) ? "rtl" : "ltr";
 
-function finishTimer() {
-  clearInterval(timer);
-  running = false;
-  playTone(getSelectedSound());
-  vibrateDevice();
-  flashUI();
-  showToast(getText("done"));
+  $("subtitle").textContent = t("subtitle");
+  $("tabTimer").textContent = t("timer");
+  $("tabPomodoro").textContent = t("pomodoro");
+  $("tabSounds").textContent = t("sounds");
+  $("startBtn").textContent = t("start");
+  $("pauseBtn").textContent = t("pause");
+  $("resetBtn").textContent = t("reset");
+  $("soundLabel").textContent = t("soundOn");
+  $("vibrationLabel").textContent = t("vibrationOn");
+  $("hoursLabel").textContent = t("hours");
+  $("minutesLabel").textContent = t("minutes");
+  $("secondsLabel").textContent = t("seconds");
+  $("pomodoroTitle").textContent = t("pomodoroTitle");
+  $("pomodoroDesc").textContent = t("pomodoroDesc");
+  $("workLabel").textContent = t("work");
+  $("breakLabel").textContent = t("break");
+  $("applyPomodoroBtn").textContent = t("applyPomodoro");
+  $("soundsTitle").textContent = t("soundsTitle");
+  $("soundsDesc").textContent = t("soundsDesc");
+  $("previewSoundBtn").textContent = t("preview");
 
-  if (pomodoroMode) {
-    handlePomodoroTransition();
-    return;
+  if (!state.running && state.timeLeft === 0) {
+    statusEl.textContent = t("ready");
+    pomodoroStatus.textContent = t("ready");
   }
-
-  timeLeft = 0;
-  updateDisplay();
-  statusEl.textContent = getText("done");
 }
 
-function handlePomodoroTransition() {
-  const workMin = parseInt(pomodoroWork.value, 10);
-  const breakMin = parseInt(pomodoroBreak.value, 10);
-  const longBreakMin = parseInt(pomodoroLongBreak.value, 10);
-  const cycles = parseInt(pomodoroCycles.value, 10);
-
-  if (pomodoroPhase === "work") {
-    if (pomodoroCurrentCycle >= cycles) {
-      pomodoroPhase = "longBreak";
-      timeLeft = longBreakMin * 60;
-      totalTime = timeLeft;
-      pomodoroStatus.textContent = getText("pomodoroLongBreakPhase");
-    } else {
-      pomodoroPhase = "shortBreak";
-      timeLeft = breakMin * 60;
-      totalTime = timeLeft;
-      pomodoroStatus.textContent = getText("pomodoroBreakPhase");
-    }
-  } else if (pomodoroPhase === "shortBreak") {
-    pomodoroCurrentCycle++;
-    pomodoroPhase = "work";
-    timeLeft = workMin * 60;
-    totalTime = timeLeft;
-    pomodoroStatus.textContent = `${getText("pomodoroWorkPhase")} ${pomodoroCurrentCycle}/${cycles}`;
+function loadTheme() {
+  const saved = localStorage.getItem("timerTrinkTheme");
+  if (saved === "light") {
+    document.body.classList.add("light");
+    themeToggle.textContent = "☀️";
   } else {
-    pomodoroMode = false;
-    pomodoroPhase = "work";
-    pomodoroCurrentCycle = 1;
-    timeLeft = 0;
-    totalTime = 0;
-    pomodoroStatus.textContent = getText("ready");
-    updateDisplay();
-    return;
+    themeToggle.textContent = "🌙";
   }
-
-  updateDisplay();
-  running = true;
-  timer = setInterval(tick, 1000);
-}
-
-function tick() {
-  if (timeLeft > 0) {
-    timeLeft--;
-    updateDisplay();
-  } else {
-    finishTimer();
-  }
-}
-
-function getInputSeconds() {
-  const h = parseInt(hoursInput.value || "0", 10);
-  const m = parseInt(minutesInput.value || "0", 10);
-  const s = parseInt(secondsInput.value || "0", 10);
-  return Math.max(0, h) * 3600 + Math.max(0, m) * 60 + Math.max(0, s);
-}
-
-function startTimer() {
-  if (running) return;
-
-  if (timeLeft === 0) {
-    const total = getInputSeconds();
-    if (!total || total <= 0) {
-      showToast(getText("invalid"));
-      return;
-    }
-    timeLeft = total;
-    totalTime = total;
-    pomodoroMode = false;
-    updateDisplay();
-  }
-
-  running = true;
-  statusEl.textContent = getText("running");
-  clearInterval(timer);
-  timer = setInterval(tick, 1000);
-}
-
-function pauseTimer() {
-  clearInterval(timer);
-  running = false;
-  statusEl.textContent = getText("paused");
-  pomodoroStatus.textContent = getText("paused");
-}
-
-function resetTimer() {
-  clearInterval(timer);
-  running = false;
-  pomodoroMode = false;
-  pomodoroPhase = "work";
-  pomodoroCurrentCycle = 1;
-  timeLeft = 0;
-  totalTime = 0;
-  hoursInput.value = 0;
-  minutesInput.value = 0;
-  secondsInput.value = 0;
-  updateDisplay();
-  statusEl.textContent = getText("reseted");
-  pomodoroStatus.textContent = getText("reseted");
-}
-
-function setQuickTime(h, m, s) {
-  clearInterval(timer);
-  running = false;
-  pomodoroMode = false;
-  hoursInput.value = h;
-  minutesInput.value = m;
-  secondsInput.value = s;
-  timeLeft = h * 3600 + m * 60 + s;
-  totalTime = timeLeft;
-  updateDisplay();
-  statusEl.textContent = getText("ready");
-}
-
-function applyPomodoro() {
-  clearInterval(timer);
-  running = false;
-  pomodoroMode = true;
-  pomodoroPhase = "work";
-  pomodoroCurrentCycle = 1;
-
-  const workMin = parseInt(pomodoroWork.value, 10);
-  timeLeft = workMin * 60;
-  totalTime = timeLeft;
-  updateDisplay();
-
-  pomodoroStatus.textContent = `${getText("pomodoroWorkPhase")} 1/${parseInt(pomodoroCycles.value, 10)}`;
-  statusEl.textContent = getText("pomodoroApplied");
-  showToast(getText("pomodoroApplied"));
-  switchTab("timerTab");
 }
 
 function toggleTheme() {
@@ -542,57 +408,38 @@ function toggleTheme() {
   localStorage.setItem("timerTrinkTheme", isLight ? "light" : "dark");
 }
 
-function loadTheme() {
-  const savedTheme = localStorage.getItem("timerTrinkTheme");
-  if (savedTheme === "light") {
-    document.body.classList.add("light");
-    themeToggle.textContent = "☀️";
-  } else {
-    themeToggle.textContent = "🌙";
-  }
-}
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+});
 
-function switchTab(tabId) {
-  tabButtons.forEach(btn => btn.classList.remove("active"));
-  tabContents.forEach(tab => tab.classList.remove("active"));
-  document.querySelector(`[data-tab="${tabId}"]`).classList.add("active");
-  document.getElementById(tabId).classList.add("active");
-}
-
-startBtn.addEventListener("click", startTimer);
-pauseBtn.addEventListener("click", pauseTimer);
-resetBtn.addEventListener("click", resetTimer);
-languageSelect.addEventListener("change", updateLanguage);
-themeToggle.addEventListener("click", toggleTheme);
-previewSoundBtn.addEventListener("click", () => playTone(getSelectedSound()));
-applyPomodoroBtn.addEventListener("click", applyPomodoro);
-
-quickButtons.forEach(btn => {
+document.querySelectorAll(".quick-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     setQuickTime(
-      parseInt(btn.dataset.hours, 10),
-      parseInt(btn.dataset.minutes, 10),
-      parseInt(btn.dataset.seconds, 10)
+      clampNumber(btn.dataset.h),
+      clampNumber(btn.dataset.m),
+      clampNumber(btn.dataset.s)
     );
   });
 });
 
-presetButtons.forEach(btn => {
+document.querySelectorAll(".preset-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    pomodoroWork.value = btn.dataset.work;
-    pomodoroBreak.value = btn.dataset.break;
-    pomodoroLongBreak.value = btn.dataset.longbreak;
-    pomodoroCycles.value = btn.dataset.cycles;
-    showToast(`${btn.dataset.work}/${btn.dataset.break} ${getText("pomodoroApplied")}`);
+    $("pomodoroWork").value = clampNumber(btn.dataset.work);
+    $("pomodoroBreak").value = clampNumber(btn.dataset.break);
+    showToast(`${btn.dataset.work}/${btn.dataset.break} Pomodoro`);
   });
 });
 
-tabButtons.forEach(btn => {
-  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
-});
+$("startBtn").addEventListener("click", startTimer);
+$("pauseBtn").addEventListener("click", pauseTimer);
+$("resetBtn").addEventListener("click", resetTimer);
+$("applyPomodoroBtn").addEventListener("click", applyPomodoro);
+$("previewSoundBtn").addEventListener("click", playSelectedSound);
+languageSelect.addEventListener("change", applyLanguage);
+themeToggle.addEventListener("click", toggleTheme);
 
 loadTheme();
-updateLanguage();
+applyLanguage();
 updateDisplay();
-statusEl.textContent = getText("ready");
-pomodoroStatus.textContent = getText("ready");
+statusEl.textContent = t("ready");
+pomodoroStatus.textContent = t("ready");
