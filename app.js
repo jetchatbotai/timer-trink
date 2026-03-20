@@ -101,6 +101,8 @@ const baseTranslations = {
   vibrationOn: { tr:"Titreşim açık", en:"Vibration on" },
   alarmTitle: { tr:"Süre doldu!", en:"Time is up!" },
   alarmMsg: { tr:"Alarm çalıyor", en:"Alarm ringing" }
+  notifTimerTitle: { tr:"Timer Trink", en:"Timer Trink" },
+notifTimerBody: { tr:"Süre doldu", en:"Time is up" }
 };
 
 // ===============================
