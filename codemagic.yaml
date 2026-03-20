@@ -1,6 +1,6 @@
 workflows:
-  timer_trink_android_debug:
-    name: Timer Trink Android Debug APK
+  timer_trink_release:
+    name: Timer Trink Release AAB
     max_build_duration: 60
 
     environment:
@@ -13,7 +13,6 @@ workflows:
       branch_patterns:
         - pattern: main
           include: true
-          source: true
 
     scripts:
       - name: Install dependencies
@@ -28,20 +27,26 @@ workflows:
           cp styles.css www/
           cp app.js www/
 
-      - name: Add Android platform if missing
+      - name: Add Android platform
         script: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
+          npx cap add android || true
 
-      - name: Sync Capacitor Android
+      - name: Sync Capacitor
         script: |
           npx cap sync android
 
-      - name: Build Android debug APK
+      - name: Fix SDK + Version
+        script: |
+          APP_GRADLE="android/app/build.gradle"
+          sed -i 's/compileSdkVersion [0-9]\\+/compileSdkVersion 35/g' $APP_GRADLE || true
+          sed -i 's/targetSdkVersion [0-9]\\+/targetSdkVersion 35/g' $APP_GRADLE || true
+          sed -i 's/versionCode [0-9]\\+/versionCode 1/g' $APP_GRADLE || true
+          sed -i 's/versionName \".*\"/versionName \"1.0.0\"/g' $APP_GRADLE || true
+
+      - name: Build AAB
         script: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew bundleRelease
 
     artifacts:
-      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
