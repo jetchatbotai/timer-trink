@@ -4,7 +4,7 @@
   "private": true,
   "description": "Timer Trink Capacitor Android wrapper",
   "scripts": {
-    "build": "echo \"Static web app\"",
+    "build": "echo \"Static web app - no build step required\"",
     "cap:sync": "npx cap sync android",
     "cap:add:android": "npx cap add android"
   },
