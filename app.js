@@ -577,14 +577,16 @@ function resetTimer() {
 // TIMER FINISH HANDLER
 // ===============================
 function onTimerFinished() {
+  cancelTimerNotification();
+  fireFinishNotification();
+
   startAlarmLoop();
-notifyFinish();
+
   $("alarmTitle").textContent = t("alarmTitle");
   $("alarmMessage").textContent = t("alarmMsg");
 
   $("alarmOverlay").classList.remove("hidden");
 
-  // Pomodoro otomatik geçiş
   if (pomodoroState.enabled) {
     handlePomodoroSwitch();
   }
