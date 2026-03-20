@@ -509,7 +509,7 @@ function resetTimer() {
 // ===============================
 function onTimerFinished() {
   startAlarmLoop();
-
+notifyFinish();
   $("alarmTitle").textContent = t("alarmTitle");
   $("alarmMessage").textContent = t("alarmMsg");
 
