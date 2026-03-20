@@ -518,6 +518,10 @@ function startTimer() {
   timerState.timerId = setInterval(timerTick, 250);
 
   setText("timerStatus", "running");
+
+  requestNotificationPermission().then(() => {
+    scheduleTimerNotification(total);
+  });
 }
 
 // ===============================
@@ -529,6 +533,8 @@ function pauseTimer() {
   clearInterval(timerState.timerId);
   timerState.running = false;
   timerState.paused = true;
+
+  cancelTimerNotification();
 
   setText("timerStatus", "paused");
 }
@@ -546,11 +552,10 @@ function resumeTimer() {
   timerState.timerId = setInterval(timerTick, 250);
 
   setText("timerStatus", "running");
+
+  scheduleTimerNotification(timerState.timeLeft);
 }
 
-// ===============================
-// TIMER RESET
-// ===============================
 function resetTimer() {
   clearInterval(timerState.timerId);
 
@@ -562,9 +567,11 @@ function resetTimer() {
   $("timerDisplay").textContent = "00:00:00";
 
   updateTimerRing();
+  cancelTimerNotification();
 
   setText("timerStatus", "ready");
 }
+
 
 // ===============================
 // TIMER FINISH HANDLER
