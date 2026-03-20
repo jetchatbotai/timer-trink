@@ -1053,8 +1053,7 @@ Object.assign(translations, {
   }
 });
 const fallbackCodes = [
-  "fr","es","ar","it","pt","ja","ko","hi","fa","uk","pl","nl","sv","id","ms","vi","el","cs",
-  "ro","hu","bg","sr","hr","sk","sl","da","fi","no","lt","lv","et","he","th","bn","ur","ta","te",
+  "bg","sr","hr","sk","sl","da","fi","no","lt","lv","et","he","th","bn","ur","ta","te",
   "ml","mr","gu","pa","sw","am","az","kk"
 ];
 for (const code of fallbackCodes) {
