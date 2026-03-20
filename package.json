@@ -4,13 +4,14 @@
   "private": true,
   "description": "Timer Trink Capacitor Android wrapper",
   "scripts": {
-    "build": "echo \"Static web app - no build step required\"",
+    "build": "echo \"Static web app\"",
     "cap:sync": "npx cap sync android",
     "cap:add:android": "npx cap add android"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",
-    "@capacitor/core": "^7.0.0"
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/local-notifications": "^7.0.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.0.0"
