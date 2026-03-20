@@ -1,6 +1,13 @@
 const CapacitorLocalNotifications =
   window.Capacitor?.Plugins?.LocalNotifications || null;
 
+const notificationState = {
+  permissionGranted: false,
+  scheduledTimerNotificationId: 1001
+};
+const CapacitorLocalNotifications =
+  window.Capacitor?.Plugins?.LocalNotifications || null;
+
 async function notifyFinish() {
   if (!CapacitorLocalNotifications) return;
 
