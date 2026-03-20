@@ -32,7 +32,7 @@ const alarmState = {
 const translations = {
   tr: {
     subtitle: "Odak ve günlük kullanım için basit zamanlayıcı",
-    timer: "Timer",
+    timer: "Zamanlayıcı",
     pomodoro: "Pomodoro",
     stopwatch: "Kronometre",
     sounds: "Sesler",
@@ -264,6 +264,98 @@ const sounds = [
   { id: "s20", name: "Silver Pulse", type: "square", seq: [950, 700, 950] }
 ];
 
+const soundNameTranslations = {
+  tr: {
+    "Classic Bell": "Klasik Zil",
+    "Digital Beep": "Dijital Bip",
+    "Soft Tone": "Yumuşak Ton",
+    "Urgent Alarm": "Acil Alarm",
+    "Zen Chime": "Zen Çanı",
+    "Retro Clock": "Retro Saat",
+    "Crystal Pulse": "Kristal Darbe",
+    "Morning Ping": "Sabah Sinyali",
+    "Sharp Signal": "Keskin Sinyal",
+    "Focus Bell": "Odak Zili",
+    "Forest Birds": "Orman Kuşları",
+    "Rain Drift": "Yağmur Esintisi",
+    "Ocean Drop": "Okyanus Damlası",
+    "Wind Whisper": "Rüzgar Fısıltısı",
+    "Stream Echo": "Dere Yankısı",
+    "Night Crickets": "Gece Cırcırları",
+    "Temple Bowl": "Tapınak Kasesi",
+    "Glass Ripple": "Cam Dalgası",
+    "Sunrise Bloom": "Gün Doğumu",
+    "Silver Pulse": "Gümüş Darbe"
+  },
+  en: {},
+  de: {
+    "Classic Bell": "Klassische Glocke",
+    "Digital Beep": "Digitaler Piepton",
+    "Soft Tone": "Sanfter Ton",
+    "Urgent Alarm": "Dringender Alarm",
+    "Zen Chime": "Zen-Klang",
+    "Retro Clock": "Retro-Uhr",
+    "Crystal Pulse": "Kristallimpuls",
+    "Morning Ping": "Morgensignal",
+    "Sharp Signal": "Scharfes Signal",
+    "Focus Bell": "Fokus-Glocke",
+    "Forest Birds": "Waldvögel",
+    "Rain Drift": "Regenklang",
+    "Ocean Drop": "Ozeantropfen",
+    "Wind Whisper": "Windflüstern",
+    "Stream Echo": "Bach-Echo",
+    "Night Crickets": "Nachtgrillen",
+    "Temple Bowl": "Tempelschale",
+    "Glass Ripple": "Glaswelle",
+    "Sunrise Bloom": "Sonnenaufgang",
+    "Silver Pulse": "Silberimpuls"
+  },
+  ru: {
+    "Classic Bell": "Классический звонок",
+    "Digital Beep": "Цифровой сигнал",
+    "Soft Tone": "Мягкий тон",
+    "Urgent Alarm": "Срочная тревога",
+    "Zen Chime": "Дзен-колокол",
+    "Retro Clock": "Ретро-часы",
+    "Crystal Pulse": "Кристальный импульс",
+    "Morning Ping": "Утренний сигнал",
+    "Sharp Signal": "Резкий сигнал",
+    "Focus Bell": "Колокол фокуса",
+    "Forest Birds": "Лесные птицы",
+    "Rain Drift": "Шёпот дождя",
+    "Ocean Drop": "Капля океана",
+    "Wind Whisper": "Шёпот ветра",
+    "Stream Echo": "Эхо ручья",
+    "Night Crickets": "Ночные сверчки",
+    "Temple Bowl": "Храмовая чаша",
+    "Glass Ripple": "Стеклянная волна",
+    "Sunrise Bloom": "Рассвет",
+    "Silver Pulse": "Серебряный импульс"
+  },
+  zh: {
+    "Classic Bell": "经典铃声",
+    "Digital Beep": "数字蜂鸣",
+    "Soft Tone": "柔和音",
+    "Urgent Alarm": "紧急警报",
+    "Zen Chime": "禅意钟声",
+    "Retro Clock": "复古时钟",
+    "Crystal Pulse": "水晶脉冲",
+    "Morning Ping": "晨间提示",
+    "Sharp Signal": "尖锐信号",
+    "Focus Bell": "专注铃声",
+    "Forest Birds": "森林鸟鸣",
+    "Rain Drift": "细雨声",
+    "Ocean Drop": "海洋水滴",
+    "Wind Whisper": "风声低语",
+    "Stream Echo": "溪流回响",
+    "Night Crickets": "夜晚蟋蟀",
+    "Temple Bowl": "寺庙钵音",
+    "Glass Ripple": "玻璃涟漪",
+    "Sunrise Bloom": "日出之声",
+    "Silver Pulse": "银色脉冲"
+  }
+};
+
 let selectedSoundId = sounds[0].id;
 
 const languageSelect = $("language");
@@ -285,6 +377,12 @@ const lapsList = $("lapsList");
 function t(key) {
   const lang = languageSelect?.value || "en";
   return (translations[lang] && translations[lang][key]) || translations.en[key] || key;
+}
+
+function soundLabel(name) {
+  const lang = languageSelect?.value || "en";
+  const dict = soundNameTranslations[lang] || {};
+  return dict[name] || name;
 }
 
 function showToast(text) {
@@ -396,6 +494,7 @@ function startAlarm(title, message, onDismiss) {
 
   const s = selectedSound();
   playSoundOnce(s);
+
   if ($("vibrationToggle")?.checked && "vibrate" in navigator) {
     navigator.vibrate([300, 150, 300, 150, 500]);
   }
@@ -419,6 +518,7 @@ function startTimerLoop() {
   stopTimerInternal();
   timerState.running = true;
   if (timerStatus) timerStatus.textContent = t("running");
+
   timerState.timerId = setInterval(() => {
     if (timerState.timeLeft > 0) {
       timerState.timeLeft -= 1;
@@ -438,12 +538,16 @@ function startTimerLoop() {
             pomodoroState.phase = "break";
             timerState.timeLeft = pomodoroState.breakMinutes * 60;
             timerState.totalTime = timerState.timeLeft;
-            if (pomodoroStatus) pomodoroStatus.textContent = `${t("breakStatus")} • ${pomodoroState.breakMinutes}m`;
+            if (pomodoroStatus) {
+              pomodoroStatus.textContent = `${t("breakStatus")} • ${pomodoroState.breakMinutes}m`;
+            }
           } else {
             pomodoroState.phase = "work";
             timerState.timeLeft = pomodoroState.workMinutes * 60;
             timerState.totalTime = timerState.timeLeft;
-            if (pomodoroStatus) pomodoroStatus.textContent = `${t("workStatus")} • ${pomodoroState.workMinutes}m`;
+            if (pomodoroStatus) {
+              pomodoroStatus.textContent = `${t("workStatus")} • ${pomodoroState.workMinutes}m`;
+            }
           }
           updateTimerDisplay();
           startTimerLoop();
@@ -487,10 +591,13 @@ function resetTimer() {
   pomodoroState.phase = "work";
   timerState.timeLeft = 0;
   timerState.totalTime = 0;
+
   if ($("hours")) $("hours").value = 0;
   if ($("minutes")) $("minutes").value = 0;
   if ($("seconds")) $("seconds").value = 0;
+
   updateTimerDisplay();
+
   if (timerStatus) timerStatus.textContent = t("ready");
   if (pomodoroStatus) pomodoroStatus.textContent = t("ready");
 }
@@ -522,6 +629,7 @@ function applyPomodoro() {
 
   if (timerStatus) timerStatus.textContent = t("pomodoroApplied");
   if (pomodoroStatus) pomodoroStatus.textContent = `${t("workStatus")} • ${work}m`;
+
   showToast(t("pomodoroApplied"));
   switchTab("timerPanel");
 }
@@ -547,7 +655,10 @@ function toggleStopwatch() {
     stopwatchState.intervalId = null;
     if (stopwatchStatus) stopwatchStatus.textContent = t("paused");
   }
-  if ($("swStartBtn")) $("swStartBtn").textContent = stopwatchState.running ? t("pause") : t("start");
+
+  if ($("swStartBtn")) {
+    $("swStartBtn").textContent = stopwatchState.running ? t("pause") : t("start");
+  }
 }
 
 function resetStopwatch() {
@@ -557,9 +668,11 @@ function resetStopwatch() {
   stopwatchState.elapsedMs = 0;
   stopwatchState.lastStart = 0;
   stopwatchState.laps = [];
+
   if (stopwatchDisplay) stopwatchDisplay.textContent = "00:00:00.0";
   if (stopwatchStatus) stopwatchStatus.textContent = t("ready");
   if ($("swStartBtn")) $("swStartBtn").textContent = t("start");
+
   renderLaps();
 }
 
@@ -584,7 +697,7 @@ function renderSounds() {
   if (!soundList) return;
   soundList.innerHTML = "";
 
-  sounds.forEach((sound) => {
+  sounds.forEach((sound, index) => {
     const item = document.createElement("label");
     item.className = "sound-item";
 
@@ -598,7 +711,7 @@ function renderSounds() {
     });
 
     const name = document.createElement("span");
-    name.textContent = sound.name;
+    name.textContent = `${index + 1}. ${soundLabel(sound.name)}`;
 
     const btn = document.createElement("button");
     btn.type = "button";
@@ -613,7 +726,6 @@ function renderSounds() {
     item.appendChild(radio);
     item.appendChild(name);
     item.appendChild(btn);
-
     soundList.appendChild(item);
   });
 }
@@ -657,16 +769,25 @@ function applyLanguage() {
     if (el) el.textContent = t(key);
   });
 
-  if ($("swStartBtn")) $("swStartBtn").textContent = stopwatchState.running ? t("pause") : t("start");
+  if ($("swStartBtn")) {
+    $("swStartBtn").textContent = stopwatchState.running ? t("pause") : t("start");
+  }
 
-  if (!timerState.running && timerState.timeLeft === 0 && timerStatus) timerStatus.textContent = t("ready");
-  if (!stopwatchState.running && stopwatchState.elapsedMs === 0 && stopwatchStatus) stopwatchStatus.textContent = t("ready");
+  renderSounds();
+
+  if (!timerState.running && timerState.timeLeft === 0 && timerStatus) {
+    timerStatus.textContent = t("ready");
+  }
+  if (!stopwatchState.running && stopwatchState.elapsedMs === 0 && stopwatchStatus) {
+    stopwatchStatus.textContent = t("ready");
+  }
 }
 
 function switchTab(tabId) {
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tabId);
   });
+
   document.querySelectorAll(".panel").forEach((panel) => {
     panel.classList.toggle("active", panel.id === tabId);
   });
@@ -697,12 +818,15 @@ document.querySelectorAll(".quick-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     pomodoroState.enabled = false;
     stopTimerInternal();
+
     if ($("hours")) $("hours").value = btn.dataset.h;
     if ($("minutes")) $("minutes").value = btn.dataset.m;
     if ($("seconds")) $("seconds").value = btn.dataset.s;
+
     timerState.timeLeft = timerInputSeconds();
     timerState.totalTime = timerState.timeLeft;
     updateTimerDisplay();
+
     if (timerStatus) timerStatus.textContent = t("ready");
   });
 });
@@ -730,6 +854,7 @@ loadTheme();
 renderSounds();
 applyLanguage();
 updateTimerDisplay();
+
 if (stopwatchDisplay) stopwatchDisplay.textContent = "00:00:00.0";
 if (timerStatus) timerStatus.textContent = t("ready");
 if (pomodoroStatus) pomodoroStatus.textContent = t("ready");
