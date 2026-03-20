@@ -265,7 +265,82 @@ function playSoundOnce(sound) {
     }
   });
 }
+async function requestNotificationPermission() {
+  if (!CapacitorLocalNotifications) return false;
 
+  try {
+    const check = await CapacitorLocalNotifications.checkPermissions();
+
+    if (check.display === "granted") {
+      notificationState.permissionGranted = true;
+      return true;
+    }
+
+    const req = await CapacitorLocalNotifications.requestPermissions();
+    notificationState.permissionGranted = req.display === "granted";
+    return notificationState.permissionGranted;
+  } catch (e) {
+    console.warn("Notification permission error:", e);
+    return false;
+  }
+}
+
+async function scheduleTimerNotification(secondsFromNow) {
+  if (!CapacitorLocalNotifications) return;
+  if (!secondsFromNow || secondsFromNow <= 0) return;
+
+  try {
+    await CapacitorLocalNotifications.cancel({
+      notifications: [{ id: notificationState.scheduledTimerNotificationId }]
+    });
+
+    await CapacitorLocalNotifications.schedule({
+      notifications: [
+        {
+          id: notificationState.scheduledTimerNotificationId,
+          title: t("notifTimerTitle"),
+          body: t("notifTimerBody"),
+          schedule: {
+            at: new Date(Date.now() + secondsFromNow * 1000)
+          }
+        }
+      ]
+    });
+  } catch (e) {
+    console.warn("Schedule notification error:", e);
+  }
+}
+
+async function cancelTimerNotification() {
+  if (!CapacitorLocalNotifications) return;
+
+  try {
+    await CapacitorLocalNotifications.cancel({
+      notifications: [{ id: notificationState.scheduledTimerNotificationId }]
+    });
+  } catch (e) {
+    console.warn("Cancel notification error:", e);
+  }
+}
+
+async function fireFinishNotification() {
+  if (!CapacitorLocalNotifications) return;
+
+  try {
+    await CapacitorLocalNotifications.schedule({
+      notifications: [
+        {
+          id: Date.now() % 2147483000,
+          title: t("notifTimerTitle"),
+          body: t("notifTimerBody"),
+          schedule: { at: new Date(Date.now() + 300) }
+        }
+      ]
+    });
+  } catch (e) {
+    console.warn("Immediate finish notification error:", e);
+  }
+}
 // ===============================
 // SELECTED SOUND GETTER
 // ===============================
