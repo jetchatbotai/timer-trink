@@ -5,29 +5,7 @@ const notificationState = {
   permissionGranted: false,
   scheduledTimerNotificationId: 1001
 };
-const CapacitorLocalNotifications =
-  window.Capacitor?.Plugins?.LocalNotifications || null;
 
-async function notifyFinish() {
-  if (!CapacitorLocalNotifications) return;
-
-  try {
-    await CapacitorLocalNotifications.requestPermissions();
-
-    await CapacitorLocalNotifications.schedule({
-      notifications: [
-        {
-          title: "Timer Trink",
-          body: "Time is up!",
-          id: Date.now(),
-          schedule: { at: new Date(Date.now() + 500) }
-        }
-      ]
-    });
-  } catch (e) {
-    console.log("notif error", e);
-  }
-}
 // ===============================
 // CORE HELPERS
 // ===============================
