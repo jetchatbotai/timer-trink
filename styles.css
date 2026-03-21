@@ -1,7 +1,7 @@
 :root {
   --bg1: #071327;
   --bg2: #081c46;
-  --surface: rgba(19, 33, 60, 0.8);
+  --surface: rgba(19, 33, 60, 0.82);
   --surface2: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.12);
   --text: #f6fbff;
@@ -9,12 +9,14 @@
   --primary: #6456ff;
   --secondary: #20b6ea;
   --ring-rest: rgba(255,255,255,0.12);
+  --danger: #ff5f7a;
+  --success: #3ddc97;
 }
 
 body.light {
   --bg1: #eef3ff;
   --bg2: #daf5ff;
-  --surface: rgba(255,255,255,0.85);
+  --surface: rgba(255,255,255,0.86);
   --surface2: rgba(18, 34, 56, 0.08);
   --border: rgba(18, 34, 56, 0.12);
   --text: #16233f;
@@ -22,6 +24,8 @@ body.light {
   --primary: #6456ff;
   --secondary: #20b6ea;
   --ring-rest: rgba(18,34,56,0.12);
+  --danger: #e14d67;
+  --success: #1ca76d;
 }
 
 * {
@@ -39,6 +43,12 @@ html, body {
 body {
   position: relative;
   overflow-x: hidden;
+}
+
+body.alarm-active .app-shell {
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
 }
 
 .bg-orb {
@@ -137,12 +147,20 @@ button {
   border-radius: 18px;
   color: var(--text);
   background: var(--surface2);
+  transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 .icon-btn {
   width: 48px;
   height: 48px;
-  cursor: pointer;
 }
 
 .tabs {
@@ -155,7 +173,6 @@ button {
 .tab-btn {
   padding: 15px 12px;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .tab-btn.active,
@@ -209,6 +226,7 @@ button {
   z-index: 1;
   font-size: 5rem;
   font-weight: 800;
+  text-align: center;
 }
 
 .stopwatch-display {
@@ -255,7 +273,6 @@ button {
 .controls button {
   padding: 16px 12px;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .field label {
@@ -308,15 +325,23 @@ button {
   padding-right: 4px;
 }
 
+.sound-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
 .sound-item span {
-  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  line-height: 1.25;
 }
 
 .mini-btn {
-  min-width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  cursor: pointer;
+  min-width: 84px;
+  height: 44px;
+  border-radius: 14px;
 }
 
 .laps-box {
@@ -405,7 +430,6 @@ button {
 .alarm-btn {
   width: 100%;
   padding: 16px 12px;
-  cursor: pointer;
 }
 
 @media (max-width: 900px) {
@@ -461,5 +485,14 @@ button {
 
   .stopwatch-display {
     font-size: 2.25rem;
+  }
+
+  .sound-item {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .mini-btn {
+    width: 100%;
   }
 }
