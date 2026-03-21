@@ -1,3 +1,6 @@
+// ===============================
+// CAPACITOR
+// ===============================
 const CapacitorLocalNotifications =
   window.Capacitor?.Plugins?.LocalNotifications || null;
 
@@ -7,13 +10,13 @@ const notificationState = {
 };
 
 // ===============================
-// CORE HELPERS
+// HELPERS
 // ===============================
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 // ===============================
-// GLOBAL APP STATE
+// APP STATE
 // ===============================
 const appState = {
   initialized: false,
@@ -50,7 +53,7 @@ const stopwatchState = {
 // ===============================
 const pomodoroState = {
   enabled: false,
-  phase: "work", // work | break
+  phase: "work",
   workMinutes: 25,
   breakMinutes: 5,
   cycleCount: 0
@@ -63,21 +66,18 @@ const alarmState = {
   intervalId: null,
   active: false,
   audioContext: null,
-  lastPlay: 0,
-  pendingAction: null
+  lastPlay: 0
 };
 
 // ===============================
-// LANGUAGE SYSTEM (ADVANCED)
+// LANGUAGES
 // ===============================
 const supportedLanguages = [
-  "tr","en","de","ru","zh","fr","es","ar","it","pt","ja","ko","hi","fa","uk","pl",
-  "nl","sv","id","ms","vi","el","cs","ro","hu","bg","sr","hr","sk","sl","da","fi",
-  "no","lt","lv","et","he","th","bn","ur","ta","te","ml","mr","gu","pa","sw","am","az","kk"
+  "tr","en","de","ru","zh","fr","es","ar","it","pt","ja","ko","hi","fa"
 ];
 
 // ===============================
-// BASE TRANSLATIONS (CORE KEYS)
+// TRANSLATIONS (FIXED)
 // ===============================
 const baseTranslations = {
   start: { tr:"Başlat", en:"Start" },
@@ -100,15 +100,13 @@ const baseTranslations = {
   soundOn: { tr:"Ses açık", en:"Sound on" },
   vibrationOn: { tr:"Titreşim açık", en:"Vibration on" },
   alarmTitle: { tr:"Süre doldu!", en:"Time is up!" },
-  alarmMsg: { tr:"Alarm çalıyor", en:"Alarm ringing" }
-  notifTimerTitle: { tr:"Timer Trink", en:"Timer Trink" },
-notifTimerBody: { tr:"Süre doldu", en:"Time is up" }
+  alarmMsg: { tr:"Alarm çalıyor", en:"Alarm ringing" },
+  notifTimerTitle: { tr:"Timer", en:"Timer" },
+  notifTimerBody: { tr:"Süre doldu", en:"Time is up" },
+  work: { tr:"Çalışma", en:"Work" },
+  break: { tr:"Mola", en:"Break" },
+  cycle: { tr:"Döngü", en:"Cycle" }
 };
-
-// ===============================
-// TRANSLATION CACHE
-// ===============================
-const translationCache = {};
 
 // ===============================
 // TRANSLATION ENGINE
@@ -116,51 +114,27 @@ const translationCache = {};
 function t(key) {
   const lang = $("language")?.value || appState.language || "en";
 
-  if (!baseTranslations[key]) return key;
-
-  if (translationCache[lang] && translationCache[lang][key]) {
-    return translationCache[lang][key];
-  }
-
-  const val =
-    baseTranslations[key][lang] ||
-    baseTranslations[key]["en"] ||
-    key;
-
-  if (!translationCache[lang]) {
-    translationCache[lang] = {};
-  }
-
-  translationCache[lang][key] = val;
-
-  return val;
+  return baseTranslations[key]?.[lang]
+    || baseTranslations[key]?.en
+    || key;
 }
 
-// ===============================
-// SAFE DOM SETTER (CRASH FIX)
 // ===============================
 function setText(id, key) {
   const el = $(id);
-  if (!el) return;
-  el.textContent = t(key);
+  if (el) el.textContent = t(key);
 }
 
-// ===============================
-// LANGUAGE APPLY (FULL UPDATE)
 // ===============================
 function applyLanguage() {
   const lang = $("language")?.value || "en";
   appState.language = lang;
 
-  document.documentElement.lang = lang;
-
-  // tabs
   setText("tabTimer", "timer");
   setText("tabPomodoro", "pomodoro");
   setText("tabStopwatch", "stopwatch");
   setText("tabSounds", "sounds");
 
-  // buttons
   setText("timerStartBtn", "start");
   setText("timerPauseBtn", "pause");
   setText("timerResetBtn", "reset");
@@ -171,27 +145,19 @@ function applyLanguage() {
 
   setText("dismissAlarmBtn", "dismissAlarm");
 
-  // labels
   setText("hoursLabel", "hours");
   setText("minutesLabel", "minutes");
   setText("secondsLabel", "seconds");
 
-  setText("soundLabel", "soundOn");
-  setText("vibrationLabel", "vibrationOn");
-
-  // status
   setText("timerStatus", "ready");
-
-  renderSounds();
 }
 // ===============================
-// SOUND SYSTEM (ADVANCED ENGINE)
+// SOUND SYSTEM
 // ===============================
-
 const sounds = [];
 const SOUND_COUNT = 60;
+let selectedSoundId = "s1";
 
-// sesleri oluştur (dinamik)
 for (let i = 1; i <= SOUND_COUNT; i++) {
   sounds.push({
     id: "s" + i,
@@ -206,21 +172,19 @@ for (let i = 1; i <= SOUND_COUNT; i++) {
   });
 }
 
-// seçili ses
-let selectedSoundId = "s1";
+function formatSoundName(name) {
+  const lang = $("language")?.value || appState.language || "en";
+  return lang === "tr" ? name.replace("Sound", "Ses") : name;
+}
 
-// ===============================
-// AUDIO CONTEXT MANAGER
-// ===============================
 function getAudioContext() {
-  const C = window.AudioContext || window.webkitAudioContext;
-  if (!C) return null;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
 
   if (!alarmState.audioContext) {
-    alarmState.audioContext = new C();
+    alarmState.audioContext = new Ctx();
   }
 
-  // iOS / Android resume fix
   if (alarmState.audioContext.state === "suspended") {
     alarmState.audioContext.resume();
   }
@@ -228,19 +192,14 @@ function getAudioContext() {
   return alarmState.audioContext;
 }
 
-// ===============================
-// SOUND PLAY ENGINE
-// ===============================
 function playSoundOnce(sound) {
   if (!sound) return;
-
-  const soundEnabled = $("soundToggle")?.checked;
-  if (!soundEnabled) return;
+  if (!$("soundToggle")?.checked) return;
 
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  const startTime = ctx.currentTime;
+  const baseTime = ctx.currentTime;
 
   sound.seq.forEach((freq, index) => {
     try {
@@ -248,23 +207,170 @@ function playSoundOnce(sound) {
       const gain = ctx.createGain();
 
       osc.type = sound.type;
-      osc.frequency.setValueAtTime(freq, startTime);
+      osc.frequency.setValueAtTime(freq, baseTime);
 
-      gain.gain.setValueAtTime(sound.volume, startTime);
+      gain.gain.setValueAtTime(sound.volume, baseTime);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
-      const t = startTime + index * 0.18;
-
-      osc.start(t);
-      osc.stop(t + 0.15);
-
+      const startAt = baseTime + index * 0.18;
+      osc.start(startAt);
+      osc.stop(startAt + 0.15);
     } catch (e) {
       console.warn("Sound error:", e);
     }
   });
 }
+
+function previewSound(sound) {
+  try {
+    playSoundOnce(sound);
+  } catch (e) {
+    console.warn("Preview error:", e);
+  }
+}
+
+function getSelectedSound() {
+  return sounds.find(s => s.id === selectedSoundId) || sounds[0];
+}
+
+function startAlarmLoop() {
+  stopAlarmLoop();
+  alarmState.active = true;
+
+  alarmState.intervalId = setInterval(() => {
+    const now = Date.now();
+    if (now - alarmState.lastPlay < 800) return;
+
+    alarmState.lastPlay = now;
+    playSoundOnce(getSelectedSound());
+
+    if ($("vibrationToggle")?.checked && navigator.vibrate) {
+      navigator.vibrate([250, 120, 250]);
+    }
+  }, 1100);
+}
+
+function stopAlarmLoop() {
+  if (alarmState.intervalId) {
+    clearInterval(alarmState.intervalId);
+    alarmState.intervalId = null;
+  }
+
+  alarmState.active = false;
+
+  if (navigator.vibrate) {
+    navigator.vibrate(0);
+  }
+}
+
+function dismissAlarm() {
+  stopAlarmLoop();
+
+  const overlay = $("alarmOverlay");
+  if (overlay) {
+    overlay.classList.add("hidden");
+  }
+
+  unlockUI();
+}
+
+function updateSoundCount() {
+  const el = $("soundCountLabel");
+  if (!el) return;
+  el.textContent = sounds.length + " " + t("sounds");
+}
+
+function renderSounds() {
+  const list = $("soundList");
+  if (!list) return;
+
+  list.innerHTML = "";
+  const fragment = document.createDocumentFragment();
+
+  sounds.forEach((sound) => {
+    const item = document.createElement("label");
+    item.className = "sound-item";
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "alarmSound";
+    radio.value = sound.id;
+    radio.checked = sound.id === selectedSoundId;
+
+    radio.addEventListener("change", () => {
+      selectedSoundId = sound.id;
+      saveSoundState();
+    });
+
+    const name = document.createElement("span");
+    name.textContent = formatSoundName(sound.name);
+
+    const btn = document.createElement("button");
+    btn.className = "mini-btn";
+    btn.type = "button";
+    btn.textContent = t("preview");
+
+    btn.addEventListener("click", () => {
+      selectedSoundId = sound.id;
+      radio.checked = true;
+      saveSoundState();
+      previewSound(sound);
+    });
+
+    item.appendChild(radio);
+    item.appendChild(name);
+    item.appendChild(btn);
+
+    fragment.appendChild(item);
+  });
+
+  list.appendChild(fragment);
+  updateSoundCount();
+}
+
+function restoreSelectedSound() {
+  const saved = localStorage.getItem("selectedSoundId");
+  if (saved) {
+    selectedSoundId = saved;
+  }
+}
+
+function persistSelectedSound() {
+  localStorage.setItem("selectedSoundId", selectedSoundId);
+}
+
+function watchSoundSelection() {
+  // seçim anlık kaydediliyor
+}
+
+function optimizeSoundListScroll() {
+  const list = $("soundList");
+  if (!list) return;
+
+  let ticking = false;
+
+  list.addEventListener("scroll", () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+}
+
+function initSoundSystem() {
+  restoreSelectedSound();
+  renderSounds();
+  optimizeSoundListScroll();
+  watchSoundSelection();
+}
+
+// ===============================
+// NOTIFICATIONS
+// ===============================
 async function requestNotificationPermission() {
   if (!CapacitorLocalNotifications) return false;
 
@@ -341,85 +447,10 @@ async function fireFinishNotification() {
     console.warn("Immediate finish notification error:", e);
   }
 }
-// ===============================
-// SELECTED SOUND GETTER
-// ===============================
-function getSelectedSound() {
-  return sounds.find(s => s.id === selectedSoundId) || sounds[0];
-}
 
 // ===============================
-// ALARM LOOP ENGINE (STABLE)
+// TIMER ENGINE
 // ===============================
-function startAlarmLoop() {
-  stopAlarmLoop();
-
-  alarmState.active = true;
-
-  const loopInterval = 1100;
-
-  alarmState.intervalId = setInterval(() => {
-    const now = Date.now();
-
-    // overload koruma
-    if (now - alarmState.lastPlay < 800) return;
-
-    alarmState.lastPlay = now;
-
-    playSoundOnce(getSelectedSound());
-
-    // vibration
-    if ($("vibrationToggle")?.checked && navigator.vibrate) {
-      navigator.vibrate([250, 120, 250]);
-    }
-
-  }, loopInterval);
-}
-
-// ===============================
-// STOP ALARM LOOP
-// ===============================
-function stopAlarmLoop() {
-  if (alarmState.intervalId) {
-    clearInterval(alarmState.intervalId);
-    alarmState.intervalId = null;
-  }
-
-  alarmState.active = false;
-
-  if (navigator.vibrate) {
-    navigator.vibrate(0);
-  }
-}
-
-// ===============================
-// SOUND PREVIEW (SAFE)
-// ===============================
-function previewSound(sound) {
-  try {
-    playSoundOnce(sound);
-  } catch (e) {
-    console.warn("Preview error:", e);
-  }
-}
-
-// ===============================
-// SOUND LABEL FORMATTER
-// ===============================
-function formatSoundName(name) {
-  const lang = $("language")?.value || "en";
-
-  if (lang === "tr") {
-    return name.replace("Sound", "Ses");
-  }
-
-  return name;
-}
-// ===============================
-// TIMER ENGINE (ADVANCED)
-// ===============================
-
-// zamanı formatla (HH:MM:SS)
 function formatTime(sec) {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
@@ -432,39 +463,42 @@ function formatTime(sec) {
   ].join(":");
 }
 
-// ===============================
-// DISPLAY UPDATE
-// ===============================
-function updateTimerDisplay() {
-  const el = $("timerDisplay");
-  if (!el) return;
-
-  el.textContent = formatTime(timerState.timeLeft);
-
-  updateTimerRing();
-}
-
-// ===============================
-// RING UPDATE (PROGRESS)
-// ===============================
 function updateTimerRing() {
   const ring = $("timerRing");
   if (!ring) return;
 
-  if (!timerState.totalTime) return;
+  if (!timerState.totalTime || timerState.totalTime <= 0) {
+    ring.style.background = "";
+    return;
+  }
 
-  const percent =
-    1 - (timerState.timeLeft / timerState.totalTime);
-
-  const deg = percent * 360;
+  const percent = 1 - (timerState.timeLeft / timerState.totalTime);
+  const deg = Math.max(0, Math.min(360, percent * 360));
 
   ring.style.background =
     `conic-gradient(var(--primary) ${deg}deg, var(--secondary) ${deg}deg, var(--ring-rest) ${deg}deg)`;
 }
 
-// ===============================
-// TIMER TICK (DRIFT FIX)
-// ===============================
+function updateTimerDisplay() {
+  const el = $("timerDisplay");
+  if (el) {
+    el.textContent = formatTime(Math.max(0, timerState.timeLeft));
+  }
+
+  updateTimerRing();
+}
+
+function updateTimerStartButton() {
+  const btn = $("timerStartBtn");
+  if (!btn) return;
+
+  if (timerState.running) {
+    btn.textContent = t("running");
+  } else {
+    btn.textContent = t("start");
+  }
+}
+
 function timerTick() {
   if (!timerState.running) return;
 
@@ -474,15 +508,18 @@ function timerTick() {
   if (delta <= 0) return;
 
   timerState.lastTick = now;
-
   timerState.timeLeft -= delta;
 
   if (timerState.timeLeft <= 0) {
     timerState.timeLeft = 0;
-    updateTimerDisplay();
+    timerState.running = false;
 
     clearInterval(timerState.timerId);
-    timerState.running = false;
+    timerState.timerId = null;
+
+    updateTimerDisplay();
+    setText("timerStatus", "done");
+    updateTimerStartButton();
 
     onTimerFinished();
     return;
@@ -491,26 +528,27 @@ function timerTick() {
   updateTimerDisplay();
 }
 
-// ===============================
-// TIMER START
-// ===============================
 function startTimer() {
   if (timerState.running) return;
 
-  const h = +$("hours").value || 0;
-  const m = +$("minutes").value || 0;
-  const s = +$("seconds").value || 0;
+  if (timerState.paused && timerState.timeLeft > 0) {
+    resumeTimer();
+    return;
+  }
 
+  const h = +$("hours")?.value || 0;
+  const m = +$("minutes")?.value || 0;
+  const s = +$("seconds")?.value || 0;
   const total = h * 3600 + m * 60 + s;
 
   if (total <= 0) return;
 
+  clearInterval(timerState.timerId);
+
   timerState.totalTime = total;
   timerState.timeLeft = total;
-
   timerState.running = true;
   timerState.paused = false;
-
   timerState.lastTick = Date.now();
 
   updateTimerDisplay();
@@ -518,32 +556,31 @@ function startTimer() {
   timerState.timerId = setInterval(timerTick, 250);
 
   setText("timerStatus", "running");
+  updateTimerStartButton();
 
   requestNotificationPermission().then(() => {
     scheduleTimerNotification(total);
   });
 }
 
-// ===============================
-// TIMER PAUSE
-// ===============================
 function pauseTimer() {
   if (!timerState.running) return;
 
   clearInterval(timerState.timerId);
+  timerState.timerId = null;
   timerState.running = false;
   timerState.paused = true;
 
   cancelTimerNotification();
 
   setText("timerStatus", "paused");
+  updateTimerStartButton();
 }
 
-// ===============================
-// TIMER RESUME
-// ===============================
 function resumeTimer() {
-  if (!timerState.paused) return;
+  if (!timerState.paused && timerState.timeLeft <= 0) return;
+
+  clearInterval(timerState.timerId);
 
   timerState.running = true;
   timerState.paused = false;
@@ -552,70 +589,77 @@ function resumeTimer() {
   timerState.timerId = setInterval(timerTick, 250);
 
   setText("timerStatus", "running");
+  updateTimerStartButton();
+  updateTimerDisplay();
 
   scheduleTimerNotification(timerState.timeLeft);
 }
 
 function resetTimer() {
   clearInterval(timerState.timerId);
+  timerState.timerId = null;
 
   timerState.running = false;
   timerState.paused = false;
   timerState.timeLeft = 0;
   timerState.totalTime = 0;
+  timerState.lastTick = 0;
 
-  $("timerDisplay").textContent = "00:00:00";
+  if ($("hours")) $("hours").value = 0;
+  if ($("minutes")) $("minutes").value = 0;
+  if ($("seconds")) $("seconds").value = 0;
+
+  const display = $("timerDisplay");
+  if (display) {
+    display.textContent = "00:00:00";
+  }
 
   updateTimerRing();
   cancelTimerNotification();
 
   setText("timerStatus", "ready");
+  updateTimerStartButton();
 }
 
-
-// ===============================
-// TIMER FINISH HANDLER
-// ===============================
 function onTimerFinished() {
   cancelTimerNotification();
   fireFinishNotification();
 
   startAlarmLoop();
 
-  $("alarmTitle").textContent = t("alarmTitle");
-  $("alarmMessage").textContent = t("alarmMsg");
+  const titleEl = $("alarmTitle");
+  const msgEl = $("alarmMessage");
+  const overlay = $("alarmOverlay");
 
-  $("alarmOverlay").classList.remove("hidden");
+  if (titleEl) titleEl.textContent = t("alarmTitle");
+  if (msgEl) msgEl.textContent = t("alarmMsg");
+  if (overlay) overlay.classList.remove("hidden");
+
+  lockUIWhileAlarm();
+  updateTimerStartButton();
 
   if (pomodoroState.enabled) {
     handlePomodoroSwitch();
   }
 }
 
-// ===============================
-// QUICK BUTTONS
-// ===============================
 function setupQuickButtons() {
   const buttons = $$(".quick-btn");
 
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
-      $("hours").value = btn.dataset.h;
-      $("minutes").value = btn.dataset.m;
-      $("seconds").value = btn.dataset.s;
+      if ($("hours")) $("hours").value = btn.dataset.h || 0;
+      if ($("minutes")) $("minutes").value = btn.dataset.m || 0;
+      if ($("seconds")) $("seconds").value = btn.dataset.s || 0;
     });
   });
 }
 // ===============================
-// POMODORO ENGINE (FULL SYSTEM)
-// ===============================
-
-// ===============================
-// APPLY POMODORO SETTINGS
+// POMODORO ENGINE
 // ===============================
 function applyPomodoro() {
-  const work = +$("pomodoroWork").value || 25;
-  const brk = +$("pomodoroBreak").value || 5;
+  const work = +$("pomodoroWork")?.value || 25;
+  const brk = +$("pomodoroBreak")?.value || 5;
 
   if (work <= 0 || brk <= 0) return;
 
@@ -626,13 +670,9 @@ function applyPomodoro() {
   pomodoroState.cycleCount = 0;
 
   loadPomodoroPhase();
-
   setPomodoroStatus();
 }
 
-// ===============================
-// LOAD CURRENT PHASE INTO TIMER
-// ===============================
 function loadPomodoroPhase() {
   let minutes = 0;
 
@@ -642,16 +682,13 @@ function loadPomodoroPhase() {
     minutes = pomodoroState.breakMinutes;
   }
 
-  $("hours").value = 0;
-  $("minutes").value = minutes;
-  $("seconds").value = 0;
+  if ($("hours")) $("hours").value = 0;
+  if ($("minutes")) $("minutes").value = minutes;
+  if ($("seconds")) $("seconds").value = 0;
 
   updatePomodoroUI();
 }
 
-// ===============================
-// SWITCH PHASE
-// ===============================
 function handlePomodoroSwitch() {
   if (!pomodoroState.enabled) return;
 
@@ -665,62 +702,45 @@ function handlePomodoroSwitch() {
   loadPomodoroPhase();
   updatePomodoroUI();
 
-  // otomatik başlatma
   setTimeout(() => {
     startTimer();
   }, 600);
 }
 
-// ===============================
-// UPDATE UI (PHASE + TITLE)
-// ===============================
 function updatePomodoroUI() {
   const title = $("pomodoroTitle");
-
   if (!title) return;
 
   if (pomodoroState.phase === "work") {
-    title.textContent = "🍅 " + t("pomodoro") + " - Work";
+    title.textContent = "🍅 " + t("pomodoro") + " - " + t("work");
   } else {
-    title.textContent = "☕ " + t("pomodoro") + " - Break";
+    title.textContent = "☕ " + t("pomodoro") + " - " + t("break");
   }
+
+  setPomodoroStatus();
 }
 
-// ===============================
-// STATUS TEXT
-// ===============================
 function setPomodoroStatus() {
   const el = $("pomodoroStatus");
   if (!el) return;
 
-  const phase = pomodoroState.phase;
+  const phaseText = pomodoroState.phase === "work" ? t("work") : t("break");
   const cycle = pomodoroState.cycleCount;
 
-  el.textContent =
-    (phase === "work" ? "Work" : "Break") +
-    " • Cycle: " + cycle;
+  el.textContent = phaseText + " • " + t("cycle") + ": " + cycle;
 }
 
-// ===============================
-// PRESET BUTTONS
-// ===============================
 function setupPomodoroPresets() {
   const presets = $$(".preset-btn");
 
   presets.forEach(btn => {
     btn.addEventListener("click", () => {
-      const w = btn.dataset.work;
-      const b = btn.dataset.break;
-
-      $("pomodoroWork").value = w;
-      $("pomodoroBreak").value = b;
+      if ($("pomodoroWork")) $("pomodoroWork").value = btn.dataset.work || 25;
+      if ($("pomodoroBreak")) $("pomodoroBreak").value = btn.dataset.break || 5;
     });
   });
 }
 
-// ===============================
-// DISABLE POMODORO
-// ===============================
 function disablePomodoro() {
   pomodoroState.enabled = false;
   pomodoroState.phase = "work";
@@ -728,43 +748,27 @@ function disablePomodoro() {
 
   const el = $("pomodoroStatus");
   if (el) el.textContent = t("ready");
+
+  updatePomodoroUI();
 }
 
-// ===============================
-// AUTO STOP ON RESET
-// ===============================
 function onTimerResetPomodoro() {
   if (!pomodoroState.enabled) return;
-
   disablePomodoro();
 }
 
-// ===============================
-// MANUAL SWITCH BUTTON (OPTIONAL)
-// ===============================
 function manualPomodoroSwitch() {
   if (!pomodoroState.enabled) return;
-
   handlePomodoroSwitch();
 }
 
-// ===============================
-// GUARD: PREVENT CONFLICT
-// ===============================
 function ensurePomodoroConsistency() {
   if (!pomodoroState.enabled) return;
-
   if (timerState.running) return;
-
-  // timer durduysa pomodoro da dursun
-  disablePomodoro();
 }
-// ===============================
-// STOPWATCH ENGINE (ADVANCED)
-// ===============================
 
 // ===============================
-// FORMAT MS → HH:MM:SS.MS
+// STOPWATCH ENGINE
 // ===============================
 function formatStopwatch(ms) {
   const totalSec = Math.floor(ms / 1000);
@@ -781,9 +785,6 @@ function formatStopwatch(ms) {
   );
 }
 
-// ===============================
-// UPDATE DISPLAY
-// ===============================
 function updateStopwatchDisplay() {
   const el = $("stopwatchDisplay");
   if (!el) return;
@@ -795,73 +796,70 @@ function updateStopwatchDisplay() {
   el.textContent = formatStopwatch(current);
 }
 
-// ===============================
-// MAIN LOOP
-// ===============================
+function updateStopwatchStartButton() {
+  const btn = $("swStartBtn");
+  if (!btn) return;
+
+  btn.textContent = stopwatchState.running ? t("pause") : t("start");
+}
+
 function stopwatchTick() {
   if (!stopwatchState.running) return;
   updateStopwatchDisplay();
 }
 
-// ===============================
-// START / PAUSE TOGGLE
-// ===============================
 function toggleStopwatch() {
   if (!stopwatchState.running) {
-    // START
     stopwatchState.running = true;
     stopwatchState.lastStart = Date.now();
 
+    clearInterval(stopwatchState.intervalId);
     stopwatchState.intervalId = setInterval(stopwatchTick, 50);
 
     setText("stopwatchStatus", "running");
-
   } else {
-    // PAUSE
     stopwatchState.running = false;
 
     clearInterval(stopwatchState.intervalId);
+    stopwatchState.intervalId = null;
 
     stopwatchState.elapsedMs += Date.now() - stopwatchState.lastStart;
 
     setText("stopwatchStatus", "paused");
   }
+
+  updateStopwatchStartButton();
 }
 
-// ===============================
-// RESET
-// ===============================
 function resetStopwatch() {
   clearInterval(stopwatchState.intervalId);
+  stopwatchState.intervalId = null;
 
   stopwatchState.running = false;
   stopwatchState.elapsedMs = 0;
   stopwatchState.lastStart = 0;
   stopwatchState.laps = [];
 
-  $("stopwatchDisplay").textContent = "00:00:00.0";
+  const display = $("stopwatchDisplay");
+  if (display) display.textContent = "00:00:00.0";
 
   renderLaps();
 
   setText("stopwatchStatus", "ready");
+  updateStopwatchStartButton();
 }
 
-// ===============================
-// ADD LAP
-// ===============================
 function addLap() {
   if (!stopwatchState.running) return;
 
-  const currentTime = stopwatchState.elapsedMs + (Date.now() - stopwatchState.lastStart);
+  const currentTime =
+    stopwatchState.elapsedMs + (Date.now() - stopwatchState.lastStart);
 
   stopwatchState.laps.unshift(currentTime);
-
+  limitLaps(100);
   renderLaps();
 }
 
-// ===============================
-// RENDER LAPS (OPTIMIZED)
-// ===============================
 function renderLaps() {
   const list = $("lapsList");
   if (!list) return;
@@ -885,164 +883,24 @@ function renderLaps() {
   });
 }
 
-// ===============================
-// PERFORMANCE OPTIMIZATION
-// ===============================
 function limitLaps(max = 50) {
   if (stopwatchState.laps.length > max) {
     stopwatchState.laps = stopwatchState.laps.slice(0, max);
   }
 }
 
-// ===============================
-// AUTO CLEANUP (MEMORY)
-// ===============================
 function cleanupStopwatch() {
   if (!stopwatchState.running) return;
-
   limitLaps(100);
 }
 
-// ===============================
-// OPTIONAL: AUTO UPDATE LOOP
-// ===============================
 setInterval(() => {
   cleanupStopwatch();
 }, 5000);
-// ===============================
-// SOUND LIST RENDER (ADVANCED UI)
-// ===============================
-
-function renderSounds() {
-  const list = $("soundList");
-  if (!list) return;
-
-  list.innerHTML = "";
-
-  const fragment = document.createDocumentFragment();
-
-  sounds.forEach((sound, index) => {
-    const item = document.createElement("label");
-    item.className = "sound-item";
-
-    // ===========================
-    // RADIO
-    // ===========================
-    const radio = document.createElement("input");
-    radio.type = "radio";
-    radio.name = "alarmSound";
-    radio.value = sound.id;
-
-    radio.checked = sound.id === selectedSoundId;
-
-    radio.addEventListener("change", () => {
-      selectedSoundId = sound.id;
-    });
-
-    // ===========================
-    // NAME
-    // ===========================
-    const name = document.createElement("span");
-    name.textContent = formatSoundName(sound.name);
-
-    // ===========================
-    // PREVIEW BUTTON
-    // ===========================
-    const btn = document.createElement("button");
-    btn.className = "mini-btn";
-    btn.type = "button";
-    btn.textContent = t("preview");
-
-    btn.addEventListener("click", () => {
-      selectedSoundId = sound.id;
-      radio.checked = true;
-      previewSound(sound);
-    });
-
-    // ===========================
-    // APPEND
-    // ===========================
-    item.appendChild(radio);
-    item.appendChild(name);
-    item.appendChild(btn);
-
-    fragment.appendChild(item);
-  });
-
-  list.appendChild(fragment);
-
-  updateSoundCount();
-}
 
 // ===============================
-// SOUND COUNT LABEL (DYNAMIC)
+// TAB SYSTEM
 // ===============================
-function updateSoundCount() {
-  const el = $("soundCountLabel");
-  if (!el) return;
-
-  el.textContent = sounds.length + " " + t("sounds");
-}
-
-// ===============================
-// SCROLL PERFORMANCE FIX
-// ===============================
-function optimizeSoundListScroll() {
-  const list = $("soundList");
-  if (!list) return;
-
-  let ticking = false;
-
-  list.addEventListener("scroll", () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        ticking = false;
-      });
-      ticking = true;
-    }
-  });
-}
-
-// ===============================
-// RESTORE SELECTED SOUND
-// ===============================
-function restoreSelectedSound() {
-  const saved = localStorage.getItem("selectedSoundId");
-
-  if (saved) {
-    selectedSoundId = saved;
-  }
-}
-
-// ===============================
-// SAVE SELECTED SOUND
-// ===============================
-function persistSelectedSound() {
-  localStorage.setItem("selectedSoundId", selectedSoundId);
-}
-
-// ===============================
-// WATCH SELECTION CHANGE
-// ===============================
-function watchSoundSelection() {
-  setInterval(() => {
-    persistSelectedSound();
-  }, 2000);
-}
-
-// ===============================
-// SAFE INIT
-// ===============================
-function initSoundSystem() {
-  restoreSelectedSound();
-  renderSounds();
-  optimizeSoundListScroll();
-  watchSoundSelection();
-}
-// ===============================
-// TAB SYSTEM (ADVANCED)
-// ===============================
-
 function switchTab(targetId) {
   const panels = $$(".panel");
   const tabs = $$(".tab-btn");
@@ -1064,9 +922,6 @@ function switchTab(targetId) {
   persistAppState();
 }
 
-// ===============================
-// TAB BUTTON EVENTS
-// ===============================
 function setupTabs() {
   const tabs = $$(".tab-btn");
 
@@ -1078,20 +933,13 @@ function setupTabs() {
   });
 }
 
-// ===============================
-// RESTORE LAST TAB
-// ===============================
 function restoreLastTab() {
   const saved = localStorage.getItem("lastTab");
-
   if (saved) {
     switchTab(saved);
   }
 }
 
-// ===============================
-// APP STATE SAVE
-// ===============================
 function persistAppState() {
   const data = {
     language: $("language")?.value || "en",
@@ -1102,9 +950,6 @@ function persistAppState() {
   localStorage.setItem("appState", JSON.stringify(data));
 }
 
-// ===============================
-// APP STATE LOAD
-// ===============================
 function restoreAppState() {
   try {
     const raw = localStorage.getItem("appState");
@@ -1112,7 +957,7 @@ function restoreAppState() {
 
     const data = JSON.parse(raw);
 
-    if (data.language) {
+    if (data.language && $("language")) {
       $("language").value = data.language;
       appState.language = data.language;
     }
@@ -1124,24 +969,17 @@ function restoreAppState() {
     if (data.lastTab) {
       appState.lastTab = data.lastTab;
     }
-
   } catch (e) {
     console.warn("State restore error:", e);
   }
 }
 
-// ===============================
-// AUTO SAVE LOOP
-// ===============================
 function autoSaveState() {
   setInterval(() => {
     persistAppState();
   }, 3000);
 }
 
-// ===============================
-// PANEL SAFE GUARD
-// ===============================
 function ensureValidPanel() {
   const panels = $$(".panel");
   let found = false;
@@ -1157,9 +995,6 @@ function ensureValidPanel() {
   }
 }
 
-// ===============================
-// INIT TAB SYSTEM
-// ===============================
 function initTabs() {
   setupTabs();
   restoreLastTab();
@@ -1167,134 +1002,132 @@ function initTabs() {
   autoSaveState();
 }
 // ===============================
-// THEME SYSTEM (ADVANCED)
+// STORAGE SYSTEM
 // ===============================
+const STORAGE_KEYS = {
+  app: "tt_app_state",
+  timer: "tt_timer_state",
+  stopwatch: "tt_stopwatch_state",
+  pomodoro: "tt_pomodoro_state",
+  sound: "tt_sound"
+};
 
-// mevcut tema al
-function getCurrentTheme() {
-  return document.body.classList.contains("light") ? "light" : "dark";
+function safeParse(str) {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return null;
+  }
 }
 
-// tema uygula
-function applyTheme(theme) {
-  if (theme === "light") {
+// ===============================
+// SAVE / LOAD
+// ===============================
+function saveAppState() {
+  const data = {
+    language: $("language")?.value || "en",
+    theme: document.body.classList.contains("light") ? "light" : "dark",
+    lastTab: appState.lastTab
+  };
+
+  localStorage.setItem(STORAGE_KEYS.app, JSON.stringify(data));
+}
+
+function loadAppState() {
+  const data = safeParse(localStorage.getItem(STORAGE_KEYS.app));
+  if (!data) return;
+
+  if (data.language && $("language")) {
+    $("language").value = data.language;
+    appState.language = data.language;
+  }
+
+  if (data.theme === "light") {
     document.body.classList.add("light");
-  } else {
-    document.body.classList.remove("light");
   }
 
-  appState.theme = theme;
-  persistAppState();
-}
-
-// tema toggle
-function toggleTheme() {
-  const current = getCurrentTheme();
-  const next = current === "light" ? "dark" : "light";
-
-  applyTheme(next);
-  updateThemeIcon();
-}
-
-// ikon güncelle
-function updateThemeIcon() {
-  const btn = $("themeToggle");
-  if (!btn) return;
-
-  const theme = getCurrentTheme();
-
-  btn.textContent = theme === "light" ? "☀️" : "🌙";
-}
-
-// ===============================
-// INIT THEME
-// ===============================
-function initTheme() {
-  const saved = localStorage.getItem("appState");
-
-  if (saved) {
-    try {
-      const data = JSON.parse(saved);
-      if (data.theme) {
-        applyTheme(data.theme);
-      }
-    } catch (e) {
-      console.warn("Theme load error:", e);
-    }
+  if (data.lastTab) {
+    appState.lastTab = data.lastTab;
   }
-
-  updateThemeIcon();
 }
 
-// ===============================
-// UI REFRESH (GLOBAL)
-// ===============================
-function refreshUI() {
-  // dil yeniden uygula
-  applyLanguage();
+function saveTimerState() {
+  const data = {
+    timeLeft: timerState.timeLeft,
+    totalTime: timerState.totalTime,
+    running: timerState.running,
+    paused: timerState.paused
+  };
 
-  // ses listesi yeniden çiz
-  renderSounds();
+  localStorage.setItem(STORAGE_KEYS.timer, JSON.stringify(data));
+}
 
-  // stopwatch display güncelle
-  updateStopwatchDisplay();
+function loadTimerState() {
+  const data = safeParse(localStorage.getItem(STORAGE_KEYS.timer));
+  if (!data) return;
 
-  // timer display güncelle
+  timerState.timeLeft = data.timeLeft || 0;
+  timerState.totalTime = data.totalTime || 0;
+  timerState.running = false;
+  timerState.paused = data.timeLeft > 0;
+
   updateTimerDisplay();
-}
 
-// ===============================
-// RESIZE HANDLER (RESPONSIVE FIX)
-// ===============================
-function setupResizeHandler() {
-  window.addEventListener("resize", () => {
-    // ring redraw
-    updateTimerRing();
-  });
-}
-
-// ===============================
-// VISIBILITY CHANGE (PERF FIX)
-// ===============================
-function setupVisibilityHandler() {
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      // geri gelince UI güncelle
-      refreshUI();
-    }
-  });
-}
-
-// ===============================
-// SAFE ANIMATION FRAME LOOP
-// ===============================
-function startUIRenderLoop() {
-  function loop() {
-    if (timerState.running) {
-      updateTimerDisplay();
-    }
-
-    if (stopwatchState.running) {
-      updateStopwatchDisplay();
-    }
-
-    requestAnimationFrame(loop);
+  if (timerState.timeLeft > 0) {
+    setText("timerStatus", "paused");
+  } else {
+    setText("timerStatus", "ready");
   }
+}
 
-  requestAnimationFrame(loop);
+function saveStopwatchState() {
+  localStorage.setItem(STORAGE_KEYS.stopwatch, JSON.stringify({
+    elapsedMs: stopwatchState.elapsedMs,
+    laps: stopwatchState.laps
+  }));
+}
+
+function loadStopwatchState() {
+  const data = safeParse(localStorage.getItem(STORAGE_KEYS.stopwatch));
+  if (!data) return;
+
+  stopwatchState.elapsedMs = data.elapsedMs || 0;
+  stopwatchState.laps = data.laps || [];
+
+  updateStopwatchDisplay();
+  renderLaps();
+}
+
+function savePomodoroState() {
+  localStorage.setItem(STORAGE_KEYS.pomodoro, JSON.stringify(pomodoroState));
+}
+
+function loadPomodoroState() {
+  const data = safeParse(localStorage.getItem(STORAGE_KEYS.pomodoro));
+  if (!data) return;
+
+  Object.assign(pomodoroState, data);
+}
+
+function saveSoundState() {
+  localStorage.setItem(STORAGE_KEYS.sound, selectedSoundId);
+}
+
+function loadSoundState() {
+  const saved = localStorage.getItem(STORAGE_KEYS.sound);
+  if (saved) selectedSoundId = saved;
+}
+
+function restoreAllState() {
+  loadAppState();
+  loadSoundState();
+  loadPomodoroState();
+  loadStopwatchState();
+  loadTimerState();
 }
 
 // ===============================
-// SAFE INIT UI SYSTEM
-// ===============================
-function initUISystem() {
-  initTheme();
-  setupResizeHandler();
-  setupVisibilityHandler();
-  startUIRenderLoop();
-}
-// ===============================
-// SAFE EVENT BINDER
+// EVENTS
 // ===============================
 function bind(id, event, handler) {
   const el = $(id);
@@ -1309,354 +1142,101 @@ function bind(id, event, handler) {
   });
 }
 
-// ===============================
-// TIMER BUTTON EVENTS
-// ===============================
-function bindTimerControls() {
-  bind("timerStartBtn", "click", () => {
-    if (timerState.paused) {
-      resumeTimer();
-    } else {
-      startTimer();
-    }
-  });
-
+function initEvents() {
+  bind("timerStartBtn", "click", startTimer);
   bind("timerPauseBtn", "click", pauseTimer);
   bind("timerResetBtn", "click", () => {
     resetTimer();
     onTimerResetPomodoro();
   });
-}
 
-// ===============================
-// POMODORO EVENTS
-// ===============================
-function bindPomodoroControls() {
   bind("applyPomodoroBtn", "click", applyPomodoro);
-}
 
-// ===============================
-// STOPWATCH EVENTS
-// ===============================
-function bindStopwatchControls() {
   bind("swStartBtn", "click", toggleStopwatch);
   bind("swLapBtn", "click", addLap);
   bind("swResetBtn", "click", resetStopwatch);
-}
 
-// ===============================
-// ALARM EVENTS
-// ===============================
-function bindAlarmControls() {
   bind("dismissAlarmBtn", "click", dismissAlarm);
-}
 
-// ===============================
-// LANGUAGE EVENT
-// ===============================
-function bindLanguageControl() {
-  bind("language", "change", () => {
-    applyLanguage();
-    persistAppState();
-  });
-}
+  bind("language", "change", applyLanguage);
 
-// ===============================
-// THEME EVENT
-// ===============================
-function bindThemeControl() {
   bind("themeToggle", "click", toggleTheme);
 }
 
 // ===============================
-// INPUT VALIDATION
+// THEME
 // ===============================
-function bindInputsValidation() {
-  ["hours", "minutes", "seconds"].forEach(id => {
-    bind(id, "input", (e) => {
-      const val = parseInt(e.target.value) || 0;
-
-      if (val < 0) e.target.value = 0;
-      if (val > 9999) e.target.value = 9999;
-    });
-  });
+function toggleTheme() {
+  document.body.classList.toggle("light");
+  saveAppState();
 }
 
 // ===============================
-// GLOBAL CLICK GUARD
+// UI SYSTEM
 // ===============================
-function setupGlobalGuards() {
-  document.addEventListener("click", (e) => {
-    try {
-      // güvenlik için boş
-    } catch (err) {
-      console.warn("Global click error:", err);
-    }
-  });
-}
-
-// ===============================
-// ERROR HANDLER (GLOBAL)
-// ===============================
-function setupErrorHandler() {
-  window.addEventListener("error", (e) => {
-    console.error("Global error:", e.message);
-  });
-
-  window.addEventListener("unhandledrejection", (e) => {
-    console.error("Promise error:", e.reason);
-  });
-}
-
-// ===============================
-// INIT EVENT SYSTEM
-// ===============================
-function initEvents() {
-  bindTimerControls();
-  bindPomodoroControls();
-  bindStopwatchControls();
-  bindAlarmControls();
-  bindLanguageControl();
-  bindThemeControl();
-  bindInputsValidation();
-
-  setupGlobalGuards();
-  setupErrorHandler();
-}
-// ===============================
-// STORAGE KEYS
-// ===============================
-const STORAGE_KEYS = {
-  app: "tt_app_state",
-  timer: "tt_timer_state",
-  stopwatch: "tt_stopwatch_state",
-  pomodoro: "tt_pomodoro_state",
-  sound: "tt_sound"
-};
-
-// ===============================
-// SAFE JSON PARSE
-// ===============================
-function safeParse(str) {
-  try {
-    return JSON.parse(str);
-  } catch {
-    return null;
-  }
-}
-
-// ===============================
-// SAVE APP STATE
-// ===============================
-function saveAppState() {
-  const data = {
-    language: $("language")?.value || "en",
-    theme: getCurrentTheme(),
-    lastTab: appState.lastTab
-  };
-
-  localStorage.setItem(STORAGE_KEYS.app, JSON.stringify(data));
-}
-
-// ===============================
-// LOAD APP STATE
-// ===============================
-function loadAppState() {
-  const raw = localStorage.getItem(STORAGE_KEYS.app);
-  const data = safeParse(raw);
-
-  if (!data) return;
-
-  if (data.language && $("language")) {
-    $("language").value = data.language;
-    appState.language = data.language;
-  }
-
-  if (data.theme) {
-    applyTheme(data.theme);
-  }
-
-  if (data.lastTab) {
-    appState.lastTab = data.lastTab;
-  }
-}
-
-// ===============================
-// SAVE TIMER
-// ===============================
-function saveTimerState() {
-  const data = {
-    timeLeft: timerState.timeLeft,
-    totalTime: timerState.totalTime,
-    running: timerState.running
-  };
-
-  localStorage.setItem(STORAGE_KEYS.timer, JSON.stringify(data));
-}
-
-// ===============================
-// LOAD TIMER
-// ===============================
-function loadTimerState() {
-  const raw = localStorage.getItem(STORAGE_KEYS.timer);
-  const data = safeParse(raw);
-
-  if (!data) return;
-
-  timerState.timeLeft = data.timeLeft || 0;
-  timerState.totalTime = data.totalTime || 0;
-
-  if (data.running && timerState.timeLeft > 0) {
-    startTimer();
-  }
-
+function refreshUI() {
+  applyLanguage();
+  renderSounds();
   updateTimerDisplay();
-}
-
-// ===============================
-// SAVE STOPWATCH
-// ===============================
-function saveStopwatchState() {
-  const data = {
-    elapsedMs: stopwatchState.elapsedMs,
-    laps: stopwatchState.laps
-  };
-
-  localStorage.setItem(STORAGE_KEYS.stopwatch, JSON.stringify(data));
-}
-
-// ===============================
-// LOAD STOPWATCH
-// ===============================
-function loadStopwatchState() {
-  const raw = localStorage.getItem(STORAGE_KEYS.stopwatch);
-  const data = safeParse(raw);
-
-  if (!data) return;
-
-  stopwatchState.elapsedMs = data.elapsedMs || 0;
-  stopwatchState.laps = data.laps || [];
-
   updateStopwatchDisplay();
-  renderLaps();
 }
 
-// ===============================
-// SAVE POMODORO
-// ===============================
-function savePomodoroState() {
-  localStorage.setItem(STORAGE_KEYS.pomodoro, JSON.stringify(pomodoroState));
-}
+function startUIRenderLoop() {
+  function loop() {
+    if (timerState.running) updateTimerDisplay();
+    if (stopwatchState.running) updateStopwatchDisplay();
 
-// ===============================
-// LOAD POMODORO
-// ===============================
-function loadPomodoroState() {
-  const raw = localStorage.getItem(STORAGE_KEYS.pomodoro);
-  const data = safeParse(raw);
-
-  if (!data) return;
-
-  Object.assign(pomodoroState, data);
-}
-
-// ===============================
-// SAVE SOUND
-// ===============================
-function saveSoundState() {
-  localStorage.setItem(STORAGE_KEYS.sound, selectedSoundId);
-}
-
-// ===============================
-// LOAD SOUND
-// ===============================
-function loadSoundState() {
-  const saved = localStorage.getItem(STORAGE_KEYS.sound);
-  if (saved) {
-    selectedSoundId = saved;
+    requestAnimationFrame(loop);
   }
+
+  requestAnimationFrame(loop);
 }
 
 // ===============================
-// AUTO SAVE LOOP
+// FINAL INIT
 // ===============================
-function startAutoSave() {
-  setInterval(() => {
-    saveAppState();
-    saveTimerState();
-    saveStopwatchState();
-    savePomodoroState();
-    saveSoundState();
-  }, 3000);
-}
-
-// ===============================
-// FULL RESTORE
-// ===============================
-function restoreAllState() {
-  loadAppState();
-  loadSoundState();
-  loadPomodoroState();
-  loadStopwatchState();
-  loadTimerState();
-}
-// ===============================
-// APP INITIALIZER (MASTER)
-// ===============================
-
 function initApp() {
   if (appState.initialized) return;
 
   try {
-    console.log("🚀 App initializing...");
+    console.log("🚀 INIT");
 
-    // 1. STATE RESTORE
     restoreAllState();
 
-    // 2. UI SYSTEM
-    initUISystem();
-
-    // 3. TAB SYSTEM
     initTabs();
-
-    // 4. EVENT SYSTEM
     initEvents();
-
-    // 5. SOUND SYSTEM
     initSoundSystem();
 
-    // 6. POMODORO PRESETS
     setupPomodoroPresets();
-
-    // 7. QUICK BUTTONS
     setupQuickButtons();
 
-    // 8. LANGUAGE APPLY
     applyLanguage();
 
-    // 9. TIMER DISPLAY FIX
     updateTimerDisplay();
-
-    // 10. STOPWATCH DISPLAY FIX
     updateStopwatchDisplay();
+    updateTimerStartButton();
+    updateStopwatchStartButton();
+    updatePomodoroUI();
 
-    // 11. AUTO SAVE
-    startAutoSave();
+    startUIRenderLoop();
 
-    // 12. SAFE GUARDS
-    ensureValidPanel();
+    setInterval(() => {
+      saveAppState();
+      saveTimerState();
+      saveStopwatchState();
+      savePomodoroState();
+      saveSoundState();
+    }, 3000);
 
     appState.initialized = true;
 
-    console.log("✅ App ready");
+    console.log("✅ READY");
 
   } catch (err) {
-    console.error("🔥 INIT ERROR:", err);
+    console.error("INIT ERROR:", err);
   }
 }
 
-// ===============================
-// SAFE DOM READY
 // ===============================
 function onReady(fn) {
   if (document.readyState !== "loading") {
@@ -1666,235 +1246,7 @@ function onReady(fn) {
   }
 }
 
-// ===============================
-// AUTO START
-// ===============================
-onReady(() => {
-  initApp();
-});
+onReady(initApp);
 
 // ===============================
-// FAILSAFE INIT (BACKUP)
-// ===============================
-setTimeout(() => {
-  if (!appState.initialized) {
-    console.warn("⚠️ Fallback init triggered");
-    initApp();
-  }
-}, 1500);
-
-// ===============================
-// DEBUG HELPERS
-// ===============================
-function debugState() {
-  console.log({
-    appState,
-    timerState,
-    stopwatchState,
-    pomodoroState,
-    alarmState
-  });
-}
-
-// ===============================
-// MANUAL RESET (DEV TOOL)
-// ===============================
-function resetApp() {
-  localStorage.clear();
-  location.reload();
-}
-
-// ===============================
-// SAFE INTERVAL CLEANUP
-// ===============================
-window.addEventListener("beforeunload", () => {
-  clearInterval(timerState.timerId);
-  clearInterval(stopwatchState.intervalId);
-  clearInterval(alarmState.intervalId);
-});
-
-// ===============================
-// MEMORY CLEANUP LOOP
-// ===============================
-setInterval(() => {
-  if (!timerState.running && !stopwatchState.running) {
-    // hafif temizlik
-    if (alarmState.audioContext) {
-      // gereksiz açık kalmasın
-      if (alarmState.audioContext.state === "running") {
-        alarmState.audioContext.suspend();
-      }
-    }
-  }
-}, 8000);
-// ===============================
-// EDGE CASE FIXES
-// ===============================
-
-// negatif zaman koruması
-function sanitizeTimer() {
-  if (timerState.timeLeft < 0) {
-    timerState.timeLeft = 0;
-  }
-}
-
-// input boşluk fix
-function normalizeInputs() {
-  ["hours","minutes","seconds"].forEach(id => {
-    const el = $(id);
-    if (!el) return;
-
-    if (el.value === "" || isNaN(el.value)) {
-      el.value = 0;
-    }
-  });
-}
-
-// ===============================
-// PREVENT MULTIPLE INTERVALS
-// ===============================
-function safeSetInterval(fn, time, refKey) {
-  if (refKey && refKey.current) {
-    clearInterval(refKey.current);
-  }
-
-  const id = setInterval(fn, time);
-
-  if (refKey) {
-    refKey.current = id;
-  }
-
-  return id;
-}
-
-// ===============================
-// SOUND FAILSAFE
-// ===============================
-function ensureAudioReady() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-
-  if (ctx.state === "suspended") {
-    ctx.resume();
-  }
-}
-
-// ===============================
-// TOUCH FIX (MOBILE)
-// ===============================
-function setupTouchFix() {
-  document.addEventListener("touchstart", () => {
-    ensureAudioReady();
-  }, { once: true });
-}
-
-// ===============================
-// PERFORMANCE BOOST
-// ===============================
-function throttle(fn, limit = 100) {
-  let last = 0;
-
-  return function (...args) {
-    const now = Date.now();
-    if (now - last >= limit) {
-      last = now;
-      fn(...args);
-    }
-  };
-}
-
-// ===============================
-// SAFE TIMER WRAP
-// ===============================
-function safeTimerStart() {
-  normalizeInputs();
-  sanitizeTimer();
-  startTimer();
-}
-
-// ===============================
-// SAFE STOPWATCH WRAP
-// ===============================
-function safeStopwatchStart() {
-  try {
-    toggleStopwatch();
-  } catch (e) {
-    console.warn("Stopwatch error:", e);
-  }
-}
-
-// ===============================
-// UI LOCK (ALARM ACTIVE)
-// ===============================
-function lockUIWhileAlarm() {
-  if (!alarmState.active) return;
-
-  document.body.classList.add("alarm-active");
-}
-
-// ===============================
-// UNLOCK UI
-// ===============================
-function unlockUI() {
-  document.body.classList.remove("alarm-active");
-}
-
-// ===============================
-// ENHANCED DISMISS
-// ===============================
-function enhancedDismiss() {
-  dismissAlarm();
-  unlockUI();
-}
-
-// ===============================
-// EXTRA EVENT PATCH
-// ===============================
-function patchEvents() {
-  bind("timerStartBtn", "click", safeTimerStart);
-  bind("swStartBtn", "click", safeStopwatchStart);
-  bind("dismissAlarmBtn", "click", enhancedDismiss);
-}
-
-// ===============================
-// AUTO RECOVERY LOOP
-// ===============================
-function startRecoveryLoop() {
-  setInterval(() => {
-    try {
-      // alarm stuck fix
-      if (alarmState.active && !alarmState.intervalId) {
-        startAlarmLoop();
-      }
-
-      // timer stuck fix
-      if (timerState.running && !timerState.timerId) {
-        startTimer();
-      }
-
-    } catch (e) {
-      console.warn("Recovery error:", e);
-    }
-  }, 5000);
-}
-
-// ===============================
-// FINAL INIT PATCH
-// ===============================
-function finalizeApp() {
-  setupTouchFix();
-  patchEvents();
-  startRecoveryLoop();
-}
-
-// ===============================
-// FINAL CALL
-// ===============================
-setTimeout(() => {
-  finalizeApp();
-}, 1000);
-
-// ===============================
-// FINAL LOG
-// ===============================
-console.log("🔥 FULL PRO TIMER READY");
+console.log("🔥 APP FULLY READY");
