@@ -150,7 +150,7 @@ const baseTranslations = {
   },
   pomodoro: {
     tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro",
-    ru: "Помодоро", ar: "بومодورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
+    ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
   },
   soundOn: {
     tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado",
@@ -399,6 +399,32 @@ function getLocalizedSoundName(index) {
 }
 
 // ===============================
+// TRANSLATION ENGINE
+// ===============================
+function t(key) {
+  const lang = $("language")?.value || appState.language || "en";
+  if (!baseTranslations[key]) return key;
+  return baseTranslations[key][lang] || baseTranslations[key].en || key;
+}
+
+function setText(id, key) {
+  const el = $(id);
+  if (el) el.textContent = t(key);
+}
+
+function updateTimerStartButton() {
+  const btn = $("timerStartBtn");
+  if (!btn) return;
+  btn.textContent = timerState.running ? t("running") : t("start");
+}
+
+function updateStopwatchStartButton() {
+  const btn = $("swStartBtn");
+  if (!btn) return;
+  btn.textContent = stopwatchState.running ? t("pause") : t("start");
+}
+
+// ===============================
 // APPLY LANGUAGE
 // ===============================
 function applyLanguage() {
@@ -471,12 +497,12 @@ const SOUND_COUNT = 50;
 let selectedSoundId = "s1";
 
 const soundBlueprints = [
-  { group: "crystal", variant: "chime", type: "sine", base: 740, overtone: 1480, tail: 1110, duration: 0.24, volume: 0.10 },
-  { group: "amber", variant: "bell", type: "triangle", base: 480, overtone: 960, tail: 720, duration: 0.22, volume: 0.12 },
-  { group: "night", variant: "glow", type: "sine", base: 320, overtone: 640, tail: 510, duration: 0.28, volume: 0.11 },
-  { group: "breeze", variant: "wave", type: "sawtooth", base: 260, overtone: 530, tail: 390, duration: 0.18, volume: 0.08 },
-  { group: "aurora", variant: "echo", type: "triangle", base: 560, overtone: 830, tail: 620, duration: 0.20, volume: 0.10 },
-  { group: "spark", variant: "pulse", type: "square", base: 410, overtone: 820, tail: 615, duration: 0.13, volume: 0.07 }
+  { type: "sine", base: 740, overtone: 1480, tail: 1110, duration: 0.24, volume: 0.10 },
+  { type: "triangle", base: 480, overtone: 960, tail: 720, duration: 0.22, volume: 0.12 },
+  { type: "sine", base: 320, overtone: 640, tail: 510, duration: 0.28, volume: 0.11 },
+  { type: "sawtooth", base: 260, overtone: 530, tail: 390, duration: 0.18, volume: 0.08 },
+  { type: "triangle", base: 560, overtone: 830, tail: 620, duration: 0.20, volume: 0.10 },
+  { type: "square", base: 410, overtone: 820, tail: 615, duration: 0.13, volume: 0.07 }
 ];
 
 for (let i = 1; i <= SOUND_COUNT; i++) {
@@ -487,8 +513,6 @@ for (let i = 1; i <= SOUND_COUNT; i++) {
   sounds.push({
     id: "s" + i,
     index: i,
-    group: bp.group,
-    variant: bp.variant,
     type: bp.type,
     volume: bp.volume + ((i - 1) % 3) * 0.01,
     duration: bp.duration + ((i - 1) % 4) * 0.015,
@@ -511,7 +535,7 @@ function getAudioContext() {
   }
 
   if (alarmState.audioContext.state === "suspended") {
-    alarmState.audioContext.resume();
+    alarmState.audioContext.resume().catch(() => {});
   }
 
   return alarmState.audioContext;
@@ -524,9 +548,13 @@ async function ensureHtmlAudioUnlocked() {
     if (!alarmState.htmlAudio) {
       alarmState.htmlAudio = new Audio();
     }
+
+    const silentDataUri =
+      "data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAFAAAGhgD///////////////////////////////////////////////8AAAA5TEFNRTMuMTAwA8MAAAAAAAAAABQgJAUHQQAB9AAAAnj3l7bQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+
+    alarmState.htmlAudio.src = silentDataUri;
     alarmState.htmlAudio.muted = true;
-    alarmState.htmlAudio.src = "";
-    await alarmState.htmlAudio.play().catch(() => {});
+    await alarmState.htmlAudio.play();
     alarmState.htmlAudio.pause();
     alarmState.htmlAudio.currentTime = 0;
     alarmState.htmlAudio.muted = false;
@@ -542,6 +570,7 @@ function stopHtmlAudio() {
   try {
     alarmState.htmlAudio.pause();
     alarmState.htmlAudio.currentTime = 0;
+    alarmState.htmlAudio.loop = false;
   } catch {}
 }
 
@@ -565,21 +594,11 @@ function playSynthSoundOnce(sound) {
 
       osc.type = sound.type;
       osc.frequency.setValueAtTime(freq, startAt);
+      osc.frequency.linearRampToValueAtTime(freq * 0.94, endAt);
 
-      if (sound.variant === "echo") {
-        osc.frequency.linearRampToValueAtTime(freq * 0.82, endAt);
-      } else if (sound.variant === "wave") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.08, startAt + sound.duration * 0.35);
-        osc.frequency.linearRampToValueAtTime(freq * 0.88, endAt);
-      } else if (sound.variant === "pulse") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.15, endAt);
-      } else {
-        osc.frequency.linearRampToValueAtTime(freq * 0.96, endAt);
-      }
-
-      filter.type = sound.variant === "pulse" ? "lowpass" : "bandpass";
-      filter.frequency.setValueAtTime(sound.variant === "pulse" ? 1400 : 2200, startAt);
-      filter.Q.setValueAtTime(sound.variant === "bell" ? 9 : 5, startAt);
+      filter.type = sound.type === "square" ? "lowpass" : "bandpass";
+      filter.frequency.setValueAtTime(sound.type === "square" ? 1400 : 2200, startAt);
+      filter.Q.setValueAtTime(sound.type === "triangle" ? 8 : 4, startAt);
 
       gain.gain.setValueAtTime(0.0001, startAt);
       gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.02);
@@ -600,6 +619,7 @@ function playSynthSoundOnce(sound) {
 
 function probeSoundAsset(sound) {
   if (sound.audioAvailable !== null) return;
+
   const audio = new Audio();
   audio.preload = "metadata";
   audio.src = sound.assetPath;
@@ -614,10 +634,12 @@ function probeSoundAsset(sound) {
   };
   const cleanup = () => {
     audio.removeEventListener("canplaythrough", success);
+    audio.removeEventListener("loadedmetadata", success);
     audio.removeEventListener("error", fail);
   };
 
   audio.addEventListener("canplaythrough", success, { once: true });
+  audio.addEventListener("loadedmetadata", success, { once: true });
   audio.addEventListener("error", fail, { once: true });
 
   try {
@@ -670,6 +692,7 @@ async function playSoundOnce(sound, loop = false) {
 }
 
 function previewSound(sound) {
+  stopAlarmLoop();
   alarmState.currentPreviewSoundId = sound?.id || null;
   playSoundOnce(sound, false);
 }
@@ -689,8 +712,10 @@ function startAlarmLoop() {
   }
 
   if (selected.audioAvailable === true) {
-    playRealSoundOnce(selected, true).catch(() => {
-      startSynthAlarmLoop();
+    playRealSoundOnce(selected, true).then((ok) => {
+      if (!ok && alarmState.active) {
+        startSynthAlarmLoop();
+      }
     });
     return;
   }
@@ -787,10 +812,11 @@ function renderSounds() {
     btn.type = "button";
     btn.textContent = t("preview");
 
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       selectedSoundId = sound.id;
       radio.checked = true;
       saveSoundState();
+      await ensureHtmlAudioUnlocked();
       previewSound(sound);
     });
 
@@ -806,7 +832,7 @@ function renderSounds() {
 }
 
 function restoreSelectedSound() {
-  const saved = localStorage.getItem("selectedSoundId");
+  const saved = localStorage.getItem(STORAGE_KEYS.sound);
   if (saved) {
     selectedSoundId = saved;
   }
@@ -1140,13 +1166,9 @@ function applyPomodoro() {
 }
 
 function loadPomodoroPhase() {
-  let minutes = 0;
-
-  if (pomodoroState.phase === "work") {
-    minutes = pomodoroState.workMinutes;
-  } else {
-    minutes = pomodoroState.breakMinutes;
-  }
+  const minutes = pomodoroState.phase === "work"
+    ? pomodoroState.workMinutes
+    : pomodoroState.breakMinutes;
 
   if ($("hours")) $("hours").value = 0;
   if ($("minutes")) $("minutes").value = minutes;
