@@ -22,53 +22,13 @@
           <option value="tr">Türkçe</option>
           <option value="en">English</option>
           <option value="de">Deutsch</option>
-          <option value="ru">Русский</option>
-          <option value="zh">中文</option>
           <option value="fr">Français</option>
           <option value="es">Español</option>
+          <option value="ru">Русский</option>
           <option value="ar">العربية</option>
           <option value="it">Italiano</option>
           <option value="pt">Português</option>
-          <option value="ja">日本語</option>
-          <option value="ko">한국어</option>
-          <option value="hi">हिन्दी</option>
-          <option value="fa">فارسی</option>
-          <option value="uk">Українська</option>
-          <option value="pl">Polski</option>
-          <option value="nl">Nederlands</option>
-          <option value="sv">Svenska</option>
-          <option value="id">Bahasa Indonesia</option>
-          <option value="ms">Bahasa Melayu</option>
-          <option value="vi">Tiếng Việt</option>
-          <option value="el">Ελληνικά</option>
-          <option value="cs">Čeština</option>
-          <option value="ro">Română</option>
-          <option value="hu">Magyar</option>
-          <option value="bg">Български</option>
-          <option value="sr">Srpski</option>
-          <option value="hr">Hrvatski</option>
-          <option value="sk">Slovenčina</option>
-          <option value="sl">Slovenščina</option>
-          <option value="da">Dansk</option>
-          <option value="fi">Suomi</option>
-          <option value="no">Norsk</option>
-          <option value="lt">Lietuvių</option>
-          <option value="lv">Latviešu</option>
-          <option value="et">Eesti</option>
-          <option value="he">עברית</option>
-          <option value="th">ไทย</option>
-          <option value="bn">বাংলা</option>
-          <option value="ur">اردو</option>
-          <option value="ta">தமிழ்</option>
-          <option value="te">తెలుగు</option>
-          <option value="ml">മലയാളം</option>
-          <option value="mr">मराठी</option>
-          <option value="gu">ગુજરાતી</option>
-          <option value="pa">ਪੰਜਾਬੀ</option>
-          <option value="sw">Kiswahili</option>
-          <option value="am">አማርኛ</option>
-          <option value="az">Azərbaycanca</option>
-          <option value="kk">Қазақша</option>
+          <option value="zh">中文</option>
         </select>
         <button id="themeToggle" class="icon-btn" type="button">🌙</button>
       </div>
@@ -110,9 +70,9 @@
       </div>
 
       <div class="controls">
-        <button id="timerStartBtn" class="primary">Start</button>
-        <button id="timerPauseBtn">Pause</button>
-        <button id="timerResetBtn">Reset</button>
+        <button id="timerStartBtn" class="primary" type="button">Start</button>
+        <button id="timerPauseBtn" type="button">Pause</button>
+        <button id="timerResetBtn" type="button">Reset</button>
       </div>
 
       <div class="toggles">
@@ -130,14 +90,14 @@
     </section>
 
     <section id="pomodoroPanel" class="panel">
-      <h2 id="pomodoroTitle">Pomodoro</h2>
+      <h2 id="pomodoroTitle">Pomodoro - Work</h2>
       <p id="pomodoroDesc" class="panel-text">Choose a focus preset and load it into timer.</p>
 
       <div class="quick-row">
-        <button class="preset-btn" data-work="25" data-break="5">25 / 5</button>
-        <button class="preset-btn" data-work="50" data-break="10">50 / 10</button>
-        <button class="preset-btn" data-work="15" data-break="3">15 / 3</button>
-        <button class="preset-btn" data-work="90" data-break="20">90 / 20</button>
+        <button class="preset-btn" data-work="25" data-break="5" type="button">25 / 5</button>
+        <button class="preset-btn" data-work="50" data-break="10" type="button">50 / 10</button>
+        <button class="preset-btn" data-work="15" data-break="3" type="button">15 / 3</button>
+        <button class="preset-btn" data-work="90" data-break="20" type="button">90 / 20</button>
       </div>
 
       <div class="inputs-grid two">
@@ -152,7 +112,7 @@
       </div>
 
       <div class="controls single">
-        <button id="applyPomodoroBtn" class="primary">Apply Pomodoro</button>
+        <button id="applyPomodoroBtn" class="primary" type="button">Apply Pomodoro</button>
       </div>
 
       <div id="pomodoroStatus" class="status">Ready</div>
@@ -165,9 +125,13 @@
       </div>
 
       <div class="controls">
-        <button id="swStartBtn" class="primary">Start</button>
-        <button id="swLapBtn">Lap</button>
-        <button id="swResetBtn">Reset</button>
+        <button id="swStartBtn" class="primary" type="button">Start</button>
+        <button id="swLapBtn" type="button">Lap</button>
+        <button id="swResetBtn" type="button">Reset</button>
+      </div>
+
+      <div class="controls single">
+        <button id="swClearLapsBtn" type="button">Clear Laps</button>
       </div>
 
       <div id="stopwatchStatus" class="status">Ready</div>
@@ -183,10 +147,10 @@
       <p id="soundsDesc" class="panel-text">Select a sound and preview it.</p>
 
       <div class="controls single">
-        <button id="previewSoundBtn" class="primary">Preview sound</button>
+        <button id="previewSoundBtn" class="primary" type="button">Preview sound</button>
       </div>
 
-      <div id="soundCountLabel" class="sound-count">20 sounds</div>
+      <div id="soundCountLabel" class="sound-count">60 sounds</div>
       <div id="soundList" class="sound-list"></div>
     </section>
   </div>
@@ -197,7 +161,7 @@
     <div class="alarm-box">
       <div id="alarmTitle" class="alarm-title">Time is up!</div>
       <div id="alarmMessage" class="alarm-message">Alarm is ringing</div>
-      <button id="dismissAlarmBtn" class="primary alarm-btn">Dismiss</button>
+      <button id="dismissAlarmBtn" class="primary alarm-btn" type="button">Dismiss</button>
     </div>
   </div>
 
