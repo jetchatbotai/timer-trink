@@ -73,39 +73,181 @@ const alarmState = {
 // LANGUAGES
 // ===============================
 const supportedLanguages = [
-  "tr","en","de","ru","zh","fr","es","ar","it","pt","ja","ko","hi","fa"
+  "tr", "en", "de", "fr", "es", "ru", "ar", "it", "pt", "zh"
 ];
 
 // ===============================
-// TRANSLATIONS (FIXED)
+// TRANSLATIONS
 // ===============================
 const baseTranslations = {
-  start: { tr:"Başlat", en:"Start" },
-  pause: { tr:"Duraklat", en:"Pause" },
-  reset: { tr:"Sıfırla", en:"Reset" },
-  ready: { tr:"Hazır", en:"Ready" },
-  running: { tr:"Çalışıyor", en:"Running" },
-  paused: { tr:"Duraklatıldı", en:"Paused" },
-  done: { tr:"Süre doldu!", en:"Time is up!" },
-  preview: { tr:"Dinle", en:"Preview" },
-  dismissAlarm: { tr:"Kapat", en:"Dismiss" },
-  sounds: { tr:"ses", en:"sounds" },
-  hours: { tr:"Saat", en:"Hours" },
-  minutes: { tr:"Dakika", en:"Minutes" },
-  seconds: { tr:"Saniye", en:"Seconds" },
-  lap: { tr:"Tur", en:"Lap" },
-  stopwatch: { tr:"Kronometre", en:"Stopwatch" },
-  timer: { tr:"Zamanlayıcı", en:"Timer" },
-  pomodoro: { tr:"Pomodoro", en:"Pomodoro" },
-  soundOn: { tr:"Ses açık", en:"Sound on" },
-  vibrationOn: { tr:"Titreşim açık", en:"Vibration on" },
-  alarmTitle: { tr:"Süre doldu!", en:"Time is up!" },
-  alarmMsg: { tr:"Alarm çalıyor", en:"Alarm ringing" },
-  notifTimerTitle: { tr:"Timer", en:"Timer" },
-  notifTimerBody: { tr:"Süre doldu", en:"Time is up" },
-  work: { tr:"Çalışma", en:"Work" },
-  break: { tr:"Mola", en:"Break" },
-  cycle: { tr:"Döngü", en:"Cycle" }
+  start: {
+    tr: "Başlat", en: "Start", de: "Start", fr: "Démarrer", es: "Iniciar",
+    ru: "Старт", ar: "ابدأ", it: "Avvia", pt: "Iniciar", zh: "开始"
+  },
+  pause: {
+    tr: "Duraklat", en: "Pause", de: "Pause", fr: "Pause", es: "Pausar",
+    ru: "Пауза", ar: "إيقاف مؤقت", it: "Pausa", pt: "Pausar", zh: "暂停"
+  },
+  reset: {
+    tr: "Sıfırla", en: "Reset", de: "Zurücksetzen", fr: "Réinitialiser", es: "Restablecer",
+    ru: "Сброс", ar: "إعادة تعيين", it: "Reimposta", pt: "Redefinir", zh: "重置"
+  },
+  ready: {
+    tr: "Hazır", en: "Ready", de: "Bereit", fr: "Prêt", es: "Listo",
+    ru: "Готово", ar: "جاهز", it: "Pronto", pt: "Pronto", zh: "就绪"
+  },
+  running: {
+    tr: "Çalışıyor", en: "Running", de: "Läuft", fr: "En cours", es: "En marcha",
+    ru: "Работает", ar: "قيد التشغيل", it: "In esecuzione", pt: "Em andamento", zh: "运行中"
+  },
+  paused: {
+    tr: "Duraklatıldı", en: "Paused", de: "Pausiert", fr: "En pause", es: "Pausado",
+    ru: "На паузе", ar: "متوقف مؤقتًا", it: "In pausa", pt: "Pausado", zh: "已暂停"
+  },
+  done: {
+    tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!",
+    ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！"
+  },
+  preview: {
+    tr: "Dinle", en: "Preview", de: "Anhören", fr: "Écouter", es: "Escuchar",
+    ru: "Прослушать", ar: "معاينة", it: "Ascolta", pt: "Ouvir", zh: "试听"
+  },
+  dismissAlarm: {
+    tr: "Kapat", en: "Dismiss", de: "Schließen", fr: "Fermer", es: "Cerrar",
+    ru: "Закрыть", ar: "إغلاق", it: "Chiudi", pt: "Fechar", zh: "关闭"
+  },
+  sounds: {
+    tr: "ses", en: "sounds", de: "Töne", fr: "sons", es: "sonidos",
+    ru: "звуков", ar: "أصوات", it: "suoni", pt: "sons", zh: "种声音"
+  },
+  hours: {
+    tr: "Saat", en: "Hours", de: "Stunden", fr: "Heures", es: "Horas",
+    ru: "Часы", ar: "الساعات", it: "Ore", pt: "Horas", zh: "小时"
+  },
+  minutes: {
+    tr: "Dakika", en: "Minutes", de: "Minuten", fr: "Minutes", es: "Minutos",
+    ru: "Минуты", ar: "الدقائق", it: "Minuti", pt: "Minutos", zh: "分钟"
+  },
+  seconds: {
+    tr: "Saniye", en: "Seconds", de: "Sekunden", fr: "Secondes", es: "Segundos",
+    ru: "Секунды", ar: "الثواني", it: "Secondi", pt: "Segundos", zh: "秒"
+  },
+  lap: {
+    tr: "Tur", en: "Lap", de: "Runde", fr: "Tour", es: "Vuelta",
+    ru: "Круг", ar: "لفة", it: "Giro", pt: "Volta", zh: "圈"
+  },
+  stopwatch: {
+    tr: "Kronometre", en: "Stopwatch", de: "Stoppuhr", fr: "Chronomètre", es: "Cronómetro",
+    ru: "Секундомер", ar: "ساعة إيقاف", it: "Cronometro", pt: "Cronômetro", zh: "秒表"
+  },
+  timer: {
+    tr: "Zamanlayıcı", en: "Timer", de: "Timer", fr: "Minuteur", es: "Temporizador",
+    ru: "Таймер", ar: "المؤقت", it: "Timer", pt: "Temporizador", zh: "计时器"
+  },
+  pomodoro: {
+    tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro",
+    ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
+  },
+  soundOn: {
+    tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado",
+    ru: "Звук включен", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启"
+  },
+  vibrationOn: {
+    tr: "Titreşim açık", en: "Vibration on", de: "Vibration an", fr: "Vibration activée", es: "Vibración activada",
+    ru: "Вибрация включена", ar: "الاهتزاز مفعل", it: "Vibrazione attiva", pt: "Vibração ligada", zh: "振动开启"
+  },
+  alarmTitle: {
+    tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!",
+    ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！"
+  },
+  alarmMsg: {
+    tr: "Alarm çalıyor", en: "Alarm ringing", de: "Alarm klingelt", fr: "Alarme en cours", es: "La alarma está sonando",
+    ru: "Будильник звонит", ar: "المنبه يرن", it: "La sveglia sta suonando", pt: "Alarme tocando", zh: "闹铃响起"
+  },
+  notifTimerTitle: {
+    tr: "Timer Trink", en: "Timer Trink", de: "Timer Trink", fr: "Timer Trink", es: "Timer Trink",
+    ru: "Timer Trink", ar: "Timer Trink", it: "Timer Trink", pt: "Timer Trink", zh: "Timer Trink"
+  },
+  notifTimerBody: {
+    tr: "Süre doldu", en: "Time is up", de: "Zeit ist um", fr: "Le temps est écoulé", es: "Se acabó el tiempo",
+    ru: "Время вышло", ar: "انتهى الوقت", it: "Tempo scaduto", pt: "O tempo acabou", zh: "时间到了"
+  },
+  work: {
+    tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo",
+    ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作"
+  },
+  break: {
+    tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso",
+    ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息"
+  },
+  cycle: {
+    tr: "Döngü", en: "Cycle", de: "Zyklus", fr: "Cycle", es: "Ciclo",
+    ru: "Цикл", ar: "دورة", it: "Ciclo", pt: "Ciclo", zh: "周期"
+  },
+  subtitle: {
+    tr: "Odaklanma ve günlük kullanım için basit zamanlayıcı",
+    en: "Simple timer for focus and daily use",
+    de: "Einfacher Timer für Fokus und den Alltag",
+    fr: "Minuteur simple pour la concentration et l'usage quotidien",
+    es: "Temporizador simple para concentración y uso diario",
+    ru: "Простой таймер для концентрации и повседневного использования",
+    ar: "مؤقت بسيط للتركيز والاستخدام اليومي",
+    it: "Timer semplice per concentrazione e uso quotidiano",
+    pt: "Temporizador simples para foco e uso diário",
+    zh: "适合专注和日常使用的简易计时器"
+  },
+  soundsTitle: {
+    tr: "Alarm sesleri", en: "Alarm sounds", de: "Alarmtöne", fr: "Sons d'alarme", es: "Sonidos de alarma",
+    ru: "Звуки будильника", ar: "أصوات المنبه", it: "Suoni della sveglia", pt: "Sons de alarme", zh: "闹铃声音"
+  },
+  soundsDesc: {
+    tr: "Bir ses seç ve önizlemesini dinle.",
+    en: "Select a sound and preview it.",
+    de: "Wähle einen Ton und höre ihn an.",
+    fr: "Sélectionnez un son et écoutez un aperçu.",
+    es: "Selecciona un sonido y escúchalo.",
+    ru: "Выберите звук и прослушайте его.",
+    ar: "اختر صوتًا واستمع إلى المعاينة.",
+    it: "Seleziona un suono e ascolta l'anteprima.",
+    pt: "Selecione um som e ouça a prévia.",
+    zh: "选择一个声音并试听。"
+  },
+  previewSound: {
+    tr: "Sesi dinle", en: "Preview sound", de: "Ton anhören", fr: "Écouter le son", es: "Escuchar sonido",
+    ru: "Прослушать звук", ar: "معاينة الصوت", it: "Ascolta il suono", pt: "Ouvir som", zh: "试听声音"
+  },
+  pomodoroDesc: {
+    tr: "Bir odak süresi seç ve zamanlayıcıya uygula.",
+    en: "Choose a focus preset and load it into timer.",
+    de: "Wähle eine Fokus-Voreinstellung und lade sie in den Timer.",
+    fr: "Choisissez un préréglage de concentration et appliquez-le au minuteur.",
+    es: "Elige una configuración de enfoque y cárgala en el temporizador.",
+    ru: "Выберите пресет для фокуса и загрузите его в таймер.",
+    ar: "اختر إعداد تركيز وطبقه على المؤقت.",
+    it: "Scegli una modalità di concentrazione e applicala al timer.",
+    pt: "Escolha uma predefinição de foco e aplique ao temporizador.",
+    zh: "选择一个专注预设并应用到计时器。"
+  },
+  applyPomodoro: {
+    tr: "Pomodoro uygula", en: "Apply Pomodoro", de: "Pomodoro anwenden", fr: "Appliquer Pomodoro", es: "Aplicar Pomodoro",
+    ru: "Применить Помодоро", ar: "تطبيق بومودورو", it: "Applica Pomodoro", pt: "Aplicar Pomodoro", zh: "应用番茄钟"
+  },
+  lapsTitle: {
+    tr: "Turlar", en: "Laps", de: "Runden", fr: "Tours", es: "Vueltas",
+    ru: "Круги", ar: "اللفات", it: "Giri", pt: "Voltas", zh: "圈数"
+  },
+  clearLaps: {
+    tr: "Turları temizle", en: "Clear Laps", de: "Runden löschen", fr: "Effacer les tours", es: "Borrar vueltas",
+    ru: "Очистить круги", ar: "مسح اللفات", it: "Cancella giri", pt: "Limpar voltas", zh: "清除圈数"
+  },
+  workLabel: {
+    tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo",
+    ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作"
+  },
+  breakLabel: {
+    tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso",
+    ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息"
+  }
 };
 
 // ===============================
@@ -114,9 +256,13 @@ const baseTranslations = {
 function t(key) {
   const lang = $("language")?.value || appState.language || "en";
 
-  return baseTranslations[key]?.[lang]
-    || baseTranslations[key]?.en
-    || key;
+  if (!baseTranslations[key]) return key;
+
+  return (
+    baseTranslations[key][lang] ||
+    baseTranslations[key].en ||
+    key
+  );
 }
 
 // ===============================
@@ -126,31 +272,81 @@ function setText(id, key) {
 }
 
 // ===============================
+function updateTimerStartButton() {
+  const btn = $("timerStartBtn");
+  if (!btn) return;
+
+  btn.textContent = timerState.running ? t("running") : t("start");
+}
+
+// ===============================
+function updateStopwatchStartButton() {
+  const btn = $("swStartBtn");
+  if (!btn) return;
+
+  btn.textContent = stopwatchState.running ? t("pause") : t("start");
+}
+
+// ===============================
 function applyLanguage() {
   const lang = $("language")?.value || "en";
   appState.language = lang;
+  document.documentElement.lang = lang;
 
   setText("tabTimer", "timer");
   setText("tabPomodoro", "pomodoro");
   setText("tabStopwatch", "stopwatch");
   setText("tabSounds", "sounds");
 
-  setText("timerStartBtn", "start");
+  updateTimerStartButton();
   setText("timerPauseBtn", "pause");
   setText("timerResetBtn", "reset");
 
-  setText("swStartBtn", "start");
+  updateStopwatchStartButton();
   setText("swLapBtn", "lap");
   setText("swResetBtn", "reset");
+  setText("swClearLapsBtn", "clearLaps");
 
   setText("dismissAlarmBtn", "dismissAlarm");
 
   setText("hoursLabel", "hours");
   setText("minutesLabel", "minutes");
   setText("secondsLabel", "seconds");
+  setText("workLabel", "workLabel");
+  setText("breakLabel", "breakLabel");
 
-  setText("timerStatus", "ready");
+  setText("soundLabel", "soundOn");
+  setText("vibrationLabel", "vibrationOn");
+
+  setText("subtitle", "subtitle");
+  setText("soundsTitle", "soundsTitle");
+  setText("soundsDesc", "soundsDesc");
+  setText("previewSoundBtn", "previewSound");
+  setText("pomodoroDesc", "pomodoroDesc");
+  setText("applyPomodoroBtn", "applyPomodoro");
+  setText("lapsTitle", "lapsTitle");
+
+  if (timerState.running) {
+    setText("timerStatus", "running");
+  } else if (timerState.paused) {
+    setText("timerStatus", "paused");
+  } else {
+    setText("timerStatus", "ready");
+  }
+
+  if (stopwatchState.running) {
+    setText("stopwatchStatus", "running");
+  } else if (stopwatchState.elapsedMs > 0) {
+    setText("stopwatchStatus", "paused");
+  } else {
+    setText("stopwatchStatus", "ready");
+  }
+
+  updateSoundCount();
+  renderSounds();
+  updatePomodoroUI();
 }
+
 // ===============================
 // SOUND SYSTEM
 // ===============================
@@ -158,23 +354,44 @@ const sounds = [];
 const SOUND_COUNT = 60;
 let selectedSoundId = "s1";
 
+const waveformTypes = ["sine", "square", "triangle", "sawtooth"];
+
 for (let i = 1; i <= SOUND_COUNT; i++) {
+  const base = 180 + i * 11;
   sounds.push({
     id: "s" + i,
-    name: "Sound " + i,
-    type: i % 3 === 0 ? "triangle" : i % 2 === 0 ? "square" : "sine",
-    volume: 0.2,
+    index: i,
+    type: waveformTypes[i % waveformTypes.length],
+    volume: 0.12 + (i % 5) * 0.02,
     seq: [
-      300 + i * 5,
-      450 + i * 6,
-      600 + i * 7
-    ]
+      base,
+      base + 70 + (i % 7) * 6,
+      base + 140 + (i % 5) * 9,
+      base + ((i % 2) ? 40 : 180)
+    ],
+    stepDuration: 0.11 + (i % 3) * 0.03
   });
 }
 
-function formatSoundName(name) {
+function getSoundLabelPrefix() {
   const lang = $("language")?.value || appState.language || "en";
-  return lang === "tr" ? name.replace("Sound", "Ses") : name;
+
+  switch (lang) {
+    case "tr": return "Ses";
+    case "de": return "Ton";
+    case "fr": return "Son";
+    case "es": return "Sonido";
+    case "ru": return "Звук";
+    case "ar": return "صوت";
+    case "it": return "Suono";
+    case "pt": return "Som";
+    case "zh": return "声音";
+    default: return "Sound";
+  }
+}
+
+function formatSoundName(sound) {
+  return `${getSoundLabelPrefix()} ${sound.index}`;
 }
 
 function getAudioContext() {
@@ -199,7 +416,7 @@ function playSoundOnce(sound) {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  const baseTime = ctx.currentTime;
+  const now = ctx.currentTime;
 
   sound.seq.forEach((freq, index) => {
     try {
@@ -207,16 +424,20 @@ function playSoundOnce(sound) {
       const gain = ctx.createGain();
 
       osc.type = sound.type;
-      osc.frequency.setValueAtTime(freq, baseTime);
+      osc.frequency.setValueAtTime(freq, now);
 
-      gain.gain.setValueAtTime(sound.volume, baseTime);
+      const startAt = now + index * sound.stepDuration;
+      const endAt = startAt + sound.stepDuration * 0.82;
+
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.02);
+      gain.gain.linearRampToValueAtTime(0.0001, endAt);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
-      const startAt = baseTime + index * 0.18;
       osc.start(startAt);
-      osc.stop(startAt + 0.15);
+      osc.stop(endAt + 0.02);
     } catch (e) {
       console.warn("Sound error:", e);
     }
@@ -241,7 +462,7 @@ function startAlarmLoop() {
 
   alarmState.intervalId = setInterval(() => {
     const now = Date.now();
-    if (now - alarmState.lastPlay < 800) return;
+    if (now - alarmState.lastPlay < 700) return;
 
     alarmState.lastPlay = now;
     playSoundOnce(getSelectedSound());
@@ -265,6 +486,14 @@ function stopAlarmLoop() {
   }
 }
 
+function lockUIWhileAlarm() {
+  document.body.classList.add("alarm-active");
+}
+
+function unlockUI() {
+  document.body.classList.remove("alarm-active");
+}
+
 function dismissAlarm() {
   stopAlarmLoop();
 
@@ -279,7 +508,7 @@ function dismissAlarm() {
 function updateSoundCount() {
   const el = $("soundCountLabel");
   if (!el) return;
-  el.textContent = sounds.length + " " + t("sounds");
+  el.textContent = `${sounds.length} ${t("sounds")}`;
 }
 
 function renderSounds() {
@@ -305,7 +534,7 @@ function renderSounds() {
     });
 
     const name = document.createElement("span");
-    name.textContent = formatSoundName(sound.name);
+    name.textContent = formatSoundName(sound);
 
     const btn = document.createElement("button");
     btn.className = "mini-btn";
@@ -337,14 +566,6 @@ function restoreSelectedSound() {
   }
 }
 
-function persistSelectedSound() {
-  localStorage.setItem("selectedSoundId", selectedSoundId);
-}
-
-function watchSoundSelection() {
-  // seçim anlık kaydediliyor
-}
-
 function optimizeSoundListScroll() {
   const list = $("soundList");
   if (!list) return;
@@ -365,7 +586,6 @@ function initSoundSystem() {
   restoreSelectedSound();
   renderSounds();
   optimizeSoundListScroll();
-  watchSoundSelection();
 }
 
 // ===============================
@@ -488,17 +708,6 @@ function updateTimerDisplay() {
   updateTimerRing();
 }
 
-function updateTimerStartButton() {
-  const btn = $("timerStartBtn");
-  if (!btn) return;
-
-  if (timerState.running) {
-    btn.textContent = t("running");
-  } else {
-    btn.textContent = t("start");
-  }
-}
-
 function timerTick() {
   if (!timerState.running) return;
 
@@ -513,6 +722,7 @@ function timerTick() {
   if (timerState.timeLeft <= 0) {
     timerState.timeLeft = 0;
     timerState.running = false;
+    timerState.paused = false;
 
     clearInterval(timerState.timerId);
     timerState.timerId = null;
@@ -654,6 +864,7 @@ function setupQuickButtons() {
     });
   });
 }
+
 // ===============================
 // POMODORO ENGINE
 // ===============================
@@ -663,6 +874,11 @@ function applyPomodoro() {
 
   if (work <= 0 || brk <= 0) return;
 
+  clearInterval(timerState.timerId);
+  timerState.timerId = null;
+  timerState.running = false;
+  timerState.paused = false;
+
   pomodoroState.enabled = true;
   pomodoroState.phase = "work";
   pomodoroState.workMinutes = work;
@@ -671,6 +887,8 @@ function applyPomodoro() {
 
   loadPomodoroPhase();
   setPomodoroStatus();
+
+  startTimer();
 }
 
 function loadPomodoroPhase() {
@@ -712,9 +930,9 @@ function updatePomodoroUI() {
   if (!title) return;
 
   if (pomodoroState.phase === "work") {
-    title.textContent = "🍅 " + t("pomodoro") + " - " + t("work");
+    title.textContent = `${t("pomodoro")} - ${t("work")}`;
   } else {
-    title.textContent = "☕ " + t("pomodoro") + " - " + t("break");
+    title.textContent = `${t("pomodoro")} - ${t("break")}`;
   }
 
   setPomodoroStatus();
@@ -727,7 +945,7 @@ function setPomodoroStatus() {
   const phaseText = pomodoroState.phase === "work" ? t("work") : t("break");
   const cycle = pomodoroState.cycleCount;
 
-  el.textContent = phaseText + " • " + t("cycle") + ": " + cycle;
+  el.textContent = `${phaseText} • ${t("cycle")}: ${cycle}`;
 }
 
 function setupPomodoroPresets() {
@@ -757,16 +975,6 @@ function onTimerResetPomodoro() {
   disablePomodoro();
 }
 
-function manualPomodoroSwitch() {
-  if (!pomodoroState.enabled) return;
-  handlePomodoroSwitch();
-}
-
-function ensurePomodoroConsistency() {
-  if (!pomodoroState.enabled) return;
-  if (timerState.running) return;
-}
-
 // ===============================
 // STOPWATCH ENGINE
 // ===============================
@@ -794,13 +1002,6 @@ function updateStopwatchDisplay() {
     : stopwatchState.elapsedMs;
 
   el.textContent = formatStopwatch(current);
-}
-
-function updateStopwatchStartButton() {
-  const btn = $("swStartBtn");
-  if (!btn) return;
-
-  btn.textContent = stopwatchState.running ? t("pause") : t("start");
 }
 
 function stopwatchTick() {
@@ -838,22 +1039,23 @@ function resetStopwatch() {
   stopwatchState.running = false;
   stopwatchState.elapsedMs = 0;
   stopwatchState.lastStart = 0;
-  stopwatchState.laps = [];
 
   const display = $("stopwatchDisplay");
   if (display) display.textContent = "00:00:00.0";
-
-  renderLaps();
 
   setText("stopwatchStatus", "ready");
   updateStopwatchStartButton();
 }
 
-function addLap() {
-  if (!stopwatchState.running) return;
+function clearLaps() {
+  stopwatchState.laps = [];
+  renderLaps();
+}
 
-  const currentTime =
-    stopwatchState.elapsedMs + (Date.now() - stopwatchState.lastStart);
+function addLap() {
+  const currentTime = stopwatchState.running
+    ? stopwatchState.elapsedMs + (Date.now() - stopwatchState.lastStart)
+    : stopwatchState.elapsedMs;
 
   stopwatchState.laps.unshift(currentTime);
   limitLaps(100);
@@ -919,7 +1121,7 @@ function switchTab(targetId) {
   }
 
   appState.lastTab = targetId;
-  persistAppState();
+  saveAppState();
 }
 
 function setupTabs() {
@@ -931,53 +1133,6 @@ function setupTabs() {
       switchTab(target);
     });
   });
-}
-
-function restoreLastTab() {
-  const saved = localStorage.getItem("lastTab");
-  if (saved) {
-    switchTab(saved);
-  }
-}
-
-function persistAppState() {
-  const data = {
-    language: $("language")?.value || "en",
-    theme: document.body.classList.contains("light") ? "light" : "dark",
-    lastTab: appState.lastTab
-  };
-
-  localStorage.setItem("appState", JSON.stringify(data));
-}
-
-function restoreAppState() {
-  try {
-    const raw = localStorage.getItem("appState");
-    if (!raw) return;
-
-    const data = JSON.parse(raw);
-
-    if (data.language && $("language")) {
-      $("language").value = data.language;
-      appState.language = data.language;
-    }
-
-    if (data.theme === "light") {
-      document.body.classList.add("light");
-    }
-
-    if (data.lastTab) {
-      appState.lastTab = data.lastTab;
-    }
-  } catch (e) {
-    console.warn("State restore error:", e);
-  }
-}
-
-function autoSaveState() {
-  setInterval(() => {
-    persistAppState();
-  }, 3000);
 }
 
 function ensureValidPanel() {
@@ -997,10 +1152,9 @@ function ensureValidPanel() {
 
 function initTabs() {
   setupTabs();
-  restoreLastTab();
   ensureValidPanel();
-  autoSaveState();
 }
+
 // ===============================
 // STORAGE SYSTEM
 // ===============================
@@ -1020,9 +1174,6 @@ function safeParse(str) {
   }
 }
 
-// ===============================
-// SAVE / LOAD
-// ===============================
 function saveAppState() {
   const data = {
     language: $("language")?.value || "en",
@@ -1072,12 +1223,6 @@ function loadTimerState() {
   timerState.paused = data.timeLeft > 0;
 
   updateTimerDisplay();
-
-  if (timerState.timeLeft > 0) {
-    setText("timerStatus", "paused");
-  } else {
-    setText("timerStatus", "ready");
-  }
 }
 
 function saveStopwatchState() {
@@ -1142,6 +1287,11 @@ function bind(id, event, handler) {
   });
 }
 
+function toggleTheme() {
+  document.body.classList.toggle("light");
+  saveAppState();
+}
+
 function initEvents() {
   bind("timerStartBtn", "click", startTimer);
   bind("timerPauseBtn", "click", pauseTimer);
@@ -1155,39 +1305,29 @@ function initEvents() {
   bind("swStartBtn", "click", toggleStopwatch);
   bind("swLapBtn", "click", addLap);
   bind("swResetBtn", "click", resetStopwatch);
+  bind("swClearLapsBtn", "click", clearLaps);
 
   bind("dismissAlarmBtn", "click", dismissAlarm);
-bind("previewSoundBtn", "click", () => {
-  previewSound(getSelectedSound());
-});
-  bind("language", "change", applyLanguage);
+
+  bind("previewSoundBtn", "click", () => {
+    previewSound(getSelectedSound());
+  });
+
+  bind("language", "change", () => {
+    applyLanguage();
+    saveAppState();
+  });
 
   bind("themeToggle", "click", toggleTheme);
 }
 
 // ===============================
-// THEME
+// UI LOOP
 // ===============================
-function toggleTheme() {
-  document.body.classList.toggle("light");
-  saveAppState();
-}
-
-// ===============================
-// UI SYSTEM
-// ===============================
-function refreshUI() {
-  applyLanguage();
-  renderSounds();
-  updateTimerDisplay();
-  updateStopwatchDisplay();
-}
-
 function startUIRenderLoop() {
   function loop() {
     if (timerState.running) updateTimerDisplay();
     if (stopwatchState.running) updateStopwatchDisplay();
-
     requestAnimationFrame(loop);
   }
 
@@ -1195,14 +1335,12 @@ function startUIRenderLoop() {
 }
 
 // ===============================
-// FINAL INIT
+// INIT
 // ===============================
 function initApp() {
   if (appState.initialized) return;
 
   try {
-    console.log("🚀 INIT");
-
     restoreAllState();
 
     initTabs();
@@ -1213,13 +1351,13 @@ function initApp() {
     setupQuickButtons();
 
     applyLanguage();
-
     updateTimerDisplay();
     updateStopwatchDisplay();
     updateTimerStartButton();
     updateStopwatchStartButton();
     updatePomodoroUI();
 
+    switchTab(appState.lastTab || "timerPanel");
     startUIRenderLoop();
 
     setInterval(() => {
@@ -1231,15 +1369,12 @@ function initApp() {
     }, 3000);
 
     appState.initialized = true;
-
     console.log("✅ READY");
-
   } catch (err) {
     console.error("INIT ERROR:", err);
   }
 }
 
-// ===============================
 function onReady(fn) {
   if (document.readyState !== "loading") {
     fn();
@@ -1250,15 +1385,4 @@ function onReady(fn) {
 
 onReady(initApp);
 
-// ===============================
 console.log("🔥 APP FULLY READY");
-// ===============================
-// ALARM UI LOCK
-// ===============================
-function lockUIWhileAlarm() {
-  document.body.classList.add("alarm-active");
-}
-
-function unlockUI() {
-  document.body.classList.remove("alarm-active");
-}
