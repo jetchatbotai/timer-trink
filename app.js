@@ -1250,3 +1250,13 @@ onReady(initApp);
 
 // ===============================
 console.log("🔥 APP FULLY READY");
+// ===============================
+// ALARM UI LOCK
+// ===============================
+function lockUIWhileAlarm() {
+  document.body.classList.add("alarm-active");
+}
+
+function unlockUI() {
+  document.body.classList.remove("alarm-active");
+}
