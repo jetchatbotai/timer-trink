@@ -1157,7 +1157,9 @@ function initEvents() {
   bind("swResetBtn", "click", resetStopwatch);
 
   bind("dismissAlarmBtn", "click", dismissAlarm);
-
+bind("previewSoundBtn", "click", () => {
+  previewSound(getSelectedSound());
+});
   bind("language", "change", applyLanguage);
 
   bind("themeToggle", "click", toggleTheme);
