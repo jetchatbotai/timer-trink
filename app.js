@@ -66,7 +66,8 @@ const alarmState = {
   intervalId: null,
   active: false,
   audioContext: null,
-  lastPlay: 0
+  lastPlay: 0,
+  pendingPomodoroAdvance: false
 };
 
 // ===============================
@@ -150,7 +151,7 @@ const baseTranslations = {
   },
   soundOn: {
     tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado",
-    ru: "Звук включен", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启"
+    ru: "Звук açık", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启"
   },
   vibrationOn: {
     tr: "Titreşim açık", en: "Vibration on", de: "Vibration an", fr: "Vibration activée", es: "Vibración activada",
@@ -255,39 +256,27 @@ const baseTranslations = {
 // ===============================
 function t(key) {
   const lang = $("language")?.value || appState.language || "en";
-
   if (!baseTranslations[key]) return key;
-
-  return (
-    baseTranslations[key][lang] ||
-    baseTranslations[key].en ||
-    key
-  );
+  return baseTranslations[key][lang] || baseTranslations[key].en || key;
 }
 
-// ===============================
 function setText(id, key) {
   const el = $(id);
   if (el) el.textContent = t(key);
 }
 
-// ===============================
 function updateTimerStartButton() {
   const btn = $("timerStartBtn");
   if (!btn) return;
-
   btn.textContent = timerState.running ? t("running") : t("start");
 }
 
-// ===============================
 function updateStopwatchStartButton() {
   const btn = $("swStartBtn");
   if (!btn) return;
-
   btn.textContent = stopwatchState.running ? t("pause") : t("start");
 }
 
-// ===============================
 function applyLanguage() {
   const lang = $("language")?.value || "en";
   appState.language = lang;
@@ -354,44 +343,108 @@ const sounds = [];
 const SOUND_COUNT = 60;
 let selectedSoundId = "s1";
 
-const waveformTypes = ["sine", "square", "triangle", "sawtooth"];
+const soundFamilies = [
+  {
+    key: "crystal",
+    type: "sine",
+    makeSeq: (i) => [620 + i * 4, 880 + i * 2, 1180 + i]
+  },
+  {
+    key: "bell",
+    type: "triangle",
+    makeSeq: (i) => [320 + i * 6, 480 + i * 5, 720 + i * 4]
+  },
+  {
+    key: "pulse",
+    type: "square",
+    makeSeq: (i) => [240 + i * 9, 240 + i * 9, 510 + i * 6, 510 + i * 6]
+  },
+  {
+    key: "wave",
+    type: "sawtooth",
+    makeSeq: (i) => [180 + i * 7, 360 + i * 5, 240 + i * 8, 520 + i * 4]
+  },
+  {
+    key: "echo",
+    type: "sine",
+    makeSeq: (i) => [410 + i * 5, 300 + i * 2, 560 + i * 7, 420 + i * 3]
+  },
+  {
+    key: "spark",
+    type: "triangle",
+    makeSeq: (i) => [900 + i * 3, 660 + i * 2, 1040 + i * 4]
+  }
+];
+
+const soundDescriptors = [
+  "soft", "deep", "bright", "calm", "swift",
+  "clear", "warm", "silver", "night", "fresh"
+];
 
 for (let i = 1; i <= SOUND_COUNT; i++) {
-  const base = 180 + i * 11;
+  const family = soundFamilies[(i - 1) % soundFamilies.length];
+  const duration = 0.08 + ((i - 1) % 4) * 0.035;
+  const volume = 0.08 + ((i - 1) % 5) * 0.025;
+
   sounds.push({
     id: "s" + i,
     index: i,
-    type: waveformTypes[i % waveformTypes.length],
-    volume: 0.12 + (i % 5) * 0.02,
-    seq: [
-      base,
-      base + 70 + (i % 7) * 6,
-      base + 140 + (i % 5) * 9,
-      base + ((i % 2) ? 40 : 180)
-    ],
-    stepDuration: 0.11 + (i % 3) * 0.03
+    descriptor: soundDescriptors[Math.floor((i - 1) / soundFamilies.length) % soundDescriptors.length],
+    family: family.key,
+    type: family.type,
+    volume,
+    stepDuration: duration,
+    seq: family.makeSeq(i)
   });
 }
 
-function getSoundLabelPrefix() {
-  const lang = $("language")?.value || appState.language || "en";
-
-  switch (lang) {
-    case "tr": return "Ses";
-    case "de": return "Ton";
-    case "fr": return "Son";
-    case "es": return "Sonido";
-    case "ru": return "Звук";
-    case "ar": return "صوت";
-    case "it": return "Suono";
-    case "pt": return "Som";
-    case "zh": return "声音";
-    default: return "Sound";
+const soundNameTranslations = {
+  tr: {
+    soft: "Yumuşak",
+    deep: "Derin",
+    bright: "Parlak",
+    calm: "Sakin",
+    swift: "Hızlı",
+    clear: "Berrak",
+    warm: "Sıcak",
+    silver: "Gümüş",
+    night: "Gece",
+    fresh: "Taze",
+    crystal: "Kristal",
+    bell: "Çan",
+    pulse: "Nabız",
+    wave: "Dalga",
+    echo: "Yankı",
+    spark: "Kıvılcım"
+  },
+  en: {
+    soft: "Soft",
+    deep: "Deep",
+    bright: "Bright",
+    calm: "Calm",
+    swift: "Swift",
+    clear: "Clear",
+    warm: "Warm",
+    silver: "Silver",
+    night: "Night",
+    fresh: "Fresh",
+    crystal: "Crystal",
+    bell: "Bell",
+    pulse: "Pulse",
+    wave: "Wave",
+    echo: "Echo",
+    spark: "Spark"
   }
+};
+
+function getLocalizedToken(token) {
+  const lang = $("language")?.value || appState.language || "en";
+  const dict = soundNameTranslations[lang] || soundNameTranslations.en;
+  return dict[token] || token;
 }
 
 function formatSoundName(sound) {
-  return `${getSoundLabelPrefix()} ${sound.index}`;
+  return `${getLocalizedToken(sound.descriptor)} ${getLocalizedToken(sound.family)}`;
 }
 
 function getAudioContext() {
@@ -424,13 +477,24 @@ function playSoundOnce(sound) {
       const gain = ctx.createGain();
 
       osc.type = sound.type;
-      osc.frequency.setValueAtTime(freq, now);
 
       const startAt = now + index * sound.stepDuration;
-      const endAt = startAt + sound.stepDuration * 0.82;
+      const endAt = startAt + sound.stepDuration * 0.86;
+
+      osc.frequency.setValueAtTime(freq, startAt);
+
+      if (sound.family === "echo") {
+        osc.frequency.linearRampToValueAtTime(freq * 0.75, endAt);
+      } else if (sound.family === "spark") {
+        osc.frequency.linearRampToValueAtTime(freq * 1.18, endAt);
+      } else if (sound.family === "wave") {
+        osc.frequency.linearRampToValueAtTime(freq * 1.08, startAt + sound.stepDuration * 0.35);
+        osc.frequency.linearRampToValueAtTime(freq * 0.82, endAt);
+      }
 
       gain.gain.setValueAtTime(0.0001, startAt);
-      gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.02);
+      gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.018);
+      gain.gain.linearRampToValueAtTime(sound.volume * 0.45, startAt + sound.stepDuration * 0.45);
       gain.gain.linearRampToValueAtTime(0.0001, endAt);
 
       osc.connect(gain);
@@ -462,15 +526,15 @@ function startAlarmLoop() {
 
   alarmState.intervalId = setInterval(() => {
     const now = Date.now();
-    if (now - alarmState.lastPlay < 700) return;
+    if (now - alarmState.lastPlay < 650) return;
 
     alarmState.lastPlay = now;
     playSoundOnce(getSelectedSound());
 
     if ($("vibrationToggle")?.checked && navigator.vibrate) {
-      navigator.vibrate([250, 120, 250]);
+      navigator.vibrate([250, 100, 250, 100, 250]);
     }
-  }, 1100);
+  }, 1000);
 }
 
 function stopAlarmLoop() {
@@ -503,6 +567,11 @@ function dismissAlarm() {
   }
 
   unlockUI();
+
+  if (alarmState.pendingPomodoroAdvance) {
+    alarmState.pendingPomodoroAdvance = false;
+    handlePomodoroSwitch();
+  }
 }
 
 function updateSoundCount() {
@@ -849,7 +918,7 @@ function onTimerFinished() {
   updateTimerStartButton();
 
   if (pomodoroState.enabled) {
-    handlePomodoroSwitch();
+    alarmState.pendingPomodoroAdvance = true;
   }
 }
 
@@ -878,6 +947,7 @@ function applyPomodoro() {
   timerState.timerId = null;
   timerState.running = false;
   timerState.paused = false;
+  alarmState.pendingPomodoroAdvance = false;
 
   pomodoroState.enabled = true;
   pomodoroState.phase = "work";
@@ -922,7 +992,7 @@ function handlePomodoroSwitch() {
 
   setTimeout(() => {
     startTimer();
-  }, 600);
+  }, 350);
 }
 
 function updatePomodoroUI() {
@@ -963,6 +1033,7 @@ function disablePomodoro() {
   pomodoroState.enabled = false;
   pomodoroState.phase = "work";
   pomodoroState.cycleCount = 0;
+  alarmState.pendingPomodoroAdvance = false;
 
   const el = $("pomodoroStatus");
   if (el) el.textContent = t("ready");
