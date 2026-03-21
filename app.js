@@ -248,6 +248,18 @@ const baseTranslations = {
   breakLabel: {
     tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso",
     ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息"
+  },
+  resetPomodoro: {
+    tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro",
+    ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟"
+  },
+  resetCycle: {
+    tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo",
+    ru: "Сбросить цикл", ar: "إعادة ضبط الدورة", it: "Reimposta ciclo", pt: "Redefinir ciclo", zh: "重置周期"
+  },
+  nextPhase: {
+    tr: "Sonraki aşama", en: "Next Phase", de: "Nächste Phase", fr: "Phase suivante", es: "Siguiente fase",
+    ru: "Следующая фаза", ar: "المرحلة التالية", it: "Fase successiva", pt: "Próxima fase", zh: "下一阶段"
   }
 };
 
@@ -277,6 +289,165 @@ function updateStopwatchStartButton() {
   btn.textContent = stopwatchState.running ? t("pause") : t("start");
 }
 
+// ===============================
+// SOUND NAME TRANSLATIONS
+// ===============================
+const soundNameTranslations = {
+  tr: {
+    chime: "Çan",
+    bell: "Zil",
+    glow: "Işıltı",
+    night: "Gece",
+    crystal: "Kristal",
+    amber: "Kehribar",
+    breeze: "Esinti",
+    pulse: "Nabız",
+    echo: "Yankı",
+    wave: "Dalga",
+    aurora: "Aurora",
+    spark: "Kıvılcım"
+  },
+  en: {
+    chime: "Chime",
+    bell: "Bell",
+    glow: "Glow",
+    night: "Night",
+    crystal: "Crystal",
+    amber: "Amber",
+    breeze: "Breeze",
+    pulse: "Pulse",
+    echo: "Echo",
+    wave: "Wave",
+    aurora: "Aurora",
+    spark: "Spark"
+  },
+  de: {
+    chime: "Klang",
+    bell: "Glocke",
+    glow: "Leuchten",
+    night: "Nacht",
+    crystal: "Kristall",
+    amber: "Bernstein",
+    breeze: "Brise",
+    pulse: "Puls",
+    echo: "Echo",
+    wave: "Welle",
+    aurora: "Aurora",
+    spark: "Funke"
+  },
+  fr: {
+    chime: "Carillon",
+    bell: "Cloche",
+    glow: "Lueur",
+    night: "Nuit",
+    crystal: "Cristal",
+    amber: "Ambre",
+    breeze: "Brise",
+    pulse: "Pulse",
+    echo: "Écho",
+    wave: "Vague",
+    aurora: "Aurore",
+    spark: "Étincelle"
+  },
+  es: {
+    chime: "Campanilla",
+    bell: "Campana",
+    glow: "Brillo",
+    night: "Noche",
+    crystal: "Cristal",
+    amber: "Ámbar",
+    breeze: "Brisa",
+    pulse: "Pulso",
+    echo: "Eco",
+    wave: "Ola",
+    aurora: "Aurora",
+    spark: "Chispa"
+  },
+  ru: {
+    chime: "Перезвон",
+    bell: "Колокол",
+    glow: "Сияние",
+    night: "Ночь",
+    crystal: "Кристалл",
+    amber: "Янтарь",
+    breeze: "Бриз",
+    pulse: "Пульс",
+    echo: "Эхо",
+    wave: "Волна",
+    aurora: "Аврора",
+    spark: "Искра"
+  },
+  ar: {
+    chime: "رنين",
+    bell: "جرس",
+    glow: "وهج",
+    night: "ليل",
+    crystal: "كريستال",
+    amber: "كهرمان",
+    breeze: "نسيم",
+    pulse: "نبض",
+    echo: "صدى",
+    wave: "موجة",
+    aurora: "أورورا",
+    spark: "شرارة"
+  },
+  it: {
+    chime: "Carillon",
+    bell: "Campana",
+    glow: "Bagliore",
+    night: "Notte",
+    crystal: "Cristallo",
+    amber: "Ambra",
+    breeze: "Brezza",
+    pulse: "Impulso",
+    echo: "Eco",
+    wave: "Onda",
+    aurora: "Aurora",
+    spark: "Scintilla"
+  },
+  pt: {
+    chime: "Carrilhão",
+    bell: "Sino",
+    glow: "Brilho",
+    night: "Noite",
+    crystal: "Cristal",
+    amber: "Âmbar",
+    breeze: "Brisa",
+    pulse: "Pulso",
+    echo: "Eco",
+    wave: "Onda",
+    aurora: "Aurora",
+    spark: "Faísca"
+  },
+  zh: {
+    chime: "铃音",
+    bell: "铃声",
+    glow: "微光",
+    night: "夜曲",
+    crystal: "水晶",
+    amber: "琥珀",
+    breeze: "微风",
+    pulse: "脉冲",
+    echo: "回响",
+    wave: "波纹",
+    aurora: "极光",
+    spark: "火花"
+  }
+};
+
+function localizeSoundToken(token) {
+  const lang = $("language")?.value || appState.language || "en";
+  const dict = soundNameTranslations[lang] || soundNameTranslations.en;
+  return dict[token] || token;
+}
+
+function formatSoundName(sound) {
+  return `${localizeSoundToken(sound.group)} ${localizeSoundToken(sound.variant)}`;
+}
+
+// ===============================
+// APPLY LANGUAGE
+// ===============================
 function applyLanguage() {
   const lang = $("language")?.value || "en";
   appState.language = lang;
@@ -314,6 +485,9 @@ function applyLanguage() {
   setText("pomodoroDesc", "pomodoroDesc");
   setText("applyPomodoroBtn", "applyPomodoro");
   setText("lapsTitle", "lapsTitle");
+  setText("pomodoroResetBtn", "resetPomodoro");
+  setText("pomodoroCycleResetBtn", "resetCycle");
+  setText("pomodoroSkipBtn", "nextPhase");
 
   if (timerState.running) {
     setText("timerStatus", "running");
@@ -343,108 +517,34 @@ const sounds = [];
 const SOUND_COUNT = 60;
 let selectedSoundId = "s1";
 
-const soundFamilies = [
-  {
-    key: "crystal",
-    type: "sine",
-    makeSeq: (i) => [620 + i * 4, 880 + i * 2, 1180 + i]
-  },
-  {
-    key: "bell",
-    type: "triangle",
-    makeSeq: (i) => [320 + i * 6, 480 + i * 5, 720 + i * 4]
-  },
-  {
-    key: "pulse",
-    type: "square",
-    makeSeq: (i) => [240 + i * 9, 240 + i * 9, 510 + i * 6, 510 + i * 6]
-  },
-  {
-    key: "wave",
-    type: "sawtooth",
-    makeSeq: (i) => [180 + i * 7, 360 + i * 5, 240 + i * 8, 520 + i * 4]
-  },
-  {
-    key: "echo",
-    type: "sine",
-    makeSeq: (i) => [410 + i * 5, 300 + i * 2, 560 + i * 7, 420 + i * 3]
-  },
-  {
-    key: "spark",
-    type: "triangle",
-    makeSeq: (i) => [900 + i * 3, 660 + i * 2, 1040 + i * 4]
-  }
-];
-
-const soundDescriptors = [
-  "soft", "deep", "bright", "calm", "swift",
-  "clear", "warm", "silver", "night", "fresh"
+const soundBlueprints = [
+  { group: "crystal", variant: "chime", type: "sine", base: 740, overtone: 1480, tail: 1110, duration: 0.24, volume: 0.10 },
+  { group: "amber", variant: "bell", type: "triangle", base: 480, overtone: 960, tail: 720, duration: 0.22, volume: 0.12 },
+  { group: "night", variant: "glow", type: "sine", base: 320, overtone: 640, tail: 510, duration: 0.28, volume: 0.11 },
+  { group: "breeze", variant: "wave", type: "sawtooth", base: 260, overtone: 530, tail: 390, duration: 0.18, volume: 0.08 },
+  { group: "aurora", variant: "echo", type: "triangle", base: 560, overtone: 830, tail: 620, duration: 0.20, volume: 0.10 },
+  { group: "spark", variant: "pulse", type: "square", base: 410, overtone: 820, tail: 615, duration: 0.13, volume: 0.07 }
 ];
 
 for (let i = 1; i <= SOUND_COUNT; i++) {
-  const family = soundFamilies[(i - 1) % soundFamilies.length];
-  const duration = 0.08 + ((i - 1) % 4) * 0.035;
-  const volume = 0.08 + ((i - 1) % 5) * 0.025;
+  const bp = soundBlueprints[(i - 1) % soundBlueprints.length];
+  const detune = ((i - 1) % 10) * 7;
+  const tailShift = ((i - 1) % 6) * 5;
 
   sounds.push({
     id: "s" + i,
     index: i,
-    descriptor: soundDescriptors[Math.floor((i - 1) / soundFamilies.length) % soundDescriptors.length],
-    family: family.key,
-    type: family.type,
-    volume,
-    stepDuration: duration,
-    seq: family.makeSeq(i)
+    group: bp.group,
+    variant: bp.variant,
+    type: bp.type,
+    volume: bp.volume + ((i - 1) % 3) * 0.01,
+    duration: bp.duration + ((i - 1) % 4) * 0.015,
+    seq: [
+      bp.base + detune,
+      bp.overtone + detune * 0.7,
+      bp.tail + tailShift
+    ]
   });
-}
-
-const soundNameTranslations = {
-  tr: {
-    soft: "Yumuşak",
-    deep: "Derin",
-    bright: "Parlak",
-    calm: "Sakin",
-    swift: "Hızlı",
-    clear: "Berrak",
-    warm: "Sıcak",
-    silver: "Gümüş",
-    night: "Gece",
-    fresh: "Taze",
-    crystal: "Kristal",
-    bell: "Çan",
-    pulse: "Nabız",
-    wave: "Dalga",
-    echo: "Yankı",
-    spark: "Kıvılcım"
-  },
-  en: {
-    soft: "Soft",
-    deep: "Deep",
-    bright: "Bright",
-    calm: "Calm",
-    swift: "Swift",
-    clear: "Clear",
-    warm: "Warm",
-    silver: "Silver",
-    night: "Night",
-    fresh: "Fresh",
-    crystal: "Crystal",
-    bell: "Bell",
-    pulse: "Pulse",
-    wave: "Wave",
-    echo: "Echo",
-    spark: "Spark"
-  }
-};
-
-function getLocalizedToken(token) {
-  const lang = $("language")?.value || appState.language || "en";
-  const dict = soundNameTranslations[lang] || soundNameTranslations.en;
-  return dict[token] || token;
-}
-
-function formatSoundName(sound) {
-  return `${getLocalizedToken(sound.descriptor)} ${getLocalizedToken(sound.family)}`;
 }
 
 function getAudioContext() {
@@ -472,32 +572,39 @@ function playSoundOnce(sound) {
   const now = ctx.currentTime;
 
   sound.seq.forEach((freq, index) => {
+    const startAt = now + index * (sound.duration * 0.72);
+    const endAt = startAt + sound.duration;
+
     try {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
 
       osc.type = sound.type;
-
-      const startAt = now + index * sound.stepDuration;
-      const endAt = startAt + sound.stepDuration * 0.86;
-
       osc.frequency.setValueAtTime(freq, startAt);
 
-      if (sound.family === "echo") {
-        osc.frequency.linearRampToValueAtTime(freq * 0.75, endAt);
-      } else if (sound.family === "spark") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.18, endAt);
-      } else if (sound.family === "wave") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.08, startAt + sound.stepDuration * 0.35);
+      if (sound.variant === "echo") {
         osc.frequency.linearRampToValueAtTime(freq * 0.82, endAt);
+      } else if (sound.variant === "wave") {
+        osc.frequency.linearRampToValueAtTime(freq * 1.08, startAt + sound.duration * 0.35);
+        osc.frequency.linearRampToValueAtTime(freq * 0.88, endAt);
+      } else if (sound.variant === "pulse") {
+        osc.frequency.linearRampToValueAtTime(freq * 1.15, endAt);
+      } else {
+        osc.frequency.linearRampToValueAtTime(freq * 0.96, endAt);
       }
 
-      gain.gain.setValueAtTime(0.0001, startAt);
-      gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.018);
-      gain.gain.linearRampToValueAtTime(sound.volume * 0.45, startAt + sound.stepDuration * 0.45);
-      gain.gain.linearRampToValueAtTime(0.0001, endAt);
+      filter.type = sound.variant === "pulse" ? "lowpass" : "bandpass";
+      filter.frequency.setValueAtTime(sound.variant === "pulse" ? 1400 : 2200, startAt);
+      filter.Q.setValueAtTime(sound.variant === "bell" ? 9 : 5, startAt);
 
-      osc.connect(gain);
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.02);
+      gain.gain.exponentialRampToValueAtTime(Math.max(sound.volume * 0.45, 0.01), startAt + sound.duration * 0.45);
+      gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+
+      osc.connect(filter);
+      filter.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start(startAt);
@@ -526,15 +633,15 @@ function startAlarmLoop() {
 
   alarmState.intervalId = setInterval(() => {
     const now = Date.now();
-    if (now - alarmState.lastPlay < 650) return;
+    if (now - alarmState.lastPlay < 850) return;
 
     alarmState.lastPlay = now;
     playSoundOnce(getSelectedSound());
 
     if ($("vibrationToggle")?.checked && navigator.vibrate) {
-      navigator.vibrate([250, 100, 250, 100, 250]);
+      navigator.vibrate([220, 100, 220, 100, 220]);
     }
-  }, 1000);
+  }, 1150);
 }
 
 function stopAlarmLoop() {
@@ -995,6 +1102,41 @@ function handlePomodoroSwitch() {
   }, 350);
 }
 
+function resetPomodoro() {
+  clearInterval(timerState.timerId);
+  timerState.timerId = null;
+  timerState.running = false;
+  timerState.paused = false;
+  timerState.timeLeft = 0;
+  timerState.totalTime = 0;
+  timerState.lastTick = 0;
+
+  pomodoroState.enabled = false;
+  pomodoroState.phase = "work";
+  alarmState.pendingPomodoroAdvance = false;
+
+  if ($("pomodoroWork")) $("pomodoroWork").value = 25;
+  if ($("pomodoroBreak")) $("pomodoroBreak").value = 5;
+
+  if ($("hours")) $("hours").value = 0;
+  if ($("minutes")) $("minutes").value = 0;
+  if ($("seconds")) $("seconds").value = 0;
+
+  const display = $("timerDisplay");
+  if (display) display.textContent = "00:00:00";
+
+  updateTimerRing();
+  cancelTimerNotification();
+  setText("timerStatus", "ready");
+  updateTimerStartButton();
+  updatePomodoroUI();
+}
+
+function resetPomodoroCycle() {
+  pomodoroState.cycleCount = 0;
+  setPomodoroStatus();
+}
+
 function updatePomodoroUI() {
   const title = $("pomodoroTitle");
   if (!title) return;
@@ -1011,6 +1153,11 @@ function updatePomodoroUI() {
 function setPomodoroStatus() {
   const el = $("pomodoroStatus");
   if (!el) return;
+
+  if (!pomodoroState.enabled) {
+    el.textContent = t("ready");
+    return;
+  }
 
   const phaseText = pomodoroState.phase === "work" ? t("work") : t("break");
   const cycle = pomodoroState.cycleCount;
@@ -1034,16 +1181,7 @@ function disablePomodoro() {
   pomodoroState.phase = "work";
   pomodoroState.cycleCount = 0;
   alarmState.pendingPomodoroAdvance = false;
-
-  const el = $("pomodoroStatus");
-  if (el) el.textContent = t("ready");
-
   updatePomodoroUI();
-}
-
-function onTimerResetPomodoro() {
-  if (!pomodoroState.enabled) return;
-  disablePomodoro();
 }
 
 // ===============================
@@ -1366,12 +1504,12 @@ function toggleTheme() {
 function initEvents() {
   bind("timerStartBtn", "click", startTimer);
   bind("timerPauseBtn", "click", pauseTimer);
-  bind("timerResetBtn", "click", () => {
-    resetTimer();
-    onTimerResetPomodoro();
-  });
+  bind("timerResetBtn", "click", resetTimer);
 
   bind("applyPomodoroBtn", "click", applyPomodoro);
+  bind("pomodoroResetBtn", "click", resetPomodoro);
+  bind("pomodoroCycleResetBtn", "click", resetPomodoroCycle);
+  bind("pomodoroSkipBtn", "click", handlePomodoroSwitch);
 
   bind("swStartBtn", "click", toggleStopwatch);
   bind("swLapBtn", "click", addLap);
