@@ -67,7 +67,10 @@ const alarmState = {
   active: false,
   audioContext: null,
   lastPlay: 0,
-  pendingPomodoroAdvance: false
+  pendingPomodoroAdvance: false,
+  htmlAudio: null,
+  htmlAudioUnlocked: false,
+  currentPreviewSoundId: null
 };
 
 // ===============================
@@ -147,11 +150,11 @@ const baseTranslations = {
   },
   pomodoro: {
     tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro",
-    ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
+    ru: "Помодоро", ar: "بومодورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
   },
   soundOn: {
     tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado",
-    ru: "Звук açık", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启"
+    ru: "Звук включен", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启"
   },
   vibrationOn: {
     tr: "Titreşim açık", en: "Vibration on", de: "Vibration an", fr: "Vibration activée", es: "Vibración activada",
@@ -264,185 +267,135 @@ const baseTranslations = {
 };
 
 // ===============================
-// TRANSLATION ENGINE
+// SOUND LABELS
 // ===============================
-function t(key) {
-  const lang = $("language")?.value || appState.language || "en";
-  if (!baseTranslations[key]) return key;
-  return baseTranslations[key][lang] || baseTranslations[key].en || key;
-}
-
-function setText(id, key) {
-  const el = $(id);
-  if (el) el.textContent = t(key);
-}
-
-function updateTimerStartButton() {
-  const btn = $("timerStartBtn");
-  if (!btn) return;
-  btn.textContent = timerState.running ? t("running") : t("start");
-}
-
-function updateStopwatchStartButton() {
-  const btn = $("swStartBtn");
-  if (!btn) return;
-  btn.textContent = stopwatchState.running ? t("pause") : t("start");
-}
-
-// ===============================
-// SOUND NAME TRANSLATIONS
-// ===============================
-const soundNameTranslations = {
-  tr: {
-    chime: "Çan",
-    bell: "Zil",
-    glow: "Işıltı",
-    night: "Gece",
-    crystal: "Kristal",
-    amber: "Kehribar",
-    breeze: "Esinti",
-    pulse: "Nabız",
-    echo: "Yankı",
-    wave: "Dalga",
-    aurora: "Aurora",
-    spark: "Kıvılcım"
-  },
-  en: {
-    chime: "Chime",
-    bell: "Bell",
-    glow: "Glow",
-    night: "Night",
-    crystal: "Crystal",
-    amber: "Amber",
-    breeze: "Breeze",
-    pulse: "Pulse",
-    echo: "Echo",
-    wave: "Wave",
-    aurora: "Aurora",
-    spark: "Spark"
-  },
-  de: {
-    chime: "Klang",
-    bell: "Glocke",
-    glow: "Leuchten",
-    night: "Nacht",
-    crystal: "Kristall",
-    amber: "Bernstein",
-    breeze: "Brise",
-    pulse: "Puls",
-    echo: "Echo",
-    wave: "Welle",
-    aurora: "Aurora",
-    spark: "Funke"
-  },
-  fr: {
-    chime: "Carillon",
-    bell: "Cloche",
-    glow: "Lueur",
-    night: "Nuit",
-    crystal: "Cristal",
-    amber: "Ambre",
-    breeze: "Brise",
-    pulse: "Pulse",
-    echo: "Écho",
-    wave: "Vague",
-    aurora: "Aurore",
-    spark: "Étincelle"
-  },
-  es: {
-    chime: "Campanilla",
-    bell: "Campana",
-    glow: "Brillo",
-    night: "Noche",
-    crystal: "Cristal",
-    amber: "Ámbar",
-    breeze: "Brisa",
-    pulse: "Pulso",
-    echo: "Eco",
-    wave: "Ola",
-    aurora: "Aurora",
-    spark: "Chispa"
-  },
-  ru: {
-    chime: "Перезвон",
-    bell: "Колокол",
-    glow: "Сияние",
-    night: "Ночь",
-    crystal: "Кристалл",
-    amber: "Янтарь",
-    breeze: "Бриз",
-    pulse: "Пульс",
-    echo: "Эхо",
-    wave: "Волна",
-    aurora: "Аврора",
-    spark: "Искра"
-  },
-  ar: {
-    chime: "رنين",
-    bell: "جرس",
-    glow: "وهج",
-    night: "ليل",
-    crystal: "كريستال",
-    amber: "كهرمان",
-    breeze: "نسيم",
-    pulse: "نبض",
-    echo: "صدى",
-    wave: "موجة",
-    aurora: "أورورا",
-    spark: "شرارة"
-  },
-  it: {
-    chime: "Carillon",
-    bell: "Campana",
-    glow: "Bagliore",
-    night: "Notte",
-    crystal: "Cristallo",
-    amber: "Ambra",
-    breeze: "Brezza",
-    pulse: "Impulso",
-    echo: "Eco",
-    wave: "Onda",
-    aurora: "Aurora",
-    spark: "Scintilla"
-  },
-  pt: {
-    chime: "Carrilhão",
-    bell: "Sino",
-    glow: "Brilho",
-    night: "Noite",
-    crystal: "Cristal",
-    amber: "Âmbar",
-    breeze: "Brisa",
-    pulse: "Pulso",
-    echo: "Eco",
-    wave: "Onda",
-    aurora: "Aurora",
-    spark: "Faísca"
-  },
-  zh: {
-    chime: "铃音",
-    bell: "铃声",
-    glow: "微光",
-    night: "夜曲",
-    crystal: "水晶",
-    amber: "琥珀",
-    breeze: "微风",
-    pulse: "脉冲",
-    echo: "回响",
-    wave: "波纹",
-    aurora: "极光",
-    spark: "火花"
-  }
+const soundLabels = {
+  tr: [
+    "Kristal Şafak", "Amber Zil", "Gece Işıltısı", "Nazik Dalga", "Aurora Yankı",
+    "Yumuşak Nabız", "Ay Kristali", "Sabah Çanı", "Sakin Esinti", "İnce Yankı",
+    "Kutup Parıltısı", "Derin Kıvılcım", "Cam Damlası", "Mavi Zil", "Gece Melodisi",
+    "Sıcak Dalga", "Gümüş Yankı", "Hafif Nabız", "Parlak Şafak", "Kehribar Melodi",
+    "Kum Esintisi", "Ay Yankısı", "Soğuk Kristal", "Nazik Kıvılcım", "Dingin Çan",
+    "Mistik Işıltı", "Lavanta Dalga", "Akşam Zili", "Düş Yankısı", "Berrak Nabız",
+    "Kutup Çanı", "İpeksi Kristal", "Yıldız Esintisi", "Gece Çanı", "Parlak Aurora",
+    "Sade Yankı", "Huzur Nabzı", "Ilık Şafak", "Puslu Dalga", "Şeffaf Zil",
+    "Cam Işıltısı", "Derin Aurora", "Gece Nabzı", "Melodik Yankı", "Sakin Çınlama",
+    "Altın Kristal", "Akşam Esintisi", "Yumuşak Çan", "Duru Dalga", "Final Zili"
+  ],
+  en: [
+    "Crystal Dawn", "Amber Bell", "Night Glow", "Gentle Wave", "Aurora Echo",
+    "Soft Pulse", "Moon Crystal", "Morning Bell", "Calm Breeze", "Fine Echo",
+    "Polar Glow", "Deep Spark", "Glass Drop", "Blue Bell", "Night Melody",
+    "Warm Wave", "Silver Echo", "Light Pulse", "Bright Dawn", "Amber Melody",
+    "Sand Breeze", "Moon Echo", "Cold Crystal", "Gentle Spark", "Quiet Chime",
+    "Mystic Glow", "Lavender Wave", "Evening Bell", "Dream Echo", "Clear Pulse",
+    "North Bell", "Silk Crystal", "Star Breeze", "Night Bell", "Bright Aurora",
+    "Pure Echo", "Peace Pulse", "Warm Dawn", "Misty Wave", "Clear Bell",
+    "Glass Glow", "Deep Aurora", "Night Pulse", "Melody Echo", "Calm Chime",
+    "Golden Crystal", "Evening Breeze", "Soft Bell", "Pure Wave", "Final Bell"
+  ],
+  de: [
+    "Kristallmorgen", "Bernsteinglocke", "Nachtglanz", "Sanfte Welle", "Aurora Echo",
+    "Weicher Puls", "Mondkristall", "Morgenglocke", "Ruhige Brise", "Feines Echo",
+    "Polarlicht", "Tiefer Funke", "Glastropfen", "Blaue Glocke", "Nachtmelodie",
+    "Warme Welle", "Silber Echo", "Leichter Puls", "Heller Morgen", "Bernsteinmelodie",
+    "Sandbrise", "Mondecho", "Kalter Kristall", "Sanfter Funke", "Stiller Klang",
+    "Mystischer Glanz", "Lavendelwelle", "Abendglocke", "Traumecho", "Klarer Puls",
+    "Nordglocke", "Seidenkristall", "Sternbrise", "Nachtglocke", "Helle Aurora",
+    "Reines Echo", "Friedenspuls", "Warmer Morgen", "Nebelwelle", "Klare Glocke",
+    "Glanzglas", "Tiefe Aurora", "Nachtpuls", "Melodieecho", "Ruhiger Klang",
+    "Goldkristall", "Abendbrise", "Sanfte Glocke", "Reine Welle", "Finalglocke"
+  ],
+  fr: [
+    "Aube Cristal", "Cloche Ambre", "Lueur Nocturne", "Vague Douce", "Écho Aurora",
+    "Pulse Doux", "Cristal Lunaire", "Cloche du Matin", "Brise Calme", "Écho Fin",
+    "Lueur Polaire", "Étincelle Profonde", "Goutte de Verre", "Cloche Bleue", "Mélodie Nocturne",
+    "Vague Chaude", "Écho Argenté", "Pulse Léger", "Aube Claire", "Mélodie Ambre",
+    "Brise de Sable", "Écho Lunaire", "Cristal Froid", "Étincelle Douce", "Carillon Paisible",
+    "Lueur Mystique", "Vague Lavande", "Cloche du Soir", "Écho de Rêve", "Pulse Clair",
+    "Cloche du Nord", "Cristal Soyeux", "Brise Stellaire", "Cloche de Nuit", "Aurora Claire",
+    "Écho Pur", "Pulse Paisible", "Aube Chaude", "Vague Brumeuse", "Cloche Claire",
+    "Lueur de Verre", "Aurora Profonde", "Pulse Nocturne", "Écho Mélodique", "Carillon Calme",
+    "Cristal Doré", "Brise du Soir", "Cloche Douce", "Vague Pure", "Cloche Finale"
+  ],
+  es: [
+    "Amanecer Cristal", "Campana Ámbar", "Brillo Nocturno", "Ola Suave", "Eco Aurora",
+    "Pulso Suave", "Cristal Lunar", "Campana Matinal", "Brisa Calma", "Eco Fino",
+    "Brillo Polar", "Chispa Profunda", "Gota de Cristal", "Campana Azul", "Melodía Nocturna",
+    "Ola Cálida", "Eco Plateado", "Pulso Ligero", "Amanecer Brillante", "Melodía Ámbar",
+    "Brisa de Arena", "Eco Lunar", "Cristal Frío", "Chispa Suave", "Campana Serena",
+    "Brillo Místico", "Ola Lavanda", "Campana Vespertina", "Eco Soñado", "Pulso Claro",
+    "Campana del Norte", "Cristal Sedoso", "Brisa Estelar", "Campana Nocturna", "Aurora Brillante",
+    "Eco Puro", "Pulso en Paz", "Amanecer Cálido", "Ola de Niebla", "Campana Clara",
+    "Brillo de Cristal", "Aurora Profunda", "Pulso Nocturno", "Eco Melódico", "Campana Calma",
+    "Cristal Dorado", "Brisa del Atardecer", "Campana Suave", "Ola Pura", "Campana Final"
+  ],
+  ru: [
+    "Хрустальный Рассвет", "Янтарный Колокол", "Ночное Сияние", "Мягкая Волна", "Эхо Авроры",
+    "Мягкий Пульс", "Лунный Кристалл", "Утренний Колокол", "Спокойный Бриз", "Тонкое Эхо",
+    "Полярное Сияние", "Глубокая Искра", "Стеклянная Капля", "Синий Колокол", "Ночная Мелодия",
+    "Теплая Волна", "Серебряное Эхо", "Легкий Пульс", "Яркий Рассвет", "Янтарная Мелодия",
+    "Песчаный Бриз", "Лунное Эхо", "Холодный Кристалл", "Мягкая Искра", "Тихий Перезвон",
+    "Мистическое Сияние", "Лавандовая Волна", "Вечерний Колокол", "Эхо Сна", "Чистый Пульс",
+    "Северный Колокол", "Шелковый Кристалл", "Звездный Бриз", "Ночной Колокол", "Яркая Аврора",
+    "Чистое Эхо", "Пульс Спокойствия", "Теплый Рассвет", "Туманная Волна", "Ясный Колокол",
+    "Стеклянное Сияние", "Глубокая Аврора", "Ночной Пульс", "Мелодичное Эхо", "Спокойный Перезвон",
+    "Золотой Кристалл", "Вечерний Бриз", "Мягкий Колокол", "Чистая Волна", "Финальный Колокол"
+  ],
+  ar: [
+    "فجر كريستالي", "جرس كهرماني", "وهج ليلي", "موجة ناعمة", "صدى أورورا",
+    "نبض ناعم", "كريستال قمري", "جرس الصباح", "نسيم هادئ", "صدى رقيق",
+    "وهج قطبي", "شرارة عميقة", "قطرة زجاج", "جرس أزرق", "لحن ليلي",
+    "موجة دافئة", "صدى فضي", "نبض خفيف", "فجر مشرق", "لحن كهرماني",
+    "نسيم رملي", "صدى قمري", "كريستال بارد", "شرارة ناعمة", "رنين هادئ",
+    "وهج غامض", "موجة خزامى", "جرس المساء", "صدى حلم", "نبض صافٍ",
+    "جرس الشمال", "كريستال حريري", "نسيم النجوم", "جرس الليل", "أورورا مشرقة",
+    "صدى نقي", "نبض سلام", "فجر دافئ", "موجة ضبابية", "جرس صافٍ",
+    "وهج زجاجي", "أورورا عميقة", "نبض ليلي", "صدى لحني", "رنين هادئ",
+    "كريستال ذهبي", "نسيم المساء", "جرس ناعم", "موجة نقية", "الجرس الأخير"
+  ],
+  it: [
+    "Alba Cristallo", "Campana Ambra", "Bagliore Notturno", "Onda Dolce", "Eco Aurora",
+    "Impulso Dolce", "Cristallo Lunare", "Campana Mattutina", "Brezza Calma", "Eco Fine",
+    "Bagliore Polare", "Scintilla Profonda", "Goccia di Vetro", "Campana Blu", "Melodia Notturna",
+    "Onda Calda", "Eco d'Argento", "Impulso Leggero", "Alba Luminosa", "Melodia Ambra",
+    "Brezza di Sabbia", "Eco Lunare", "Cristallo Freddo", "Scintilla Dolce", "Rintocco Calmo",
+    "Bagliore Mistico", "Onda Lavanda", "Campana della Sera", "Eco del Sogno", "Impulso Chiaro",
+    "Campana del Nord", "Cristallo Setoso", "Brezza Stellare", "Campana Notturna", "Aurora Luminosa",
+    "Eco Puro", "Impulso di Pace", "Alba Calda", "Onda Nebbiosa", "Campana Chiara",
+    "Bagliore di Vetro", "Aurora Profonda", "Impulso Notturno", "Eco Melodico", "Rintocco Calmo",
+    "Cristallo Dorato", "Brezza della Sera", "Campana Dolce", "Onda Pura", "Campana Finale"
+  ],
+  pt: [
+    "Aurora Cristal", "Sino Âmbar", "Brilho Noturno", "Onda Suave", "Eco Aurora",
+    "Pulso Suave", "Cristal Lunar", "Sino da Manhã", "Brisa Calma", "Eco Fino",
+    "Brilho Polar", "Faísca Profunda", "Gota de Vidro", "Sino Azul", "Melodia Noturna",
+    "Onda Quente", "Eco Prateado", "Pulso Leve", "Aurora Brilhante", "Melodia Âmbar",
+    "Brisa de Areia", "Eco Lunar", "Cristal Frio", "Faísca Suave", "Toque Calmo",
+    "Brilho Místico", "Onda Lavanda", "Sino da Tarde", "Eco dos Sonhos", "Pulso Claro",
+    "Sino do Norte", "Cristal Sedoso", "Brisa Estelar", "Sino Noturno", "Aurora Brilhante",
+    "Eco Puro", "Pulso da Paz", "Aurora Quente", "Onda Nebulosa", "Sino Claro",
+    "Brilho de Vidro", "Aurora Profunda", "Pulso Noturno", "Eco Melódico", "Toque Calmo",
+    "Cristal Dourado", "Brisa da Noite", "Sino Suave", "Onda Pura", "Sino Final"
+  ],
+  zh: [
+    "水晶黎明", "琥珀铃声", "夜色微光", "柔和波纹", "极光回响",
+    "轻柔脉冲", "月光水晶", "晨间铃音", "宁静微风", "细腻回声",
+    "极地微光", "深层火花", "玻璃水滴", "蓝色铃音", "夜曲旋律",
+    "温暖波纹", "银色回响", "轻盈脉冲", "明亮黎明", "琥珀旋律",
+    "沙海微风", "月夜回声", "冷冽水晶", "柔和火花", "安静铃声",
+    "神秘微光", "薰衣草波纹", "傍晚铃音", "梦境回响", "清澈脉冲",
+    "北境铃音", "丝绸水晶", "星空微风", "夜晚铃声", "明亮极光",
+    "纯净回响", "平和脉冲", "温暖晨曦", "迷雾波纹", "清透铃音",
+    "玻璃微光", "深邃极光", "夜色脉冲", "旋律回响", "宁静铃音",
+    "金色水晶", "暮色微风", "柔和铃声", "纯净波纹", "终章铃音"
+  ]
 };
 
-function localizeSoundToken(token) {
+function getLocalizedSoundName(index) {
   const lang = $("language")?.value || appState.language || "en";
-  const dict = soundNameTranslations[lang] || soundNameTranslations.en;
-  return dict[token] || token;
-}
-
-function formatSoundName(sound) {
-  return `${localizeSoundToken(sound.group)} ${localizeSoundToken(sound.variant)}`;
+  const list = soundLabels[lang] || soundLabels.en;
+  return list[index - 1] || `Sound ${index}`;
 }
 
 // ===============================
@@ -514,7 +467,7 @@ function applyLanguage() {
 // SOUND SYSTEM
 // ===============================
 const sounds = [];
-const SOUND_COUNT = 60;
+const SOUND_COUNT = 50;
 let selectedSoundId = "s1";
 
 const soundBlueprints = [
@@ -539,6 +492,8 @@ for (let i = 1; i <= SOUND_COUNT; i++) {
     type: bp.type,
     volume: bp.volume + ((i - 1) % 3) * 0.01,
     duration: bp.duration + ((i - 1) % 4) * 0.015,
+    assetPath: `assets/sounds/sound${i}.mp3`,
+    audioAvailable: null,
     seq: [
       bp.base + detune,
       bp.overtone + detune * 0.7,
@@ -562,7 +517,35 @@ function getAudioContext() {
   return alarmState.audioContext;
 }
 
-function playSoundOnce(sound) {
+async function ensureHtmlAudioUnlocked() {
+  if (alarmState.htmlAudioUnlocked) return true;
+
+  try {
+    if (!alarmState.htmlAudio) {
+      alarmState.htmlAudio = new Audio();
+    }
+    alarmState.htmlAudio.muted = true;
+    alarmState.htmlAudio.src = "";
+    await alarmState.htmlAudio.play().catch(() => {});
+    alarmState.htmlAudio.pause();
+    alarmState.htmlAudio.currentTime = 0;
+    alarmState.htmlAudio.muted = false;
+    alarmState.htmlAudioUnlocked = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function stopHtmlAudio() {
+  if (!alarmState.htmlAudio) return;
+  try {
+    alarmState.htmlAudio.pause();
+    alarmState.htmlAudio.currentTime = 0;
+  } catch {}
+}
+
+function playSynthSoundOnce(sound) {
   if (!sound) return;
   if (!$("soundToggle")?.checked) return;
 
@@ -610,17 +593,85 @@ function playSoundOnce(sound) {
       osc.start(startAt);
       osc.stop(endAt + 0.02);
     } catch (e) {
-      console.warn("Sound error:", e);
+      console.warn("Synth sound error:", e);
     }
   });
 }
 
-function previewSound(sound) {
+function probeSoundAsset(sound) {
+  if (sound.audioAvailable !== null) return;
+  const audio = new Audio();
+  audio.preload = "metadata";
+  audio.src = sound.assetPath;
+
+  const success = () => {
+    sound.audioAvailable = true;
+    cleanup();
+  };
+  const fail = () => {
+    sound.audioAvailable = false;
+    cleanup();
+  };
+  const cleanup = () => {
+    audio.removeEventListener("canplaythrough", success);
+    audio.removeEventListener("error", fail);
+  };
+
+  audio.addEventListener("canplaythrough", success, { once: true });
+  audio.addEventListener("error", fail, { once: true });
+
   try {
-    playSoundOnce(sound);
-  } catch (e) {
-    console.warn("Preview error:", e);
+    audio.load();
+  } catch {
+    sound.audioAvailable = false;
   }
+}
+
+async function playRealSoundOnce(sound, loop = false) {
+  if (!sound) return false;
+  if (!$("soundToggle")?.checked) return false;
+
+  await ensureHtmlAudioUnlocked();
+
+  try {
+    stopHtmlAudio();
+
+    if (!alarmState.htmlAudio) {
+      alarmState.htmlAudio = new Audio();
+    }
+
+    alarmState.htmlAudio.loop = loop;
+    alarmState.htmlAudio.src = sound.assetPath;
+    alarmState.htmlAudio.currentTime = 0;
+    alarmState.htmlAudio.volume = 1;
+
+    await alarmState.htmlAudio.play();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function playSoundOnce(sound, loop = false) {
+  if (!sound) return;
+  if (!$("soundToggle")?.checked) return;
+
+  if (sound.audioAvailable === null) {
+    probeSoundAsset(sound);
+  }
+
+  if (sound.audioAvailable === true) {
+    const ok = await playRealSoundOnce(sound, loop);
+    if (ok) return;
+    sound.audioAvailable = false;
+  }
+
+  playSynthSoundOnce(sound);
+}
+
+function previewSound(sound) {
+  alarmState.currentPreviewSoundId = sound?.id || null;
+  playSoundOnce(sound, false);
 }
 
 function getSelectedSound() {
@@ -631,12 +682,29 @@ function startAlarmLoop() {
   stopAlarmLoop();
   alarmState.active = true;
 
+  const selected = getSelectedSound();
+
+  if (selected.audioAvailable === null) {
+    probeSoundAsset(selected);
+  }
+
+  if (selected.audioAvailable === true) {
+    playRealSoundOnce(selected, true).catch(() => {
+      startSynthAlarmLoop();
+    });
+    return;
+  }
+
+  startSynthAlarmLoop();
+}
+
+function startSynthAlarmLoop() {
   alarmState.intervalId = setInterval(() => {
     const now = Date.now();
     if (now - alarmState.lastPlay < 850) return;
 
     alarmState.lastPlay = now;
-    playSoundOnce(getSelectedSound());
+    playSynthSoundOnce(getSelectedSound());
 
     if ($("vibrationToggle")?.checked && navigator.vibrate) {
       navigator.vibrate([220, 100, 220, 100, 220]);
@@ -649,6 +717,8 @@ function stopAlarmLoop() {
     clearInterval(alarmState.intervalId);
     alarmState.intervalId = null;
   }
+
+  stopHtmlAudio();
 
   alarmState.active = false;
 
@@ -710,7 +780,7 @@ function renderSounds() {
     });
 
     const name = document.createElement("span");
-    name.textContent = formatSoundName(sound);
+    name.textContent = getLocalizedSoundName(sound.index);
 
     const btn = document.createElement("button");
     btn.className = "mini-btn";
@@ -760,6 +830,7 @@ function optimizeSoundListScroll() {
 
 function initSoundSystem() {
   restoreSelectedSound();
+  sounds.forEach(probeSoundAsset);
   renderSounds();
   optimizeSoundListScroll();
 }
@@ -1502,11 +1573,17 @@ function toggleTheme() {
 }
 
 function initEvents() {
-  bind("timerStartBtn", "click", startTimer);
+  bind("timerStartBtn", "click", async () => {
+    await ensureHtmlAudioUnlocked();
+    startTimer();
+  });
   bind("timerPauseBtn", "click", pauseTimer);
   bind("timerResetBtn", "click", resetTimer);
 
-  bind("applyPomodoroBtn", "click", applyPomodoro);
+  bind("applyPomodoroBtn", "click", async () => {
+    await ensureHtmlAudioUnlocked();
+    applyPomodoro();
+  });
   bind("pomodoroResetBtn", "click", resetPomodoro);
   bind("pomodoroCycleResetBtn", "click", resetPomodoroCycle);
   bind("pomodoroSkipBtn", "click", handlePomodoroSwitch);
@@ -1518,7 +1595,8 @@ function initEvents() {
 
   bind("dismissAlarmBtn", "click", dismissAlarm);
 
-  bind("previewSoundBtn", "click", () => {
+  bind("previewSoundBtn", "click", async () => {
+    await ensureHtmlAudioUnlocked();
     previewSound(getSelectedSound());
   });
 
@@ -1528,6 +1606,14 @@ function initEvents() {
   });
 
   bind("themeToggle", "click", toggleTheme);
+
+  document.addEventListener("touchstart", () => {
+    ensureHtmlAudioUnlocked();
+  }, { once: true });
+
+  document.addEventListener("click", () => {
+    ensureHtmlAudioUnlocked();
+  }, { once: true });
 }
 
 // ===============================
