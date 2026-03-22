@@ -808,7 +808,6 @@ function initSoundSystem() {
   renderSounds();
   optimizeSoundListScroll();
 }
-
 // ===============================
 // NOTIFICATIONS
 // ===============================
@@ -1366,7 +1365,6 @@ function initTabs() {
   setupTabs();
   ensureValidPanel();
 }
-
 // ===============================
 // STORAGE SYSTEM
 // ===============================
