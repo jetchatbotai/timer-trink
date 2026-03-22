@@ -150,7 +150,7 @@ const baseTranslations = {
   },
   pomodoro: {
     tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro",
-    ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
+    ru: "Помодоро", ar: "بومодورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
   },
   soundOn: {
     tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado",
@@ -254,7 +254,7 @@ const baseTranslations = {
   },
   resetPomodoro: {
     tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro",
-    ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟"
+    ru: "Сбросить Помодоро", ar: "إعادة ضبط بومодورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟"
   },
   resetCycle: {
     tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo",
@@ -516,7 +516,7 @@ for (let i = 1; i <= SOUND_COUNT; i++) {
     type: bp.type,
     volume: bp.volume + ((i - 1) % 3) * 0.01,
     duration: bp.duration + ((i - 1) % 4) * 0.015,
-    assetPath: `assets/sounds/sound${i}.mp3`,
+    assetPath: `sound${i}.mp3`,
     audioAvailable: null,
     seq: [
       bp.base + detune,
