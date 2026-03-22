@@ -4,16 +4,31 @@
 const CapacitorLocalNotifications =
   window.Capacitor?.Plugins?.LocalNotifications || null;
 
-const notificationState = {
-  permissionGranted: false,
-  scheduledTimerNotificationId: 1001
-};
-
 // ===============================
 // HELPERS
 // ===============================
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
+
+// ===============================
+// STORAGE SYSTEM
+// ===============================
+const STORAGE_KEYS = {
+  app: "tt_app_state",
+  timer: "tt_timer_state",
+  stopwatch: "tt_stopwatch_state",
+  pomodoro: "tt_pomodoro_state",
+  sound: "tt_sound"
+};
+
+// ===============================
+// NOTIFICATION STATE
+// ===============================
+const notificationState = {
+  permissionGranted: false,
+  scheduledTimerNotificationId: 1001,
+  channelId: "timer_alerts"
+};
 
 // ===============================
 // APP STATE
@@ -34,7 +49,8 @@ const timerState = {
   paused: false,
   timeLeft: 0,
   totalTime: 0,
-  lastTick: 0
+  lastTick: 0,
+  endAt: 0
 };
 
 // ===============================
@@ -169,12 +185,20 @@ const baseTranslations = {
     ru: "Будильник звонит", ar: "المنبه يرن", it: "La sveglia sta suonando", pt: "Alarme tocando", zh: "闹铃响起"
   },
   notifTimerTitle: {
-    tr: "Timer Trink", en: "Timer Trink", de: "Timer Trink", fr: "Timer Trink", es: "Timer Trink",
-    ru: "Timer Trink", ar: "Timer Trink", it: "Timer Trink", pt: "Timer Trink", zh: "Timer Trink"
+    tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!",
+    ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！"
   },
   notifTimerBody: {
-    tr: "Süre doldu", en: "Time is up", de: "Zeit ist um", fr: "Le temps est écoulé", es: "Se acabó el tiempo",
-    ru: "Время вышло", ar: "انتهى الوقت", it: "Tempo scaduto", pt: "O tempo acabou", zh: "时间到了"
+    tr: "Bildirime dokunarak zamanlayıcıyı kapat",
+    en: "Tap the notification to clear the timer",
+    de: "Tippe auf die Benachrichtigung, um den Timer zu beenden",
+    fr: "Touchez la notification pour arrêter le minuteur",
+    es: "Toca la notificación para cerrar el temporizador",
+    ru: "Нажмите на уведомление, чтобы сбросить таймер",
+    ar: "اضغط على الإشعار لإيقاف المؤقت",
+    it: "Tocca la notifica per chiudere il timer",
+    pt: "Toque na notificação para limpar o temporizador",
+    zh: "点击通知以清除计时器"
   },
   work: {
     tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo",
@@ -506,6 +530,11 @@ function stopHtmlAudio() {
 }
 
 function probeSoundAsset(sound) {
+  if (!sound) return;
+  if (!sound.assetPath) {
+    sound.audioAvailable = false;
+    return;
+  }
   if (sound.audioAvailable !== null) return;
 
   const audio = new Audio();
@@ -542,6 +571,7 @@ function probeSoundAsset(sound) {
 async function playRealSoundOnce(sound, loop = false) {
   if (!sound) return false;
   if (!$("soundToggle")?.checked) return false;
+  if (!sound.assetPath) return false;
 
   await ensureHtmlAudioUnlocked();
 
@@ -559,8 +589,7 @@ async function playRealSoundOnce(sound, loop = false) {
 
     await alarmState.htmlAudio.play();
     return true;
-  } catch (e) {
-    console.warn("Real sound play error:", e);
+  } catch {
     return false;
   }
 }
@@ -657,9 +686,9 @@ async function playSoundOnce(sound, mode = "preview") {
   if (sound.audioAvailable === true) {
     const ok = await playRealSoundOnce(sound, mode === "alarm");
     if (ok) return;
-    sound.audioAvailable = false;
   }
 
+  sound.audioAvailable = false;
   playSynthPattern(sound, mode);
 }
 
@@ -808,6 +837,7 @@ function initSoundSystem() {
   renderSounds();
   optimizeSoundListScroll();
 }
+
 // ===============================
 // NOTIFICATIONS
 // ===============================
@@ -825,10 +855,45 @@ async function requestNotificationPermission() {
     const req = await CapacitorLocalNotifications.requestPermissions();
     notificationState.permissionGranted = req.display === "granted";
     return notificationState.permissionGranted;
-  } catch (e) {
-    console.warn("Notification permission error:", e);
+  } catch {
     return false;
   }
+}
+
+async function createNotificationChannel() {
+  if (!CapacitorLocalNotifications) return;
+
+  try {
+    await CapacitorLocalNotifications.createChannel({
+      id: notificationState.channelId,
+      name: "Timer Alerts",
+      description: "Timer finished alerts",
+      importance: 5,
+      visibility: 1,
+      vibration: true,
+      sound: "beep.wav"
+    });
+  } catch {}
+}
+
+async function registerNotificationActions() {
+  if (!CapacitorLocalNotifications) return;
+
+  try {
+    await CapacitorLocalNotifications.registerActionTypes({
+      types: [
+        {
+          id: "TIMER_DONE",
+          actions: [
+            {
+              id: "open_timer",
+              title: "Open"
+            }
+          ]
+        }
+      ]
+    });
+  } catch {}
 }
 
 async function scheduleTimerNotification(secondsFromNow) {
@@ -846,7 +911,17 @@ async function scheduleTimerNotification(secondsFromNow) {
           id: notificationState.scheduledTimerNotificationId,
           title: t("notifTimerTitle"),
           body: t("notifTimerBody"),
-          schedule: { at: new Date(Date.now() + secondsFromNow * 1000) }
+          largeBody: t("notifTimerBody"),
+          channelId: notificationState.channelId,
+          actionTypeId: "TIMER_DONE",
+          extra: {
+            source: "timer",
+            autoResetTimer: true
+          },
+          schedule: {
+            at: new Date(Date.now() + secondsFromNow * 1000),
+            allowWhileIdle: true
+          }
         }
       ]
     });
@@ -862,9 +937,7 @@ async function cancelTimerNotification() {
     await CapacitorLocalNotifications.cancel({
       notifications: [{ id: notificationState.scheduledTimerNotificationId }]
     });
-  } catch (e) {
-    console.warn("Cancel notification error:", e);
-  }
+  } catch {}
 }
 
 async function fireFinishNotification() {
@@ -877,13 +950,71 @@ async function fireFinishNotification() {
           id: Date.now() % 2147483000,
           title: t("notifTimerTitle"),
           body: t("notifTimerBody"),
+          channelId: notificationState.channelId,
+          actionTypeId: "TIMER_DONE",
+          extra: {
+            source: "timer",
+            autoResetTimer: true
+          },
           schedule: { at: new Date(Date.now() + 300) }
         }
       ]
     });
-  } catch (e) {
-    console.warn("Immediate finish notification error:", e);
-  }
+  } catch {}
+}
+
+async function setupNotificationListeners() {
+  if (!CapacitorLocalNotifications) return;
+
+  try {
+    await CapacitorLocalNotifications.addListener(
+      "localNotificationActionPerformed",
+      async (event) => {
+        const notificationId = event?.notification?.id;
+
+        clearInterval(timerState.timerId);
+        timerState.timerId = null;
+
+        timerState.running = false;
+        timerState.paused = false;
+        timerState.timeLeft = 0;
+        timerState.totalTime = 0;
+        timerState.lastTick = 0;
+        timerState.endAt = 0;
+
+        alarmState.pendingPomodoroAdvance = false;
+        stopAlarmLoop();
+
+        const overlay = $("alarmOverlay");
+        if (overlay) overlay.classList.add("hidden");
+        unlockUI();
+
+        const display = $("timerDisplay");
+        if (display) display.textContent = "00:00:00";
+
+        if ($("hours")) $("hours").value = 0;
+        if ($("minutes")) $("minutes").value = 0;
+        if ($("seconds")) $("seconds").value = 0;
+
+        updateTimerRing();
+        setText("timerStatus", "ready");
+        updateTimerStartButton();
+
+        try {
+          if (notificationId) {
+            await CapacitorLocalNotifications.removeDeliveredNotifications({
+              notifications: [{ id: notificationId }]
+            });
+          } else {
+            await CapacitorLocalNotifications.removeAllDeliveredNotifications();
+          }
+        } catch {}
+
+        await cancelTimerNotification();
+        saveTimerState();
+      }
+    );
+  } catch {}
 }
 
 // ===============================
@@ -927,16 +1058,21 @@ function timerTick() {
   if (!timerState.running) return;
 
   const now = Date.now();
-  const delta = Math.floor((now - timerState.lastTick) / 1000);
-  if (delta <= 0) return;
 
-  timerState.lastTick = now;
-  timerState.timeLeft -= delta;
+  if (timerState.endAt > 0) {
+    timerState.timeLeft = Math.max(0, Math.ceil((timerState.endAt - now) / 1000));
+  } else {
+    const delta = Math.floor((now - timerState.lastTick) / 1000);
+    if (delta <= 0) return;
+    timerState.lastTick = now;
+    timerState.timeLeft -= delta;
+  }
 
   if (timerState.timeLeft <= 0) {
     timerState.timeLeft = 0;
     timerState.running = false;
     timerState.paused = false;
+    timerState.endAt = 0;
 
     clearInterval(timerState.timerId);
     timerState.timerId = null;
@@ -973,12 +1109,14 @@ function startTimer() {
   timerState.running = true;
   timerState.paused = false;
   timerState.lastTick = Date.now();
+  timerState.endAt = Date.now() + total * 1000;
 
   updateTimerDisplay();
   timerState.timerId = setInterval(timerTick, 250);
 
   setText("timerStatus", "running");
   updateTimerStartButton();
+  saveTimerState();
 
   requestNotificationPermission().then(() => {
     scheduleTimerNotification(total);
@@ -992,10 +1130,12 @@ function pauseTimer() {
   timerState.timerId = null;
   timerState.running = false;
   timerState.paused = true;
+  timerState.endAt = 0;
 
   cancelTimerNotification();
   setText("timerStatus", "paused");
   updateTimerStartButton();
+  saveTimerState();
 }
 
 function resumeTimer() {
@@ -1006,6 +1146,7 @@ function resumeTimer() {
   timerState.running = true;
   timerState.paused = false;
   timerState.lastTick = Date.now();
+  timerState.endAt = Date.now() + timerState.timeLeft * 1000;
   timerState.timerId = setInterval(timerTick, 250);
 
   setText("timerStatus", "running");
@@ -1013,6 +1154,7 @@ function resumeTimer() {
   updateTimerDisplay();
 
   scheduleTimerNotification(timerState.timeLeft);
+  saveTimerState();
 }
 
 function resetTimer() {
@@ -1024,6 +1166,7 @@ function resetTimer() {
   timerState.timeLeft = 0;
   timerState.totalTime = 0;
   timerState.lastTick = 0;
+  timerState.endAt = 0;
 
   if ($("hours")) $("hours").value = 0;
   if ($("minutes")) $("minutes").value = 0;
@@ -1037,6 +1180,7 @@ function resetTimer() {
 
   setText("timerStatus", "ready");
   updateTimerStartButton();
+  saveTimerState();
 }
 
 function onTimerFinished() {
@@ -1059,6 +1203,8 @@ function onTimerFinished() {
   if (pomodoroState.enabled) {
     alarmState.pendingPomodoroAdvance = true;
   }
+
+  saveTimerState();
 }
 
 function setupQuickButtons() {
@@ -1085,6 +1231,7 @@ function applyPomodoro() {
   timerState.timerId = null;
   timerState.running = false;
   timerState.paused = false;
+  timerState.endAt = 0;
   alarmState.pendingPomodoroAdvance = false;
 
   pomodoroState.enabled = true;
@@ -1095,6 +1242,7 @@ function applyPomodoro() {
   loadPomodoroPhase();
   setPomodoroStatus();
   startTimer();
+  savePomodoroState();
 }
 
 function loadPomodoroPhase() {
@@ -1121,6 +1269,7 @@ function handlePomodoroSwitch() {
 
   loadPomodoroPhase();
   updatePomodoroUI();
+  savePomodoroState();
 
   setTimeout(() => {
     startTimer();
@@ -1135,6 +1284,7 @@ function resetPomodoro() {
   timerState.timeLeft = 0;
   timerState.totalTime = 0;
   timerState.lastTick = 0;
+  timerState.endAt = 0;
 
   pomodoroState.enabled = false;
   pomodoroState.phase = "work";
@@ -1155,11 +1305,14 @@ function resetPomodoro() {
   setText("timerStatus", "ready");
   updateTimerStartButton();
   updatePomodoroUI();
+  savePomodoroState();
+  saveTimerState();
 }
 
 function resetPomodoroCycle() {
   pomodoroState.cycleCount = 0;
   setPomodoroStatus();
+  savePomodoroState();
 }
 
 function updatePomodoroUI() {
@@ -1270,11 +1423,13 @@ function resetStopwatch() {
 
   setText("stopwatchStatus", "ready");
   updateStopwatchStartButton();
+  saveStopwatchState();
 }
 
 function clearLaps() {
   stopwatchState.laps = [];
   renderLaps();
+  saveStopwatchState();
 }
 
 function addLap() {
@@ -1285,6 +1440,7 @@ function addLap() {
   stopwatchState.laps.unshift(currentTime);
   limitLaps(100);
   renderLaps();
+  saveStopwatchState();
 }
 
 function renderLaps() {
@@ -1365,17 +1521,10 @@ function initTabs() {
   setupTabs();
   ensureValidPanel();
 }
-// ===============================
-// STORAGE SYSTEM
-// ===============================
-const STORAGE_KEYS = {
-  app: "tt_app_state",
-  timer: "tt_timer_state",
-  stopwatch: "tt_stopwatch_state",
-  pomodoro: "tt_pomodoro_state",
-  sound: "tt_sound"
-};
 
+// ===============================
+// STORAGE HELPERS
+// ===============================
 function safeParse(str) {
   try {
     return JSON.parse(str);
@@ -1416,7 +1565,8 @@ function saveTimerState() {
     timeLeft: timerState.timeLeft,
     totalTime: timerState.totalTime,
     running: timerState.running,
-    paused: timerState.paused
+    paused: timerState.paused,
+    endAt: timerState.endAt
   }));
 }
 
@@ -1426,8 +1576,18 @@ function loadTimerState() {
 
   timerState.timeLeft = data.timeLeft || 0;
   timerState.totalTime = data.totalTime || 0;
-  timerState.running = false;
-  timerState.paused = data.timeLeft > 0;
+  timerState.endAt = data.endAt || 0;
+
+  if (data.running && data.endAt) {
+    const remaining = Math.max(0, Math.ceil((data.endAt - Date.now()) / 1000));
+    timerState.timeLeft = remaining;
+    timerState.running = false;
+    timerState.paused = remaining > 0;
+  } else {
+    timerState.running = false;
+    timerState.paused = data.timeLeft > 0;
+  }
+
   updateTimerDisplay();
 }
 
@@ -1502,6 +1662,7 @@ function initEvents() {
     await ensureHtmlAudioUnlocked();
     startTimer();
   });
+
   bind("timerPauseBtn", "click", pauseTimer);
   bind("timerResetBtn", "click", resetTimer);
 
@@ -1509,6 +1670,7 @@ function initEvents() {
     await ensureHtmlAudioUnlocked();
     applyPomodoro();
   });
+
   bind("pomodoroResetBtn", "click", resetPomodoro);
   bind("pomodoroCycleResetBtn", "click", resetPomodoroCycle);
 
@@ -1555,7 +1717,7 @@ function startUIRenderLoop() {
 // ===============================
 // INIT
 // ===============================
-function initApp() {
+async function initApp() {
   if (appState.initialized) return;
 
   try {
@@ -1564,9 +1726,12 @@ function initApp() {
     initTabs();
     initEvents();
     initSoundSystem();
-
     setupPomodoroPresets();
     setupQuickButtons();
+
+    await createNotificationChannel();
+    await registerNotificationActions();
+    await setupNotificationListeners();
 
     applyLanguage();
     updateTimerDisplay();
@@ -1601,6 +1766,8 @@ function onReady(fn) {
   }
 }
 
-onReady(initApp);
+onReady(() => {
+  initApp();
+});
 
 console.log("🔥 APP FULLY READY");
