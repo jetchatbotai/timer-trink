@@ -226,7 +226,7 @@ const baseTranslations = {
     de: "Wähle eine Fokus-Voreinstellung und lade sie in den Timer.",
     fr: "Choisissez un préréglage de concentration et appliquez-le au minuteur.",
     es: "Elige una configuración de enfoque y cárgala en el temporizador.",
-    ru: "Выберите пресет для фокуса и загрузите его в тайmer.",
+    ru: "Выберите пресет для фокуса и загрузите его в таймер.",
     ar: "اختر إعداد تركيز وطبقه على المؤقت.",
     it: "Scegli una modalità di concentrazione e applicala al timer.",
     pt: "Escolha uma predefinição de foco e aplique ao temporizador.",
@@ -489,7 +489,114 @@ function stopHtmlAudio() {
   } catch {}
 }
 
-function playSynthSoundOnce(sound) {
+function playVoice(sound, startAt, ctx, master, pitchShift = 1, lengthFactor = 1) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+
+  const baseFreq = sound.seq[0] * pitchShift;
+  const midFreq = sound.seq[1] * pitchShift;
+  const tailFreq = sound.seq[2] * pitchShift;
+  const dur = sound.duration * lengthFactor;
+  const endAt = startAt + dur;
+
+  osc.type = sound.type;
+
+  if (sound.kind === "bell") {
+    osc.frequency.setValueAtTime(baseFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(midFreq * 0.72, startAt + dur * 0.25);
+    osc.frequency.linearRampToValueAtTime(tailFreq * 0.58, endAt);
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(2500, startAt);
+    filter.Q.setValueAtTime(8, startAt);
+  } else if (sound.kind === "softBell") {
+    osc.frequency.setValueAtTime(baseFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 0.94, endAt);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(1700, startAt);
+    filter.Q.setValueAtTime(4, startAt);
+  } else if (sound.kind === "digital") {
+    osc.frequency.setValueAtTime(baseFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(midFreq * 1.05, startAt + dur * 0.20);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 0.92, endAt);
+    filter.type = "highpass";
+    filter.frequency.setValueAtTime(900, startAt);
+    filter.Q.setValueAtTime(5, startAt);
+  } else if (sound.kind === "alert") {
+    osc.frequency.setValueAtTime(baseFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(tailFreq * 1.04, startAt + dur * 0.18);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 0.85, endAt);
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(2200, startAt);
+    filter.Q.setValueAtTime(10, startAt);
+  } else if (sound.kind === "warm") {
+    osc.frequency.setValueAtTime(baseFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(midFreq * 0.82, endAt);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(1200, startAt);
+    filter.Q.setValueAtTime(3, startAt);
+  } else if (sound.kind === "deep") {
+    osc.frequency.setValueAtTime(baseFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 0.82, endAt);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(820, startAt);
+    filter.Q.setValueAtTime(2, startAt);
+  } else if (sound.kind === "glass") {
+    osc.frequency.setValueAtTime(midFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(tailFreq * 0.82, endAt);
+    filter.type = "highpass";
+    filter.frequency.setValueAtTime(1500, startAt);
+    filter.Q.setValueAtTime(10, startAt);
+  } else if (sound.kind === "pulse") {
+    osc.frequency.setValueAtTime(baseFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(midFreq * 0.96, startAt + dur * 0.15);
+    osc.frequency.linearRampToValueAtTime(baseFreq, endAt);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(1600, startAt);
+    filter.Q.setValueAtTime(7, startAt);
+  } else if (sound.kind === "echo") {
+    osc.frequency.setValueAtTime(baseFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(midFreq * 0.75, startAt + dur * 0.35);
+    osc.frequency.linearRampToValueAtTime(tailFreq * 0.60, endAt);
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(1800, startAt);
+    filter.Q.setValueAtTime(5, startAt);
+  } else {
+    osc.frequency.setValueAtTime(midFreq, startAt);
+    osc.frequency.linearRampToValueAtTime(tailFreq * 0.90, endAt);
+    filter.type = "highpass";
+    filter.frequency.setValueAtTime(1700, startAt);
+    filter.Q.setValueAtTime(12, startAt);
+  }
+
+  gain.gain.setValueAtTime(0.0001, startAt);
+  gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.015);
+  gain.gain.exponentialRampToValueAtTime(Math.max(sound.volume * 0.72, 0.05), startAt + dur * 0.30);
+  gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(master);
+
+  osc.start(startAt);
+  osc.stop(endAt + 0.03);
+
+  if (sound.kind === "bell" || sound.kind === "glass" || sound.kind === "sparkle") {
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(baseFreq * 2.01, startAt);
+    gain2.gain.setValueAtTime(0.0001, startAt);
+    gain2.gain.linearRampToValueAtTime(sound.volume * 0.24, startAt + 0.01);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, endAt);
+    osc2.connect(gain2);
+    gain2.connect(master);
+    osc2.start(startAt);
+    osc2.stop(endAt + 0.02);
+  }
+}
+
+function playSynthPattern(sound, mode = "preview") {
   if (!sound) return;
   if (!$("soundToggle")?.checked) return;
 
@@ -498,112 +605,17 @@ function playSynthSoundOnce(sound) {
 
   const now = ctx.currentTime;
   const master = ctx.createGain();
-  master.gain.value = 2.2;
+  master.gain.value = mode === "preview" ? 2.35 : 2.15;
   master.connect(ctx.destination);
 
-  sound.seq.forEach((freq, index) => {
-    const startAt = now + index * (sound.duration * 0.55);
-    const endAt = startAt + sound.duration;
-
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-
-      osc.type = sound.type;
-      osc.frequency.setValueAtTime(freq, startAt);
-
-      if (sound.kind === "bell") {
-        osc.frequency.linearRampToValueAtTime(freq * 0.985, endAt);
-        filter.type = "bandpass";
-        filter.frequency.setValueAtTime(2600, startAt);
-        filter.Q.setValueAtTime(8, startAt);
-      } else if (sound.kind === "softBell") {
-        osc.frequency.linearRampToValueAtTime(freq * 0.97, endAt);
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(1800, startAt);
-        filter.Q.setValueAtTime(4, startAt);
-      } else if (sound.kind === "digital") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.04, endAt);
-        filter.type = "highpass";
-        filter.frequency.setValueAtTime(700, startAt);
-        filter.Q.setValueAtTime(5, startAt);
-      } else if (sound.kind === "alert") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.08, startAt + sound.duration * 0.25);
-        osc.frequency.linearRampToValueAtTime(freq * 0.92, endAt);
-        filter.type = "bandpass";
-        filter.frequency.setValueAtTime(2200, startAt);
-        filter.Q.setValueAtTime(10, startAt);
-      } else if (sound.kind === "warm") {
-        osc.frequency.linearRampToValueAtTime(freq * 0.95, endAt);
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(1200, startAt);
-        filter.Q.setValueAtTime(3, startAt);
-      } else if (sound.kind === "deep") {
-        osc.frequency.linearRampToValueAtTime(freq * 0.90, endAt);
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(900, startAt);
-        filter.Q.setValueAtTime(2, startAt);
-      } else if (sound.kind === "glass") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.02, endAt);
-        filter.type = "highpass";
-        filter.frequency.setValueAtTime(1200, startAt);
-        filter.Q.setValueAtTime(9, startAt);
-      } else if (sound.kind === "pulse") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.12, endAt);
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(1600, startAt);
-        filter.Q.setValueAtTime(6, startAt);
-      } else if (sound.kind === "echo") {
-        osc.frequency.linearRampToValueAtTime(freq * 0.94, endAt);
-        filter.type = "bandpass";
-        filter.frequency.setValueAtTime(1900, startAt);
-        filter.Q.setValueAtTime(5, startAt);
-      } else if (sound.kind === "sparkle") {
-        osc.frequency.linearRampToValueAtTime(freq * 1.06, endAt);
-        filter.type = "highpass";
-        filter.frequency.setValueAtTime(1500, startAt);
-        filter.Q.setValueAtTime(12, startAt);
-      } else {
-        osc.frequency.linearRampToValueAtTime(freq * 0.95, endAt);
-        filter.type = "bandpass";
-        filter.frequency.setValueAtTime(2000, startAt);
-        filter.Q.setValueAtTime(4, startAt);
-      }
-
-      gain.gain.setValueAtTime(0.0001, startAt);
-      gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.012);
-      gain.gain.exponentialRampToValueAtTime(
-        Math.max(sound.volume * 0.65, 0.04),
-        startAt + sound.duration * 0.35
-      );
-      gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(master);
-
-      osc.start(startAt);
-      osc.stop(endAt + 0.03);
-
-      // Extra harmonics for realism
-      if (index === 0 && (sound.kind === "bell" || sound.kind === "glass" || sound.kind === "sparkle")) {
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = "sine";
-        osc2.frequency.setValueAtTime(freq * 2.01, startAt);
-        gain2.gain.setValueAtTime(0.0001, startAt);
-        gain2.gain.linearRampToValueAtTime(sound.volume * 0.25, startAt + 0.01);
-        gain2.gain.exponentialRampToValueAtTime(0.0001, endAt);
-        osc2.connect(gain2);
-        gain2.connect(master);
-        osc2.start(startAt);
-        osc2.stop(endAt + 0.02);
-      }
-    } catch (e) {
-      console.warn("Synth sound error:", e);
-    }
-  });
+  if (mode === "preview") {
+    playVoice(sound, now + 0.00, ctx, master, 1.00, 1.10);
+    playVoice(sound, now + 0.42, ctx, master, 1.06, 0.95);
+    playVoice(sound, now + 0.88, ctx, master, 0.94, 1.25);
+  } else {
+    playVoice(sound, now + 0.00, ctx, master, 1.00, 1.05);
+    playVoice(sound, now + 0.32, ctx, master, 1.03, 0.95);
+  }
 }
 
 function probeSoundAsset(sound) {
@@ -615,17 +627,18 @@ async function playRealSoundOnce() {
   return false;
 }
 
-async function playSoundOnce(sound) {
+async function playSoundOnce(sound, mode = "preview") {
   if (!sound) return;
   if (!$("soundToggle")?.checked) return;
+
   stopHtmlAudio();
-  playSynthSoundOnce(sound);
+  playSynthPattern(sound, mode);
 }
 
 function previewSound(sound) {
   stopAlarmLoop();
   alarmState.currentPreviewSoundId = sound?.id || null;
-  playSoundOnce(sound);
+  playSoundOnce(sound, "preview");
 }
 
 function getSelectedSound() {
@@ -635,21 +648,18 @@ function getSelectedSound() {
 function startAlarmLoop() {
   stopAlarmLoop();
   alarmState.active = true;
-  startSynthAlarmLoop();
-}
 
-function startSynthAlarmLoop() {
   alarmState.intervalId = setInterval(() => {
     const now = Date.now();
-    if (now - alarmState.lastPlay < 800) return;
-
+    if (now - alarmState.lastPlay < 1200) return;
     alarmState.lastPlay = now;
-    playSynthSoundOnce(getSelectedSound());
+
+    playSoundOnce(getSelectedSound(), "alarm");
 
     if ($("vibrationToggle")?.checked && navigator.vibrate) {
       navigator.vibrate([260, 90, 260, 90, 320]);
     }
-  }, 1050);
+  }, 1350);
 }
 
 function stopAlarmLoop() {
@@ -709,16 +719,13 @@ function renderSounds() {
     radio.value = sound.id;
     radio.checked = sound.id === selectedSoundId;
 
+    radio.addEventListener("change", () => {
+      selectedSoundId = sound.id;
+      saveSoundState();
+    });
+
     const name = document.createElement("span");
     name.textContent = getLocalizedSoundName(sound.index);
-
-    item.addEventListener("click", async () => {
-      selectedSoundId = sound.id;
-      radio.checked = true;
-      saveSoundState();
-      await ensureHtmlAudioUnlocked();
-      previewSound(sound);
-    });
 
     item.appendChild(radio);
     item.appendChild(name);
