@@ -263,47 +263,62 @@ const baseTranslations = {
 };
 
 // ===============================
-// SOUND LABELS
+// SOUND LABEL GENERATOR
 // ===============================
-const soundLabels = {
-  tr: [
-    "Kristal Şafak", "Amber Çanı", "Gece Camı", "Derin Alarm", "Mavi Yankı",
-    "Yumuşak Uyarı", "Ay Zili", "Sabah Tınısı", "İnce Rezonans", "Gümüş Sinyal",
-    "Buz Kristali", "Kısa Darbe", "Uzay Tonu", "Sıcak Çınlama", "Parlak Dalga",
-    "Kutup Alarmı", "Cam Damlaları", "Altın Çınlama", "Derin Nabız", "Şafak Sesi",
-    "Yumuşak Metal", "Kıvrak Bell", "Narin Tiz", "Serin Vuruş", "Gece Alarmı",
-    "Sabit Uyarı", "Kalın Taban", "Parlak Zil", "Titrek Cam", "Kısa Echo",
-    "Luna Pulse", "Akşam Tonu", "Derin Bell", "Serbest Rezonans", "Yüksek Tını",
-    "Nazik Alarm", "İpeksi Zil", "Duru Ses", "Mistik Nabız", "Metal Işık",
-    "Yoğun Çan", "Pürüzsüz Dalga", "Dijital Uyarı", "Kristal Nabız", "Gece Vuruşu",
-    "Yankılı Bell", "Keskin Tiz", "Sakin Çınlama", "Final Uyarısı", "Parıltı Alarmı"
-  ],
-  en: [
-    "Crystal Dawn", "Amber Bell", "Night Glass", "Deep Alert", "Blue Echo",
-    "Soft Signal", "Moon Bell", "Morning Tone", "Fine Resonance", "Silver Ping",
-    "Ice Crystal", "Short Strike", "Space Tone", "Warm Chime", "Bright Wave",
-    "Polar Alert", "Glass Drops", "Golden Chime", "Deep Pulse", "Dawn Signal",
-    "Soft Metal", "Quick Bell", "Light Treble", "Cool Hit", "Night Alert",
-    "Steady Signal", "Solid Base", "Bright Bell", "Shimmer Glass", "Short Echo",
-    "Luna Pulse", "Evening Tone", "Deep Bell", "Free Resonance", "High Tone",
-    "Gentle Alert", "Silk Bell", "Clear Tone", "Mystic Pulse", "Metal Glow",
-    "Dense Chime", "Smooth Wave", "Digital Alert", "Crystal Pulse", "Night Hit",
-    "Echo Bell", "Sharp Treble", "Calm Chime", "Final Alert", "Spark Alarm"
-  ],
-  de: Array(50).fill(0).map((_, i) => `Ton ${i + 1}`),
-  fr: Array(50).fill(0).map((_, i) => `Son ${i + 1}`),
-  es: Array(50).fill(0).map((_, i) => `Sonido ${i + 1}`),
-  ru: Array(50).fill(0).map((_, i) => `Звук ${i + 1}`),
-  ar: Array(50).fill(0).map((_, i) => `صوت ${i + 1}`),
-  it: Array(50).fill(0).map((_, i) => `Suono ${i + 1}`),
-  pt: Array(50).fill(0).map((_, i) => `Som ${i + 1}`),
-  zh: Array(50).fill(0).map((_, i) => `声音 ${i + 1}`)
+const soundNameParts = {
+  tr: {
+    adjectives: ["Kristal", "Sıcak", "Derin", "Dijital", "Yumuşak", "Cam", "Yankılı", "Sakin", "Parlak", "Zen"],
+    nouns: ["Çan", "Çınlama", "Gong", "Bip", "Marimba", "Tını", "Nabız", "Uyarı", "Alarm", "Kase"]
+  },
+  en: {
+    adjectives: ["Crystal", "Warm", "Deep", "Digital", "Soft", "Glass", "Echo", "Calm", "Bright", "Zen"],
+    nouns: ["Bell", "Chime", "Gong", "Beep", "Marimba", "Ping", "Pulse", "Alert", "Alarm", "Bowl"]
+  },
+  de: {
+    adjectives: ["Kristall", "Warm", "Tief", "Digital", "Sanft", "Glas", "Echo", "Ruhig", "Hell", "Zen"],
+    nouns: ["Glocke", "Klang", "Gong", "Piepton", "Marimba", "Ton", "Puls", "Alarm", "Signal", "Schale"]
+  },
+  fr: {
+    adjectives: ["Cristal", "Chaud", "Profond", "Numérique", "Doux", "Verre", "Écho", "Calme", "Clair", "Zen"],
+    nouns: ["Cloche", "Carillon", "Gong", "Bip", "Marimba", "Tonalité", "Pulse", "Alerte", "Alarme", "Bol"]
+  },
+  es: {
+    adjectives: ["Cristal", "Cálido", "Profundo", "Digital", "Suave", "Vidrio", "Eco", "Calmo", "Brillante", "Zen"],
+    nouns: ["Campana", "Campanada", "Gong", "Bip", "Marimba", "Tono", "Pulso", "Alerta", "Alarma", "Cuenco"]
+  },
+  ru: {
+    adjectives: ["Хрустальный", "Теплый", "Глубокий", "Цифровой", "Мягкий", "Стеклянный", "Эхо", "Спокойный", "Яркий", "Дзен"],
+    nouns: ["Колокол", "Звон", "Гонг", "Бип", "Маримба", "Тон", "Пульс", "Тревога", "Сигнал", "Чаша"]
+  },
+  ar: {
+    adjectives: ["كريستالي", "دافئ", "عميق", "رقمي", "ناعم", "زجاجي", "صدى", "هادئ", "ساطع", "زن"],
+    nouns: ["جرس", "رنين", "جونغ", "بيب", "ماريمبا", "نغمة", "نبض", "تنبيه", "إنذار", "وعاء"]
+  },
+  it: {
+    adjectives: ["Cristallo", "Caldo", "Profondo", "Digitale", "Morbido", "Vetro", "Eco", "Calmo", "Luminoso", "Zen"],
+    nouns: ["Campana", "Rintocco", "Gong", "Bip", "Marimba", "Tono", "Impulso", "Avviso", "Allarme", "Ciotola"]
+  },
+  pt: {
+    adjectives: ["Cristal", "Quente", "Profundo", "Digital", "Suave", "Vidro", "Eco", "Calmo", "Brilhante", "Zen"],
+    nouns: ["Sino", "Toque", "Gongo", "Bipe", "Marimba", "Tom", "Pulso", "Alerta", "Alarme", "Tigela"]
+  },
+  zh: {
+    adjectives: ["水晶", "温暖", "深沉", "数字", "柔和", "玻璃", "回声", "安静", "明亮", "禅意"],
+    nouns: ["铃声", "钟声", "铜锣", "提示音", "马林巴", "轻响", "脉冲", "提醒", "警报", "钵声"]
+  }
 };
 
 function getLocalizedSoundName(index) {
   const lang = $("language")?.value || appState.language || "en";
-  const list = soundLabels[lang] || soundLabels.en;
-  return list[index - 1] || `Sound ${index}`;
+  const dict = soundNameParts[lang] || soundNameParts.en;
+
+  const adjIndex = Math.floor((index - 1) / 10);
+  const nounIndex = (index - 1) % 10;
+
+  const adj = dict.adjectives[adjIndex] || dict.adjectives[0];
+  const noun = dict.nouns[nounIndex] || dict.nouns[0];
+
+  return `${adj} ${noun}`;
 }
 
 // ===============================
@@ -407,36 +422,37 @@ const SOUND_COUNT = 50;
 let selectedSoundId = "s1";
 
 const soundBlueprints = [
-  { kind: "bell", type: "sine", base: 880, overtone: 1760, tail: 1320, duration: 0.34, volume: 0.42 },
-  { kind: "softBell", type: "triangle", base: 660, overtone: 1320, tail: 990, duration: 0.30, volume: 0.40 },
-  { kind: "digital", type: "square", base: 520, overtone: 1040, tail: 780, duration: 0.22, volume: 0.45 },
-  { kind: "alert", type: "sawtooth", base: 740, overtone: 1110, tail: 1480, duration: 0.18, volume: 0.46 },
-  { kind: "warm", type: "triangle", base: 440, overtone: 880, tail: 660, duration: 0.38, volume: 0.43 },
-  { kind: "deep", type: "sine", base: 280, overtone: 560, tail: 420, duration: 0.42, volume: 0.48 },
-  { kind: "glass", type: "sine", base: 1240, overtone: 1860, tail: 2480, duration: 0.18, volume: 0.41 },
-  { kind: "pulse", type: "square", base: 460, overtone: 690, tail: 920, duration: 0.16, volume: 0.47 },
-  { kind: "echo", type: "triangle", base: 600, overtone: 900, tail: 1200, duration: 0.30, volume: 0.40 },
-  { kind: "sparkle", type: "sine", base: 980, overtone: 1470, tail: 1960, duration: 0.15, volume: 0.44 }
+  { kind: "crystal", type: "sine", base: 1040, overtone: 1560, tail: 2080, duration: 0.42, volume: 0.50 },
+  { kind: "warm", type: "triangle", base: 540, overtone: 810, tail: 1080, duration: 0.55, volume: 0.52 },
+  { kind: "gong", type: "sine", base: 220, overtone: 330, tail: 440, duration: 0.80, volume: 0.60 },
+  { kind: "digital", type: "square", base: 880, overtone: 1320, tail: 1760, duration: 0.20, volume: 0.54 },
+  { kind: "marimba", type: "triangle", base: 660, overtone: 990, tail: 1320, duration: 0.36, volume: 0.50 },
+  { kind: "glass", type: "sine", base: 1280, overtone: 1920, tail: 2560, duration: 0.24, volume: 0.48 },
+  { kind: "echo", type: "triangle", base: 480, overtone: 720, tail: 960, duration: 0.50, volume: 0.50 },
+  { kind: "calm", type: "sine", base: 420, overtone: 630, tail: 840, duration: 0.48, volume: 0.48 },
+  { kind: "bright", type: "sawtooth", base: 940, overtone: 1410, tail: 1880, duration: 0.22, volume: 0.56 },
+  { kind: "zen", type: "sine", base: 320, overtone: 480, tail: 640, duration: 0.90, volume: 0.58 }
 ];
 
 for (let i = 1; i <= SOUND_COUNT; i++) {
   const bp = soundBlueprints[(i - 1) % soundBlueprints.length];
-  const detune = ((i - 1) % 10) * 11;
-  const tailShift = ((i - 1) % 7) * 9;
+  const groupIndex = Math.floor((i - 1) / 10);
+  const detune = groupIndex * 12;
+  const durationBoost = (groupIndex % 5) * 0.03;
 
   sounds.push({
     id: "s" + i,
     index: i,
     kind: bp.kind,
     type: bp.type,
-    volume: bp.volume + ((i - 1) % 3) * 0.03,
-    duration: bp.duration + ((i - 1) % 4) * 0.02,
+    volume: Math.min(0.72, bp.volume + groupIndex * 0.015),
+    duration: bp.duration + durationBoost,
     assetPath: `sound${i}.mp3`,
-    audioAvailable: false,
+    audioAvailable: null,
     seq: [
       bp.base + detune,
-      bp.overtone + detune * 0.8,
-      bp.tail + tailShift
+      bp.overtone + detune * 1.2,
+      bp.tail + detune * 1.5
     ]
   });
 }
@@ -489,110 +505,63 @@ function stopHtmlAudio() {
   } catch {}
 }
 
-function playVoice(sound, startAt, ctx, master, pitchShift = 1, lengthFactor = 1) {
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
+function probeSoundAsset(sound) {
+  if (sound.audioAvailable !== null) return;
 
-  const baseFreq = sound.seq[0] * pitchShift;
-  const midFreq = sound.seq[1] * pitchShift;
-  const tailFreq = sound.seq[2] * pitchShift;
-  const dur = sound.duration * lengthFactor;
-  const endAt = startAt + dur;
+  const audio = new Audio();
+  audio.preload = "metadata";
+  audio.src = sound.assetPath;
 
-  osc.type = sound.type;
+  const success = () => {
+    sound.audioAvailable = true;
+    cleanup();
+  };
 
-  if (sound.kind === "bell") {
-    osc.frequency.setValueAtTime(baseFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(midFreq * 0.72, startAt + dur * 0.25);
-    osc.frequency.linearRampToValueAtTime(tailFreq * 0.58, endAt);
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(2500, startAt);
-    filter.Q.setValueAtTime(8, startAt);
-  } else if (sound.kind === "softBell") {
-    osc.frequency.setValueAtTime(baseFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(baseFreq * 0.94, endAt);
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(1700, startAt);
-    filter.Q.setValueAtTime(4, startAt);
-  } else if (sound.kind === "digital") {
-    osc.frequency.setValueAtTime(baseFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(midFreq * 1.05, startAt + dur * 0.20);
-    osc.frequency.linearRampToValueAtTime(baseFreq * 0.92, endAt);
-    filter.type = "highpass";
-    filter.frequency.setValueAtTime(900, startAt);
-    filter.Q.setValueAtTime(5, startAt);
-  } else if (sound.kind === "alert") {
-    osc.frequency.setValueAtTime(baseFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(tailFreq * 1.04, startAt + dur * 0.18);
-    osc.frequency.linearRampToValueAtTime(baseFreq * 0.85, endAt);
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(2200, startAt);
-    filter.Q.setValueAtTime(10, startAt);
-  } else if (sound.kind === "warm") {
-    osc.frequency.setValueAtTime(baseFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(midFreq * 0.82, endAt);
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(1200, startAt);
-    filter.Q.setValueAtTime(3, startAt);
-  } else if (sound.kind === "deep") {
-    osc.frequency.setValueAtTime(baseFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(baseFreq * 0.82, endAt);
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(820, startAt);
-    filter.Q.setValueAtTime(2, startAt);
-  } else if (sound.kind === "glass") {
-    osc.frequency.setValueAtTime(midFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(tailFreq * 0.82, endAt);
-    filter.type = "highpass";
-    filter.frequency.setValueAtTime(1500, startAt);
-    filter.Q.setValueAtTime(10, startAt);
-  } else if (sound.kind === "pulse") {
-    osc.frequency.setValueAtTime(baseFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(midFreq * 0.96, startAt + dur * 0.15);
-    osc.frequency.linearRampToValueAtTime(baseFreq, endAt);
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(1600, startAt);
-    filter.Q.setValueAtTime(7, startAt);
-  } else if (sound.kind === "echo") {
-    osc.frequency.setValueAtTime(baseFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(midFreq * 0.75, startAt + dur * 0.35);
-    osc.frequency.linearRampToValueAtTime(tailFreq * 0.60, endAt);
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(1800, startAt);
-    filter.Q.setValueAtTime(5, startAt);
-  } else {
-    osc.frequency.setValueAtTime(midFreq, startAt);
-    osc.frequency.linearRampToValueAtTime(tailFreq * 0.90, endAt);
-    filter.type = "highpass";
-    filter.frequency.setValueAtTime(1700, startAt);
-    filter.Q.setValueAtTime(12, startAt);
+  const fail = () => {
+    sound.audioAvailable = false;
+    cleanup();
+  };
+
+  const cleanup = () => {
+    audio.removeEventListener("loadedmetadata", success);
+    audio.removeEventListener("canplaythrough", success);
+    audio.removeEventListener("error", fail);
+  };
+
+  audio.addEventListener("loadedmetadata", success, { once: true });
+  audio.addEventListener("canplaythrough", success, { once: true });
+  audio.addEventListener("error", fail, { once: true });
+
+  try {
+    audio.load();
+  } catch {
+    sound.audioAvailable = false;
   }
+}
 
-  gain.gain.setValueAtTime(0.0001, startAt);
-  gain.gain.linearRampToValueAtTime(sound.volume, startAt + 0.015);
-  gain.gain.exponentialRampToValueAtTime(Math.max(sound.volume * 0.72, 0.05), startAt + dur * 0.30);
-  gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+async function playRealSoundOnce(sound, loop = false) {
+  if (!sound) return false;
+  if (!$("soundToggle")?.checked) return false;
 
-  osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(master);
+  await ensureHtmlAudioUnlocked();
 
-  osc.start(startAt);
-  osc.stop(endAt + 0.03);
+  try {
+    stopHtmlAudio();
 
-  if (sound.kind === "bell" || sound.kind === "glass" || sound.kind === "sparkle") {
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(baseFreq * 2.01, startAt);
-    gain2.gain.setValueAtTime(0.0001, startAt);
-    gain2.gain.linearRampToValueAtTime(sound.volume * 0.24, startAt + 0.01);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, endAt);
-    osc2.connect(gain2);
-    gain2.connect(master);
-    osc2.start(startAt);
-    osc2.stop(endAt + 0.02);
+    if (!alarmState.htmlAudio) {
+      alarmState.htmlAudio = new Audio();
+    }
+
+    alarmState.htmlAudio.src = sound.assetPath;
+    alarmState.htmlAudio.loop = loop;
+    alarmState.htmlAudio.currentTime = 0;
+    alarmState.htmlAudio.volume = 1.0;
+
+    await alarmState.htmlAudio.play();
+    return true;
+  } catch (e) {
+    console.warn("Real sound play error:", e);
+    return false;
   }
 }
 
@@ -605,33 +574,92 @@ function playSynthPattern(sound, mode = "preview") {
 
   const now = ctx.currentTime;
   const master = ctx.createGain();
-  master.gain.value = mode === "preview" ? 2.35 : 2.15;
+  master.gain.value = mode === "preview" ? 1.9 : 1.7;
   master.connect(ctx.destination);
 
-  if (mode === "preview") {
-    playVoice(sound, now + 0.00, ctx, master, 1.00, 1.10);
-    playVoice(sound, now + 0.42, ctx, master, 1.06, 0.95);
-    playVoice(sound, now + 0.88, ctx, master, 0.94, 1.25);
-  } else {
-    playVoice(sound, now + 0.00, ctx, master, 1.00, 1.05);
-    playVoice(sound, now + 0.32, ctx, master, 1.03, 0.95);
+  const playTone = (freq, start, dur, type, gainValue, filterType, filterFreq, q) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+
+    filter.type = filterType;
+    filter.frequency.setValueAtTime(filterFreq, start);
+    filter.Q.setValueAtTime(q, start);
+
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.linearRampToValueAtTime(gainValue, start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(master);
+
+    osc.start(start);
+    osc.stop(start + dur + 0.02);
+  };
+
+  const base = sound.seq[0];
+  const over = sound.seq[1];
+  const tail = sound.seq[2];
+
+  if (sound.kind === "crystal") {
+    playTone(base, now + 0.00, 0.45, "sine", 0.45, "highpass", 1200, 10);
+    playTone(over, now + 0.16, 0.32, "sine", 0.22, "highpass", 1600, 12);
+    playTone(tail, now + 0.40, 0.24, "sine", 0.16, "highpass", 1800, 12);
+  } else if (sound.kind === "warm") {
+    playTone(base, now + 0.00, 0.55, "triangle", 0.50, "lowpass", 1200, 3);
+    playTone(over, now + 0.26, 0.40, "triangle", 0.20, "lowpass", 1000, 2);
+  } else if (sound.kind === "gong") {
+    playTone(base, now + 0.00, 0.90, "sine", 0.58, "lowpass", 900, 2);
+    playTone(over, now + 0.10, 0.80, "sine", 0.24, "lowpass", 1100, 2);
+    playTone(tail, now + 0.24, 0.60, "sine", 0.12, "bandpass", 800, 3);
+  } else if (sound.kind === "digital") {
+    playTone(base, now + 0.00, 0.12, "square", 0.46, "highpass", 900, 6);
+    playTone(over, now + 0.18, 0.12, "square", 0.40, "highpass", 1000, 6);
+    playTone(tail, now + 0.36, 0.12, "square", 0.34, "highpass", 1200, 6);
+  } else if (sound.kind === "marimba") {
+    playTone(base, now + 0.00, 0.30, "triangle", 0.46, "bandpass", 1400, 5);
+    playTone(over, now + 0.20, 0.24, "triangle", 0.22, "bandpass", 1600, 5);
+    playTone(tail, now + 0.42, 0.18, "triangle", 0.16, "bandpass", 1800, 5);
+  } else if (sound.kind === "glass") {
+    playTone(base, now + 0.00, 0.28, "sine", 0.44, "highpass", 1500, 12);
+    playTone(over, now + 0.12, 0.20, "sine", 0.20, "highpass", 1800, 12);
+    playTone(tail, now + 0.26, 0.14, "sine", 0.10, "highpass", 2200, 12);
+  } else if (sound.kind === "echo") {
+    playTone(base, now + 0.00, 0.38, "triangle", 0.42, "bandpass", 1400, 4);
+    playTone(over, now + 0.34, 0.28, "triangle", 0.22, "bandpass", 1600, 4);
+    playTone(tail, now + 0.64, 0.18, "triangle", 0.12, "bandpass", 1800, 4);
+  } else if (sound.kind === "calm") {
+    playTone(base, now + 0.00, 0.52, "sine", 0.40, "lowpass", 900, 2);
+    playTone(over, now + 0.28, 0.34, "sine", 0.18, "lowpass", 1100, 2);
+  } else if (sound.kind === "bright") {
+    playTone(base, now + 0.00, 0.16, "sawtooth", 0.46, "bandpass", 2200, 8);
+    playTone(over, now + 0.20, 0.16, "sawtooth", 0.40, "bandpass", 2400, 8);
+    playTone(tail, now + 0.40, 0.16, "sawtooth", 0.34, "bandpass", 2600, 8);
+  } else if (sound.kind === "zen") {
+    playTone(base, now + 0.00, 1.00, "sine", 0.54, "lowpass", 700, 2);
+    playTone(over, now + 0.18, 0.70, "sine", 0.18, "lowpass", 900, 2);
+    playTone(tail, now + 0.42, 0.46, "sine", 0.10, "lowpass", 1100, 2);
   }
-}
-
-function probeSoundAsset(sound) {
-  if (!sound) return;
-  sound.audioAvailable = false;
-}
-
-async function playRealSoundOnce() {
-  return false;
 }
 
 async function playSoundOnce(sound, mode = "preview") {
   if (!sound) return;
   if (!$("soundToggle")?.checked) return;
 
-  stopHtmlAudio();
+  if (sound.audioAvailable === null) {
+    probeSoundAsset(sound);
+  }
+
+  if (sound.audioAvailable === true) {
+    const ok = await playRealSoundOnce(sound, mode === "alarm");
+    if (ok) return;
+    sound.audioAvailable = false;
+  }
+
   playSynthPattern(sound, mode);
 }
 
@@ -649,6 +677,24 @@ function startAlarmLoop() {
   stopAlarmLoop();
   alarmState.active = true;
 
+  const selected = getSelectedSound();
+  if (selected.audioAvailable === null) {
+    probeSoundAsset(selected);
+  }
+
+  if (selected.audioAvailable === true) {
+    playRealSoundOnce(selected, true).then((ok) => {
+      if (!ok && alarmState.active) {
+        startSynthAlarmLoop();
+      }
+    });
+    return;
+  }
+
+  startSynthAlarmLoop();
+}
+
+function startSynthAlarmLoop() {
   alarmState.intervalId = setInterval(() => {
     const now = Date.now();
     if (now - alarmState.lastPlay < 1200) return;
@@ -758,7 +804,7 @@ function optimizeSoundListScroll() {
 
 function initSoundSystem() {
   restoreSelectedSound();
-  sounds.forEach(sound => { sound.audioAvailable = false; });
+  sounds.forEach(probeSoundAsset);
   renderSounds();
   optimizeSoundListScroll();
 }
