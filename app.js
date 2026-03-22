@@ -254,7 +254,7 @@ const baseTranslations = {
   },
   resetPomodoro: {
     tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro",
-    ru: "Сбросить Помодоро", ar: "إعادة ضبط بومодورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟"
+    ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟"
   },
   resetCycle: {
     tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo",
@@ -466,7 +466,11 @@ function applyLanguage() {
   setText("lapsTitle", "lapsTitle");
   setText("pomodoroResetBtn", "resetPomodoro");
   setText("pomodoroCycleResetBtn", "resetCycle");
-  setText("pomodoroSkipBtn", "nextPhase");
+
+  const skipBtn = $("pomodoroSkipBtn");
+  if (skipBtn) {
+    skipBtn.style.display = "none";
+  }
 
   if (timerState.running) {
     setText("timerStatus", "running");
@@ -517,7 +521,7 @@ for (let i = 1; i <= SOUND_COUNT; i++) {
     volume: bp.volume + ((i - 1) % 3) * 0.01,
     duration: bp.duration + ((i - 1) % 4) * 0.015,
     assetPath: `sound${i}.mp3`,
-    audioAvailable: null,
+    audioAvailable: false,
     seq: [
       bp.base + detune,
       bp.overtone + detune * 0.7,
@@ -618,76 +622,19 @@ function playSynthSoundOnce(sound) {
 }
 
 function probeSoundAsset(sound) {
-  if (sound.audioAvailable !== null) return;
-
-  const audio = new Audio();
-  audio.preload = "metadata";
-  audio.src = sound.assetPath;
-
-  const success = () => {
-    sound.audioAvailable = true;
-    cleanup();
-  };
-  const fail = () => {
-    sound.audioAvailable = false;
-    cleanup();
-  };
-  const cleanup = () => {
-    audio.removeEventListener("canplaythrough", success);
-    audio.removeEventListener("loadedmetadata", success);
-    audio.removeEventListener("error", fail);
-  };
-
-  audio.addEventListener("canplaythrough", success, { once: true });
-  audio.addEventListener("loadedmetadata", success, { once: true });
-  audio.addEventListener("error", fail, { once: true });
-
-  try {
-    audio.load();
-  } catch {
-    sound.audioAvailable = false;
-  }
+  if (!sound) return;
+  sound.audioAvailable = false;
 }
 
 async function playRealSoundOnce(sound, loop = false) {
-  if (!sound) return false;
-  if (!$("soundToggle")?.checked) return false;
-
-  await ensureHtmlAudioUnlocked();
-
-  try {
-    stopHtmlAudio();
-
-    if (!alarmState.htmlAudio) {
-      alarmState.htmlAudio = new Audio();
-    }
-
-    alarmState.htmlAudio.loop = loop;
-    alarmState.htmlAudio.src = sound.assetPath;
-    alarmState.htmlAudio.currentTime = 0;
-    alarmState.htmlAudio.volume = 1;
-
-    await alarmState.htmlAudio.play();
-    return true;
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 async function playSoundOnce(sound, loop = false) {
   if (!sound) return;
   if (!$("soundToggle")?.checked) return;
 
-  if (sound.audioAvailable === null) {
-    probeSoundAsset(sound);
-  }
-
-  if (sound.audioAvailable === true) {
-    const ok = await playRealSoundOnce(sound, loop);
-    if (ok) return;
-    sound.audioAvailable = false;
-  }
-
+  stopHtmlAudio();
   playSynthSoundOnce(sound);
 }
 
@@ -704,22 +651,6 @@ function getSelectedSound() {
 function startAlarmLoop() {
   stopAlarmLoop();
   alarmState.active = true;
-
-  const selected = getSelectedSound();
-
-  if (selected.audioAvailable === null) {
-    probeSoundAsset(selected);
-  }
-
-  if (selected.audioAvailable === true) {
-    playRealSoundOnce(selected, true).then((ok) => {
-      if (!ok && alarmState.active) {
-        startSynthAlarmLoop();
-      }
-    });
-    return;
-  }
-
   startSynthAlarmLoop();
 }
 
@@ -744,7 +675,6 @@ function stopAlarmLoop() {
   }
 
   stopHtmlAudio();
-
   alarmState.active = false;
 
   if (navigator.vibrate) {
@@ -856,7 +786,9 @@ function optimizeSoundListScroll() {
 
 function initSoundSystem() {
   restoreSelectedSound();
-  sounds.forEach(probeSoundAsset);
+  sounds.forEach((sound) => {
+    sound.audioAvailable = false;
+  });
   renderSounds();
   optimizeSoundListScroll();
 }
@@ -1157,11 +1089,9 @@ function applyPomodoro() {
   pomodoroState.phase = "work";
   pomodoroState.workMinutes = work;
   pomodoroState.breakMinutes = brk;
-  pomodoroState.cycleCount = 0;
 
   loadPomodoroPhase();
   setPomodoroStatus();
-
   startTimer();
 }
 
@@ -1247,14 +1177,14 @@ function setPomodoroStatus() {
   const el = $("pomodoroStatus");
   if (!el) return;
 
+  const cycle = pomodoroState.cycleCount || 0;
+
   if (!pomodoroState.enabled) {
-    el.textContent = t("ready");
+    el.textContent = `${t("ready")} • ${t("cycle")}: ${cycle}`;
     return;
   }
 
   const phaseText = pomodoroState.phase === "work" ? t("work") : t("break");
-  const cycle = pomodoroState.cycleCount;
-
   el.textContent = `${phaseText} • ${t("cycle")}: ${cycle}`;
 }
 
@@ -1272,7 +1202,6 @@ function setupPomodoroPresets() {
 function disablePomodoro() {
   pomodoroState.enabled = false;
   pomodoroState.phase = "work";
-  pomodoroState.cycleCount = 0;
   alarmState.pendingPomodoroAdvance = false;
   updatePomodoroUI();
 }
@@ -1608,7 +1537,6 @@ function initEvents() {
   });
   bind("pomodoroResetBtn", "click", resetPomodoro);
   bind("pomodoroCycleResetBtn", "click", resetPomodoroCycle);
-  bind("pomodoroSkipBtn", "click", handlePomodoroSwitch);
 
   bind("swStartBtn", "click", toggleStopwatch);
   bind("swLapBtn", "click", addLap);
