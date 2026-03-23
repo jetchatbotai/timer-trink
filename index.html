@@ -7,16 +7,16 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-container">
+  <div class="app-shell">
     <header class="topbar">
-      <div class="title-wrap">
+      <div class="brand-wrap">
         <h1 class="app-title">Timer Trink</h1>
         <p id="subtitle" class="subtitle">
           Odaklanma ve günlük kullanım için basit zamanlayıcı
         </p>
       </div>
 
-      <div class="top-actions">
+      <div class="topbar-actions">
         <select id="language" class="select-control">
           <option value="tr">Türkçe</option>
           <option value="en">English</option>
@@ -41,10 +41,10 @@
       <button id="tabSounds" class="tab-btn" data-tab="soundsPanel">Sesler</button>
     </nav>
 
-    <main class="panels">
+    <main>
       <!-- TIMER -->
       <section id="timerPanel" class="panel active">
-        <div class="card timer-card">
+        <div class="card hero-card">
           <div class="timer-ring-wrap">
             <div id="timerRing" class="timer-ring">
               <div class="timer-ring-inner">
@@ -54,17 +54,15 @@
             </div>
           </div>
 
-          <div class="timer-inputs">
+          <div class="time-inputs">
             <div class="field">
               <label id="hoursLabel" for="hours">Saat</label>
               <input id="hours" type="number" min="0" max="99" value="0" />
             </div>
-
             <div class="field">
               <label id="minutesLabel" for="minutes">Dakika</label>
               <input id="minutes" type="number" min="0" max="59" value="0" />
             </div>
-
             <div class="field">
               <label id="secondsLabel" for="seconds">Saniye</label>
               <input id="seconds" type="number" min="0" max="59" value="0" />
@@ -98,10 +96,6 @@
               <input id="vibrationToggle" type="checkbox" checked />
               <span id="vibrationLabel">Titreşim açık</span>
             </label>
-          </div>
-
-          <div class="ad-container">
-            <div class="ad-box">Reklam alanı</div>
           </div>
         </div>
       </section>
@@ -145,19 +139,16 @@
 
           <button id="pomodoroSkipBtn" type="button" style="display:none;">Skip</button>
         </div>
-
-        <div class="card premium-hide-ads">
-          <h3>Focus Tips</h3>
-          <p>Premium ile reklamsız kullanım ve özel pomodoro süreleri açılır.</p>
-        </div>
       </section>
 
       <!-- STOPWATCH -->
       <section id="stopwatchPanel" class="panel">
-        <div class="card stopwatch-card">
-          <div class="stopwatch-center">
-            <div id="stopwatchDisplay" class="stopwatch-display">00:00:00.0</div>
-            <div id="stopwatchStatus" class="status-text">Hazır</div>
+        <div class="card hero-card stopwatch-card">
+          <div class="stopwatch-circle-wrap">
+            <div class="stopwatch-circle">
+              <div id="stopwatchDisplay" class="stopwatch-display">00:00:00.0</div>
+              <div id="stopwatchStatus" class="status-text">Hazır</div>
+            </div>
           </div>
 
           <div class="button-row">
