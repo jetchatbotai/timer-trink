@@ -1,26 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- ========================= -->
+    <!-- İZİNLER -->
+    <!-- ========================= -->
+
+    <!-- Android 13+ bildirim izni -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Alarm & zamanlayıcı -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- Arka plan -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Titreşim -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- İnternet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- ========================= -->
+    <!-- UYGULAMA -->
+    <!-- ========================= -->
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:supportsRtl="true">
 
+        <!-- ========================= -->
+        <!-- MAIN ACTIVITY -->
+        <!-- ========================= -->
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
             android:name="com.getcapacitor.BridgeActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:exported="true"
             android:launchMode="singleTask"
-            android:exported="true">
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,6 +48,20 @@
             </intent-filter>
 
         </activity>
+
+        <!-- ========================= -->
+        <!-- BOOT RECEIVER (alarm devam etsin diye) -->
+        <!-- ========================= -->
+        <receiver
+            android:name="com.getcapacitor.plugin.localnotifications.LocalNotificationBootReceiver"
+            android:enabled="true"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+
+        </receiver>
 
     </application>
 
