@@ -58,7 +58,7 @@ const notificationState = {
 // ===============================
 const appState = {
   initialized: false,
-  language: "en",
+  language: "tr",
   theme: "dark",
   lastTab: "timerPanel",
   isPremium: false,
@@ -188,7 +188,7 @@ const baseTranslations = {
   },
   pomodoro: {
     tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro",
-    ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
+    ru: "Помодоро", ar: "بومодورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
   },
   soundOn: {
     tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado",
@@ -449,7 +449,7 @@ function setPremium(enabled) {
 // APPLY LANGUAGE
 // ===============================
 function applyLanguage() {
-  const lang = $("language")?.value || "en";
+  const lang = $("language")?.value || "tr";
   appState.language = lang;
   document.documentElement.lang = lang;
 
@@ -1196,8 +1196,7 @@ function updateTimerRing() {
   if (!ring) return;
 
   if (!timerState.totalTime || timerState.totalTime <= 0) {
-    ring.style.background =
-      `conic-gradient(var(--ring-rest) 0deg 360deg)`;
+    ring.style.background = `conic-gradient(var(--ring-rest) 0deg 360deg)`;
     return;
   }
 
@@ -1214,12 +1213,6 @@ function updateTimerRing() {
       var(--secondary) ${deg}deg,
       var(--ring-rest) ${deg}deg 360deg
     )`;
-}
-  const percent = 1 - (timerState.timeLeft / timerState.totalTime);
-  const deg = Math.max(0, Math.min(360, percent * 360));
-
-  ring.style.background =
-    `conic-gradient(var(--primary) ${deg}deg, var(--secondary) ${deg}deg, var(--ring-rest) ${deg}deg)`;
 }
 
 function updateTimerDisplay() {
@@ -1767,8 +1760,8 @@ function initTabs() {
 // ===============================
 function saveAppState() {
   const data = {
-    language: $("language")?.value || "en",
-    theme: document.body.classList.contains("light") ? "light" : "dark",
+    language: $("language")?.value || "tr",
+    theme: "dark",
     lastTab: appState.lastTab,
     isPremium: appState.isPremium,
     adsEnabled: appState.adsEnabled
@@ -1778,15 +1771,17 @@ function saveAppState() {
 
 function loadAppState() {
   const data = safeParse(localStorage.getItem(STORAGE_KEYS.app));
+
+  document.body.classList.remove("light");
+  appState.theme = "dark";
+
   if (!data) return;
 
   if (data.language && $("language")) {
     $("language").value = data.language;
     appState.language = data.language;
-  }
-
-  if (data.theme === "light") {
-    document.body.classList.add("light");
+  } else {
+    appState.language = "tr";
   }
 
   if (data.lastTab) {
@@ -1879,6 +1874,9 @@ function restoreAllState() {
   loadPomodoroState();
   loadStopwatchState();
   loadTimerState();
+
+  document.body.classList.remove("light");
+  appState.theme = "dark";
 }
 
 // ===============================
@@ -1896,8 +1894,11 @@ function bind(id, event, handler) {
     }
   });
 }
+
 function toggleTheme() {
-  return;
+  document.body.classList.remove("light");
+  appState.theme = "dark";
+  saveAppState();
 }
 
 function initEvents() {
