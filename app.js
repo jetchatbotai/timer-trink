@@ -1896,10 +1896,8 @@ function bind(id, event, handler) {
     }
   });
 }
-
 function toggleTheme() {
-  document.body.classList.toggle("light");
-  saveAppState();
+  return;
 }
 
 function initEvents() {
