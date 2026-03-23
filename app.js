@@ -15,20 +15,20 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function safeParse(str) {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return null;
+  }
+}
+
 function resolveAssetPath(path) {
   if (!path) return "";
   try {
     return new URL(path, window.location.href).href;
   } catch {
     return path;
-  }
-}
-
-function safeParse(str) {
-  try {
-    return JSON.parse(str);
-  } catch {
-    return null;
   }
 }
 
@@ -40,8 +40,7 @@ const STORAGE_KEYS = {
   timer: "tt_timer_state",
   stopwatch: "tt_stopwatch_state",
   pomodoro: "tt_pomodoro_state",
-  sound: "tt_sound",
-  premium: "tt_premium_state"
+  sound: "tt_sound"
 };
 
 // ===============================
@@ -50,7 +49,8 @@ const STORAGE_KEYS = {
 const notificationState = {
   permissionGranted: false,
   scheduledTimerNotificationId: 1001,
-  channelId: "timer_alerts"
+  channelId: "timer_alerts",
+  listenersReady: false
 };
 
 // ===============================
@@ -60,9 +60,7 @@ const appState = {
   initialized: false,
   language: "tr",
   theme: "dark",
-  lastTab: "timerPanel",
-  isPremium: false,
-  adsEnabled: true
+  lastTab: "timerPanel"
 };
 
 // ===============================
@@ -75,7 +73,8 @@ const timerState = {
   timeLeft: 0,
   totalTime: 0,
   lastTick: 0,
-  endAt: 0
+  endAt: 0,
+  mode: "timer" // "timer" | "pomodoro"
 };
 
 // ===============================
@@ -97,7 +96,8 @@ const pomodoroState = {
   phase: "work",
   workMinutes: 25,
   breakMinutes: 5,
-  cycleCount: 0
+  cycleCount: 0,
+  autoAdvance: true
 };
 
 // ===============================
@@ -188,7 +188,7 @@ const baseTranslations = {
   },
   pomodoro: {
     tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro",
-    ru: "Помодоро", ar: "بومодورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
+    ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
   },
   soundOn: {
     tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado",
@@ -212,14 +212,14 @@ const baseTranslations = {
   },
   notifTimerBody: {
     tr: "Bildirime dokunarak zamanlayıcıyı kapat",
-    en: "Tap the notification to clear the timer",
+    en: "Tap notification to clear the timer",
     de: "Tippe auf die Benachrichtigung, um den Timer zu beenden",
     fr: "Touchez la notification pour arrêter le minuteur",
     es: "Toca la notificación para cerrar el temporizador",
-    ru: "Нажмите на уведомление, чтобы сбросить таймер",
+    ru: "Нажмите уведомление, чтобы сбросить таймер",
     ar: "اضغط على الإشعار لإيقاف المؤقت",
     it: "Tocca la notifica per chiudere il timer",
-    pt: "Toque na notificação para limpar o temporizador",
+    pt: "Toque a notificação para limpar o temporizador",
     zh: "点击通知以清除计时器"
   },
   work: {
@@ -305,85 +305,48 @@ const baseTranslations = {
   resetCycle: {
     tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo",
     ru: "Сбросить цикл", ar: "إعادة ضبط الدورة", it: "Reimposta ciclo", pt: "Redefinir ciclo", zh: "重置周期"
-  },
-  premiumPomodoroNotice: {
-    tr: "Özel çalışma ve mola süreleri Premium özelliktir.",
-    en: "Custom work and break durations are a Premium feature.",
-    de: "Benutzerdefinierte Arbeits- und Pausenzeiten sind Premium.",
-    fr: "Les durées personnalisées sont une fonctionnalité Premium.",
-    es: "Las duraciones personalizadas son una función Premium.",
-    ru: "Свои интервалы доступны в Premium.",
-    ar: "المدد المخصصة ميزة بريميوم.",
-    it: "Le durate personalizzate sono Premium.",
-    pt: "Durações personalizadas são Premium.",
-    zh: "自定义时长为高级功能。"
   }
 };
 
 // ===============================
-// SOUND LABEL GENERATOR
+// 20 UNIQUE SOUNDS
 // ===============================
-const soundNameParts = {
-  tr: {
-    adjectives: ["Kristal", "Sıcak", "Derin", "Dijital", "Yumuşak", "Cam", "Yankılı", "Sakin", "Parlak", "Zen"],
-    nouns: ["Çan", "Çınlama", "Gong", "Bip", "Marimba", "Tını", "Nabız", "Uyarı", "Alarm", "Kase"]
-  },
-  en: {
-    adjectives: ["Crystal", "Warm", "Deep", "Digital", "Soft", "Glass", "Echo", "Calm", "Bright", "Zen"],
-    nouns: ["Bell", "Chime", "Gong", "Beep", "Marimba", "Ping", "Pulse", "Alert", "Alarm", "Bowl"]
-  },
-  de: {
-    adjectives: ["Kristall", "Warm", "Tief", "Digital", "Sanft", "Glas", "Echo", "Ruhig", "Hell", "Zen"],
-    nouns: ["Glocke", "Klang", "Gong", "Piepton", "Marimba", "Ton", "Puls", "Alarm", "Signal", "Schale"]
-  },
-  fr: {
-    adjectives: ["Cristal", "Chaud", "Profond", "Numérique", "Doux", "Verre", "Écho", "Calme", "Clair", "Zen"],
-    nouns: ["Cloche", "Carillon", "Gong", "Bip", "Marimba", "Tonalité", "Pulse", "Alerte", "Alarme", "Bol"]
-  },
-  es: {
-    adjectives: ["Cristal", "Cálido", "Profundo", "Digital", "Suave", "Vidrio", "Eco", "Calmo", "Brillante", "Zen"],
-    nouns: ["Campana", "Campanada", "Gong", "Bip", "Marimba", "Tono", "Pulso", "Alerta", "Alarma", "Cuenco"]
-  },
-  ru: {
-    adjectives: ["Хрустальный", "Теплый", "Глубокий", "Цифровой", "Мягкий", "Стеклянный", "Эхо", "Спокойный", "Яркий", "Дзен"],
-    nouns: ["Колокол", "Звон", "Гонг", "Бип", "Маримба", "Тон", "Пульс", "Тревога", "Сигнал", "Чаша"]
-  },
-  ar: {
-    adjectives: ["كريستالي", "دافئ", "عميق", "رقمي", "ناعم", "زجاجي", "صدى", "هادئ", "ساطع", "زن"],
-    nouns: ["جرس", "رنين", "جونغ", "بيب", "ماريمبا", "نغمة", "نبض", "تنبيه", "إنذار", "وعاء"]
-  },
-  it: {
-    adjectives: ["Cristallo", "Caldo", "Profondo", "Digitale", "Morbido", "Vetro", "Eco", "Calmo", "Luminoso", "Zen"],
-    nouns: ["Campana", "Rintocco", "Gong", "Bip", "Marimba", "Tono", "Impulso", "Avviso", "Allarme", "Ciotola"]
-  },
-  pt: {
-    adjectives: ["Cristal", "Quente", "Profundo", "Digital", "Suave", "Vidro", "Eco", "Calmo", "Brilhante", "Zen"],
-    nouns: ["Sino", "Toque", "Gongo", "Bipe", "Marimba", "Tom", "Pulso", "Alerta", "Alarme", "Tigela"]
-  },
-  zh: {
-    adjectives: ["水晶", "温暖", "深沉", "数字", "柔和", "玻璃", "回声", "安静", "明亮", "禅意"],
-    nouns: ["铃声", "钟声", "铜锣", "提示音", "马林巴", "轻响", "脉冲", "提醒", "警报", "钵声"]
-  }
-};
+const SOUND_LIBRARY = [
+  { id: "s1",  name: { tr: "Kristal Çan",      en: "Crystal Bell" },      kind: "crystal",  assetPath: "sound1.mp3",  seq: [1040, 1560, 2080] },
+  { id: "s2",  name: { tr: "Gece Zili",        en: "Night Bell" },        kind: "glass",    assetPath: "sound2.mp3",  seq: [1260, 1820, 2440] },
+  { id: "s3",  name: { tr: "Derin Gong",       en: "Deep Gong" },         kind: "gong",     assetPath: "sound3.mp3",  seq: [220, 330, 440] },
+  { id: "s4",  name: { tr: "Dijital Bip",      en: "Digital Beep" },      kind: "digital",  assetPath: "sound4.mp3",  seq: [880, 1320, 1760] },
+  { id: "s5",  name: { tr: "Marimba Işık",     en: "Marimba Light" },     kind: "marimba",  assetPath: "sound5.mp3",  seq: [660, 990, 1320] },
+  { id: "s6",  name: { tr: "Yankı Uyarı",      en: "Echo Alert" },        kind: "echo",     assetPath: "sound6.mp3",  seq: [480, 720, 960] },
+  { id: "s7",  name: { tr: "Sakin Tını",       en: "Calm Tone" },         kind: "calm",     assetPath: "sound7.mp3",  seq: [420, 630, 840] },
+  { id: "s8",  name: { tr: "Parlak Alarm",     en: "Bright Alarm" },      kind: "bright",   assetPath: "sound8.mp3",  seq: [940, 1410, 1880] },
+  { id: "s9",  name: { tr: "Zen Kase",         en: "Zen Bowl" },          kind: "zen",      assetPath: "sound9.mp3",  seq: [320, 480, 640] },
+  { id: "s10", name: { tr: "Sıcak Çınlama",    en: "Warm Chime" },        kind: "warm",     assetPath: "sound10.mp3", seq: [540, 810, 1080] },
+  { id: "s11", name: { tr: "Buz Camı",         en: "Ice Glass" },         kind: "glass",    assetPath: "sound11.mp3", seq: [1330, 1880, 2550] },
+  { id: "s12", name: { tr: "Ay Gongu",         en: "Moon Gong" },         kind: "gong",     assetPath: "sound12.mp3", seq: [260, 390, 520] },
+  { id: "s13", name: { tr: "Kısa Bip",         en: "Short Beep" },        kind: "digital",  assetPath: "sound13.mp3", seq: [990, 1485, 1980] },
+  { id: "s14", name: { tr: "Ahşap Marimba",    en: "Wood Marimba" },      kind: "marimba",  assetPath: "sound14.mp3", seq: [610, 915, 1220] },
+  { id: "s15", name: { tr: "Uzun Yankı",       en: "Long Echo" },         kind: "echo",     assetPath: "sound15.mp3", seq: [450, 675, 900] },
+  { id: "s16", name: { tr: "Sakin Nabız",      en: "Calm Pulse" },        kind: "calm",     assetPath: "sound16.mp3", seq: [360, 540, 720] },
+  { id: "s17", name: { tr: "Mavi Işık",        en: "Blue Light" },        kind: "bright",   assetPath: "sound17.mp3", seq: [1020, 1530, 2040] },
+  { id: "s18", name: { tr: "Zen Derin",        en: "Zen Deep" },          kind: "zen",      assetPath: "sound18.mp3", seq: [280, 420, 560] },
+  { id: "s19", name: { tr: "Kristal Şafak",    en: "Crystal Dawn" },      kind: "crystal",  assetPath: "sound19.mp3", seq: [1180, 1680, 2240] },
+  { id: "s20", name: { tr: "Sıcak Uyarı",      en: "Warm Alert" },        kind: "warm",     assetPath: "sound20.mp3", seq: [500, 760, 1020] }
+];
 
-function getLocalizedSoundName(index) {
-  const lang = $("language")?.value || appState.language || "en";
-  const dict = soundNameParts[lang] || soundNameParts.en;
+const sounds = SOUND_LIBRARY.map((s) => ({
+  ...s,
+  audioAvailable: null,
+  probeInFlight: false
+}));
 
-  const adjIndex = Math.floor((index - 1) / 10);
-  const nounIndex = (index - 1) % 10;
-
-  const adj = dict.adjectives[adjIndex] || dict.adjectives[0];
-  const noun = dict.nouns[nounIndex] || dict.nouns[0];
-
-  return `${adj} ${noun}`;
-}
+let selectedSoundId = "s1";
 
 // ===============================
 // TRANSLATION ENGINE
 // ===============================
 function t(key) {
-  const lang = $("language")?.value || appState.language || "en";
+  const lang = $("language")?.value || appState.language || "tr";
   if (!baseTranslations[key]) return key;
   return baseTranslations[key][lang] || baseTranslations[key].en || key;
 }
@@ -393,6 +356,14 @@ function setText(id, key) {
   if (el) el.textContent = t(key);
 }
 
+function getSoundDisplayName(sound) {
+  const lang = $("language")?.value || appState.language || "tr";
+  return sound?.name?.[lang] || sound?.name?.en || sound?.id || "Sound";
+}
+
+// ===============================
+// UI TEXT UPDATES
+// ===============================
 function updateTimerStartButton() {
   const btn = $("timerStartBtn");
   if (!btn) return;
@@ -405,49 +376,6 @@ function updateStopwatchStartButton() {
   btn.textContent = stopwatchState.running ? t("pause") : t("start");
 }
 
-// ===============================
-// PREMIUM SYSTEM
-// ===============================
-function isPremiumUser() {
-  return !!appState.isPremium;
-}
-
-function updateAdsState() {
-  appState.adsEnabled = !appState.isPremium;
-
-  const adEls = document.querySelectorAll(".ad-container, .premium-hide-ads");
-  adEls.forEach((el) => {
-    el.style.display = appState.adsEnabled ? "" : "none";
-  });
-}
-
-function savePremiumState() {
-  localStorage.setItem(STORAGE_KEYS.premium, JSON.stringify({
-    isPremium: appState.isPremium
-  }));
-}
-
-function loadPremiumState() {
-  const data = safeParse(localStorage.getItem(STORAGE_KEYS.premium));
-  if (!data) return;
-
-  appState.isPremium = !!data.isPremium;
-  appState.adsEnabled = !appState.isPremium;
-}
-
-function setPremium(enabled) {
-  appState.isPremium = !!enabled;
-  appState.adsEnabled = !appState.isPremium;
-
-  savePremiumState();
-  saveAppState();
-  updateAdsState();
-  enforcePomodoroAccess();
-}
-
-// ===============================
-// APPLY LANGUAGE
-// ===============================
 function applyLanguage() {
   const lang = $("language")?.value || "tr";
   appState.language = lang;
@@ -468,16 +396,13 @@ function applyLanguage() {
   setText("swClearLapsBtn", "clearLaps");
 
   setText("dismissAlarmBtn", "dismissAlarm");
-
   setText("hoursLabel", "hours");
   setText("minutesLabel", "minutes");
   setText("secondsLabel", "seconds");
   setText("workLabel", "workLabel");
   setText("breakLabel", "breakLabel");
-
   setText("soundLabel", "soundOn");
   setText("vibrationLabel", "vibrationOn");
-
   setText("subtitle", "subtitle");
   setText("soundsTitle", "soundsTitle");
   setText("soundsDesc", "soundsDesc");
@@ -487,14 +412,6 @@ function applyLanguage() {
   setText("lapsTitle", "lapsTitle");
   setText("pomodoroResetBtn", "resetPomodoro");
   setText("pomodoroCycleResetBtn", "resetCycle");
-
-  const pomodoroPremiumNotice = $("pomodoroPremiumNotice");
-  if (pomodoroPremiumNotice) {
-    pomodoroPremiumNotice.textContent = t("premiumPomodoroNotice");
-  }
-
-  const skipBtn = $("pomodoroSkipBtn");
-  if (skipBtn) skipBtn.style.display = "none";
 
   if (timerState.running) {
     setText("timerStatus", "running");
@@ -515,53 +432,11 @@ function applyLanguage() {
   updateSoundCount();
   renderSounds();
   updatePomodoroUI();
-  enforcePomodoroAccess();
 }
 
 // ===============================
 // SOUND SYSTEM
 // ===============================
-const sounds = [];
-const SOUND_COUNT = 50;
-let selectedSoundId = "s1";
-
-const soundBlueprints = [
-  { kind: "crystal", type: "sine", base: 1040, overtone: 1560, tail: 2080, duration: 0.42, volume: 0.50 },
-  { kind: "warm", type: "triangle", base: 540, overtone: 810, tail: 1080, duration: 0.55, volume: 0.52 },
-  { kind: "gong", type: "sine", base: 220, overtone: 330, tail: 440, duration: 0.80, volume: 0.60 },
-  { kind: "digital", type: "square", base: 880, overtone: 1320, tail: 1760, duration: 0.20, volume: 0.54 },
-  { kind: "marimba", type: "triangle", base: 660, overtone: 990, tail: 1320, duration: 0.36, volume: 0.50 },
-  { kind: "glass", type: "sine", base: 1280, overtone: 1920, tail: 2560, duration: 0.24, volume: 0.48 },
-  { kind: "echo", type: "triangle", base: 480, overtone: 720, tail: 960, duration: 0.50, volume: 0.50 },
-  { kind: "calm", type: "sine", base: 420, overtone: 630, tail: 840, duration: 0.48, volume: 0.48 },
-  { kind: "bright", type: "sawtooth", base: 940, overtone: 1410, tail: 1880, duration: 0.22, volume: 0.56 },
-  { kind: "zen", type: "sine", base: 320, overtone: 480, tail: 640, duration: 0.90, volume: 0.58 }
-];
-
-for (let i = 1; i <= SOUND_COUNT; i++) {
-  const bp = soundBlueprints[(i - 1) % soundBlueprints.length];
-  const groupIndex = Math.floor((i - 1) / 10);
-  const detune = groupIndex * 12;
-  const durationBoost = (groupIndex % 5) * 0.03;
-
-  sounds.push({
-    id: "s" + i,
-    index: i,
-    kind: bp.kind,
-    type: bp.type,
-    volume: Math.min(0.72, bp.volume + groupIndex * 0.015),
-    duration: bp.duration + durationBoost,
-    assetPath: `sound${i}.mp3`,
-    audioAvailable: null,
-    probeInFlight: false,
-    seq: [
-      bp.base + detune,
-      bp.overtone + detune * 1.2,
-      bp.tail + detune * 1.5
-    ]
-  });
-}
-
 function getAudioContext() {
   const Ctx = window.AudioContext || window.webkitAudioContext;
   if (!Ctx) return null;
@@ -630,7 +505,6 @@ function probeSoundAsset(sound) {
   }
 
   if (sound.audioAvailable === true || sound.probeInFlight) return;
-
   sound.probeInFlight = true;
 
   const audio = new Audio();
@@ -662,7 +536,6 @@ function probeSoundAsset(sound) {
     audio.removeEventListener("error", fail);
     audio.removeEventListener("abort", fail);
     audio.removeEventListener("stalled", fail);
-    audio.removeEventListener("suspend", fail);
   };
 
   audio.addEventListener("loadedmetadata", success, { once: true });
@@ -671,13 +544,12 @@ function probeSoundAsset(sound) {
   audio.addEventListener("error", fail, { once: true });
   audio.addEventListener("abort", fail, { once: true });
   audio.addEventListener("stalled", fail, { once: true });
-  audio.addEventListener("suspend", fail, { once: true });
 
   try {
     audio.load();
     setTimeout(() => {
       if (!resolved) fail();
-    }, 3000);
+    }, 2500);
   } catch {
     sound.audioAvailable = false;
     sound.probeInFlight = false;
@@ -690,7 +562,6 @@ async function playRealSoundOnce(sound, loop = false) {
   if (!sound.assetPath) return false;
 
   await ensureHtmlAudioUnlocked();
-
   const src = resolveAssetPath(sound.assetPath);
 
   try {
@@ -718,7 +589,6 @@ async function playRealSoundOnce(sound, loop = false) {
 
     const audio = new Audio();
     alarmState.previewAudio = audio;
-
     audio.src = src;
     audio.loop = false;
     audio.currentTime = 0;
@@ -736,8 +606,7 @@ async function playRealSoundOnce(sound, loop = false) {
     }, { once: true });
 
     return true;
-  } catch (e) {
-    console.warn("Real sound play failed:", sound.assetPath, e);
+  } catch {
     sound.audioAvailable = false;
     return false;
   }
@@ -752,7 +621,7 @@ function playSynthPattern(sound, mode = "preview") {
 
   const now = ctx.currentTime;
   const master = ctx.createGain();
-  master.gain.value = mode === "preview" ? 1.9 : 1.7;
+  master.gain.value = mode === "preview" ? 1.8 : 1.6;
   master.connect(ctx.destination);
 
   const playTone = (freq, start, dur, type, gainValue, filterType, filterFreq, q) => {
@@ -779,48 +648,58 @@ function playSynthPattern(sound, mode = "preview") {
     osc.stop(start + dur + 0.02);
   };
 
-  const base = sound.seq[0];
-  const over = sound.seq[1];
-  const tail = sound.seq[2];
+  const [base, over, tail] = sound.seq;
 
-  if (sound.kind === "crystal") {
-    playTone(base, now + 0.00, 0.45, "sine", 0.45, "highpass", 1200, 10);
-    playTone(over, now + 0.16, 0.32, "sine", 0.22, "highpass", 1600, 12);
-    playTone(tail, now + 0.40, 0.24, "sine", 0.16, "highpass", 1800, 12);
-  } else if (sound.kind === "warm") {
-    playTone(base, now + 0.00, 0.55, "triangle", 0.50, "lowpass", 1200, 3);
-    playTone(over, now + 0.26, 0.40, "triangle", 0.20, "lowpass", 1000, 2);
-  } else if (sound.kind === "gong") {
-    playTone(base, now + 0.00, 0.90, "sine", 0.58, "lowpass", 900, 2);
-    playTone(over, now + 0.10, 0.80, "sine", 0.24, "lowpass", 1100, 2);
-    playTone(tail, now + 0.24, 0.60, "sine", 0.12, "bandpass", 800, 3);
-  } else if (sound.kind === "digital") {
-    playTone(base, now + 0.00, 0.12, "square", 0.46, "highpass", 900, 6);
-    playTone(over, now + 0.18, 0.12, "square", 0.40, "highpass", 1000, 6);
-    playTone(tail, now + 0.36, 0.12, "square", 0.34, "highpass", 1200, 6);
-  } else if (sound.kind === "marimba") {
-    playTone(base, now + 0.00, 0.30, "triangle", 0.46, "bandpass", 1400, 5);
-    playTone(over, now + 0.20, 0.24, "triangle", 0.22, "bandpass", 1600, 5);
-    playTone(tail, now + 0.42, 0.18, "triangle", 0.16, "bandpass", 1800, 5);
-  } else if (sound.kind === "glass") {
-    playTone(base, now + 0.00, 0.28, "sine", 0.44, "highpass", 1500, 12);
-    playTone(over, now + 0.12, 0.20, "sine", 0.20, "highpass", 1800, 12);
-    playTone(tail, now + 0.26, 0.14, "sine", 0.10, "highpass", 2200, 12);
-  } else if (sound.kind === "echo") {
-    playTone(base, now + 0.00, 0.38, "triangle", 0.42, "bandpass", 1400, 4);
-    playTone(over, now + 0.34, 0.28, "triangle", 0.22, "bandpass", 1600, 4);
-    playTone(tail, now + 0.64, 0.18, "triangle", 0.12, "bandpass", 1800, 4);
-  } else if (sound.kind === "calm") {
-    playTone(base, now + 0.00, 0.52, "sine", 0.40, "lowpass", 900, 2);
-    playTone(over, now + 0.28, 0.34, "sine", 0.18, "lowpass", 1100, 2);
-  } else if (sound.kind === "bright") {
-    playTone(base, now + 0.00, 0.16, "sawtooth", 0.46, "bandpass", 2200, 8);
-    playTone(over, now + 0.20, 0.16, "sawtooth", 0.40, "bandpass", 2400, 8);
-    playTone(tail, now + 0.40, 0.16, "sawtooth", 0.34, "bandpass", 2600, 8);
-  } else if (sound.kind === "zen") {
-    playTone(base, now + 0.00, 1.00, "sine", 0.54, "lowpass", 700, 2);
-    playTone(over, now + 0.18, 0.70, "sine", 0.18, "lowpass", 900, 2);
-    playTone(tail, now + 0.42, 0.46, "sine", 0.10, "lowpass", 1100, 2);
+  switch (sound.kind) {
+    case "crystal":
+      playTone(base, now + 0.00, 0.45, "sine", 0.45, "highpass", 1200, 10);
+      playTone(over, now + 0.16, 0.32, "sine", 0.22, "highpass", 1600, 12);
+      playTone(tail, now + 0.40, 0.24, "sine", 0.16, "highpass", 1800, 12);
+      break;
+    case "glass":
+      playTone(base, now + 0.00, 0.28, "sine", 0.44, "highpass", 1500, 12);
+      playTone(over, now + 0.12, 0.20, "sine", 0.20, "highpass", 1800, 12);
+      playTone(tail, now + 0.26, 0.14, "sine", 0.10, "highpass", 2200, 12);
+      break;
+    case "gong":
+      playTone(base, now + 0.00, 0.90, "sine", 0.58, "lowpass", 900, 2);
+      playTone(over, now + 0.10, 0.80, "sine", 0.24, "lowpass", 1100, 2);
+      playTone(tail, now + 0.24, 0.60, "sine", 0.12, "bandpass", 800, 3);
+      break;
+    case "digital":
+      playTone(base, now + 0.00, 0.12, "square", 0.46, "highpass", 900, 6);
+      playTone(over, now + 0.18, 0.12, "square", 0.40, "highpass", 1000, 6);
+      playTone(tail, now + 0.36, 0.12, "square", 0.34, "highpass", 1200, 6);
+      break;
+    case "marimba":
+      playTone(base, now + 0.00, 0.30, "triangle", 0.46, "bandpass", 1400, 5);
+      playTone(over, now + 0.20, 0.24, "triangle", 0.22, "bandpass", 1600, 5);
+      playTone(tail, now + 0.42, 0.18, "triangle", 0.16, "bandpass", 1800, 5);
+      break;
+    case "echo":
+      playTone(base, now + 0.00, 0.38, "triangle", 0.42, "bandpass", 1400, 4);
+      playTone(over, now + 0.34, 0.28, "triangle", 0.22, "bandpass", 1600, 4);
+      playTone(tail, now + 0.64, 0.18, "triangle", 0.12, "bandpass", 1800, 4);
+      break;
+    case "calm":
+      playTone(base, now + 0.00, 0.52, "sine", 0.40, "lowpass", 900, 2);
+      playTone(over, now + 0.28, 0.34, "sine", 0.18, "lowpass", 1100, 2);
+      break;
+    case "bright":
+      playTone(base, now + 0.00, 0.16, "sawtooth", 0.46, "bandpass", 2200, 8);
+      playTone(over, now + 0.20, 0.16, "sawtooth", 0.40, "bandpass", 2400, 8);
+      playTone(tail, now + 0.40, 0.16, "sawtooth", 0.34, "bandpass", 2600, 8);
+      break;
+    case "zen":
+      playTone(base, now + 0.00, 1.00, "sine", 0.54, "lowpass", 700, 2);
+      playTone(over, now + 0.18, 0.70, "sine", 0.18, "lowpass", 900, 2);
+      playTone(tail, now + 0.42, 0.46, "sine", 0.10, "lowpass", 1100, 2);
+      break;
+    case "warm":
+    default:
+      playTone(base, now + 0.00, 0.55, "triangle", 0.50, "lowpass", 1200, 3);
+      playTone(over, now + 0.26, 0.40, "triangle", 0.20, "lowpass", 1000, 2);
+      break;
   }
 }
 
@@ -834,17 +713,12 @@ async function playSoundOnce(sound, mode = "preview") {
     }
 
     if (sound.audioAvailable === true) {
-      let ok = await playRealSoundOnce(sound, mode === "alarm");
-      if (ok) return;
-
-      await new Promise((resolve) => setTimeout(resolve, 120));
-      ok = await playRealSoundOnce(sound, mode === "alarm");
+      const ok = await playRealSoundOnce(sound, mode === "alarm");
       if (ok) return;
     }
 
     playSynthPattern(sound, mode);
-  } catch (e) {
-    console.warn("playSoundOnce fallback:", e);
+  } catch {
     playSynthPattern(sound, mode);
   }
 }
@@ -865,6 +739,7 @@ function startAlarmLoop() {
   alarmState.active = true;
 
   const selected = getSelectedSound();
+
   if (selected.audioAvailable === null) {
     probeSoundAsset(selected);
   }
@@ -890,7 +765,7 @@ function startSynthAlarmLoop() {
     playSoundOnce(getSelectedSound(), "alarm");
 
     if ($("vibrationToggle")?.checked && navigator.vibrate) {
-      navigator.vibrate([260, 90, 260, 90, 320]);
+      navigator.vibrate([250, 90, 250, 90, 320]);
     }
   }, 1350);
 }
@@ -924,10 +799,14 @@ function dismissAlarm() {
 
   unlockUI();
 
-  if (alarmState.pendingPomodoroAdvance) {
+  if (pomodoroState.enabled === true && alarmState.pendingPomodoroAdvance === true) {
     alarmState.pendingPomodoroAdvance = false;
     handlePomodoroSwitch();
+    return;
   }
+
+  alarmState.pendingPomodoroAdvance = false;
+  pomodoroState.enabled = false;
 }
 
 function updateSoundCount() {
@@ -959,7 +838,7 @@ function renderSounds() {
     });
 
     const name = document.createElement("span");
-    name.textContent = getLocalizedSoundName(sound.index);
+    name.textContent = getSoundDisplayName(sound);
 
     item.appendChild(radio);
     item.appendChild(name);
@@ -972,29 +851,15 @@ function renderSounds() {
 
 function restoreSelectedSound() {
   const saved = localStorage.getItem(STORAGE_KEYS.sound);
-  if (saved) selectedSoundId = saved;
-}
-
-function optimizeSoundListScroll() {
-  const list = $("soundList");
-  if (!list) return;
-
-  let ticking = false;
-  list.addEventListener("scroll", () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        ticking = false;
-      });
-      ticking = true;
-    }
-  });
+  if (saved && sounds.some((s) => s.id === saved)) {
+    selectedSoundId = saved;
+  }
 }
 
 function initSoundSystem() {
   restoreSelectedSound();
   sounds.forEach(probeSoundAsset);
   renderSounds();
-  optimizeSoundListScroll();
 }
 
 // ===============================
@@ -1030,7 +895,7 @@ async function createNotificationChannel() {
       importance: 5,
       visibility: 1,
       vibration: true,
-      sound: "beep.wav"
+      sound: "beep" // android/app/src/main/res/raw/beep.wav varsa kullanır
     });
   } catch {}
 }
@@ -1045,8 +910,8 @@ async function registerNotificationActions() {
           id: "TIMER_DONE",
           actions: [
             {
-              id: "open_timer",
-              title: "Open"
+              id: "dismiss_timer",
+              title: "Kapat"
             }
           ]
         }
@@ -1075,7 +940,8 @@ async function scheduleTimerNotification(secondsFromNow) {
           actionTypeId: "TIMER_DONE",
           extra: {
             source: "timer",
-            autoResetTimer: true
+            autoResetTimer: true,
+            mode: timerState.mode
           },
           schedule: {
             at: new Date(Date.now() + secondsFromNow * 1000),
@@ -1109,55 +975,64 @@ async function fireFinishNotification() {
           id: Date.now() % 2147483000,
           title: t("notifTimerTitle"),
           body: t("notifTimerBody"),
+          largeBody: t("notifTimerBody"),
           channelId: notificationState.channelId,
           actionTypeId: "TIMER_DONE",
           extra: {
             source: "timer",
-            autoResetTimer: true
+            autoResetTimer: true,
+            mode: timerState.mode
           },
-          schedule: { at: new Date(Date.now() + 300) }
+          schedule: {
+            at: new Date(Date.now() + 250),
+            allowWhileIdle: true
+          }
         }
       ]
     });
   } catch {}
 }
 
+function hardResetTimerState() {
+  clearInterval(timerState.timerId);
+  timerState.timerId = null;
+
+  timerState.running = false;
+  timerState.paused = false;
+  timerState.timeLeft = 0;
+  timerState.totalTime = 0;
+  timerState.lastTick = 0;
+  timerState.endAt = 0;
+  timerState.mode = "timer";
+
+  alarmState.pendingPomodoroAdvance = false;
+  pomodoroState.enabled = false;
+
+  stopAlarmLoop();
+
+  const overlay = $("alarmOverlay");
+  if (overlay) overlay.classList.add("hidden");
+  unlockUI();
+
+  if ($("hours")) $("hours").value = 0;
+  if ($("minutes")) $("minutes").value = 0;
+  if ($("seconds")) $("seconds").value = 0;
+
+  updateTimerDisplay();
+  setText("timerStatus", "ready");
+  updateTimerStartButton();
+  saveTimerState();
+}
+
 async function setupNotificationListeners() {
-  if (!CapacitorLocalNotifications) return;
+  if (!CapacitorLocalNotifications || notificationState.listenersReady) return;
 
   try {
     await CapacitorLocalNotifications.addListener(
       "localNotificationActionPerformed",
       async (event) => {
         const notificationId = event?.notification?.id;
-
-        clearInterval(timerState.timerId);
-        timerState.timerId = null;
-
-        timerState.running = false;
-        timerState.paused = false;
-        timerState.timeLeft = 0;
-        timerState.totalTime = 0;
-        timerState.lastTick = 0;
-        timerState.endAt = 0;
-
-        alarmState.pendingPomodoroAdvance = false;
-        stopAlarmLoop();
-
-        const overlay = $("alarmOverlay");
-        if (overlay) overlay.classList.add("hidden");
-        unlockUI();
-
-        const display = $("timerDisplay");
-        if (display) display.textContent = "00:00:00";
-
-        if ($("hours")) $("hours").value = 0;
-        if ($("minutes")) $("minutes").value = 0;
-        if ($("seconds")) $("seconds").value = 0;
-
-        updateTimerRing();
-        setText("timerStatus", "ready");
-        updateTimerStartButton();
+        hardResetTimerState();
 
         try {
           if (notificationId) {
@@ -1170,9 +1045,10 @@ async function setupNotificationListeners() {
         } catch {}
 
         await cancelTimerNotification();
-        saveTimerState();
       }
     );
+
+    notificationState.listenersReady = true;
   } catch {}
 }
 
@@ -1200,19 +1076,15 @@ function updateTimerRing() {
     return;
   }
 
-  const progress = Math.max(
-    0,
-    Math.min(1, (timerState.totalTime - timerState.timeLeft) / timerState.totalTime)
-  );
-
+  const completed = timerState.totalTime - timerState.timeLeft;
+  const progress = Math.max(0, Math.min(1, completed / timerState.totalTime));
   const deg = progress * 360;
 
-  ring.style.background =
-    `conic-gradient(
-      var(--primary) 0deg,
-      var(--secondary) ${deg}deg,
-      var(--ring-rest) ${deg}deg 360deg
-    )`;
+  ring.style.background = `conic-gradient(
+    var(--primary) 0deg,
+    var(--secondary) ${deg}deg,
+    var(--ring-rest) ${deg}deg 360deg
+  )`;
 }
 
 function updateTimerDisplay() {
@@ -1255,7 +1127,7 @@ function timerTick() {
   updateTimerDisplay();
 }
 
-function startTimer() {
+function startTimer(fromPomodoro = false) {
   if (timerState.running) return;
 
   if (timerState.paused && timerState.timeLeft > 0) {
@@ -1271,6 +1143,15 @@ function startTimer() {
   if (total <= 0) return;
 
   clearInterval(timerState.timerId);
+  timerState.timerId = null;
+
+  if (!fromPomodoro) {
+    pomodoroState.enabled = false;
+    alarmState.pendingPomodoroAdvance = false;
+    timerState.mode = "timer";
+  } else {
+    timerState.mode = "pomodoro";
+  }
 
   timerState.totalTime = total;
   timerState.timeLeft = total;
@@ -1310,6 +1191,7 @@ function resumeTimer() {
   if (!timerState.paused && timerState.timeLeft <= 0) return;
 
   clearInterval(timerState.timerId);
+  timerState.timerId = null;
 
   timerState.running = true;
   timerState.paused = false;
@@ -1335,17 +1217,17 @@ function resetTimer() {
   timerState.totalTime = 0;
   timerState.lastTick = 0;
   timerState.endAt = 0;
+  timerState.mode = "timer";
+
+  pomodoroState.enabled = false;
+  alarmState.pendingPomodoroAdvance = false;
 
   if ($("hours")) $("hours").value = 0;
   if ($("minutes")) $("minutes").value = 0;
   if ($("seconds")) $("seconds").value = 0;
 
-  const display = $("timerDisplay");
-  if (display) display.textContent = "00:00:00";
-
-  updateTimerRing();
+  updateTimerDisplay();
   cancelTimerNotification();
-
   setText("timerStatus", "ready");
   updateTimerStartButton();
   saveTimerState();
@@ -1354,7 +1236,6 @@ function resetTimer() {
 function onTimerFinished() {
   cancelTimerNotification();
   fireFinishNotification();
-
   startAlarmLoop();
 
   const titleEl = $("alarmTitle");
@@ -1368,16 +1249,14 @@ function onTimerFinished() {
   lockUIWhileAlarm();
   updateTimerStartButton();
 
-  if (pomodoroState.enabled) {
-    alarmState.pendingPomodoroAdvance = true;
-  }
+  alarmState.pendingPomodoroAdvance =
+    timerState.mode === "pomodoro" && pomodoroState.enabled === true;
 
   saveTimerState();
 }
 
 function setupQuickButtons() {
   const buttons = $$(".quick-btn");
-
   buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
       if ($("hours")) $("hours").value = btn.dataset.h || 0;
@@ -1390,68 +1269,35 @@ function setupQuickButtons() {
 // ===============================
 // POMODORO ENGINE
 // ===============================
-function enforcePomodoroAccess() {
-  const workInput = $("pomodoroWork");
-  const breakInput = $("pomodoroBreak");
-  const premiumNotice = $("pomodoroPremiumNotice");
-
-  if (!workInput || !breakInput) return;
-
-  if (isPremiumUser()) {
-    workInput.disabled = false;
-    breakInput.disabled = false;
-    workInput.readOnly = false;
-    breakInput.readOnly = false;
-
-    if (premiumNotice) premiumNotice.style.display = "none";
-    return;
-  }
-
-  workInput.disabled = true;
-  breakInput.disabled = true;
-  workInput.readOnly = true;
-  breakInput.readOnly = true;
-
-  if (premiumNotice) premiumNotice.style.display = "";
-}
-
 function applyPomodoro() {
-  let work = safeNumber($("pomodoroWork")?.value, 25);
-  let brk = safeNumber($("pomodoroBreak")?.value, 5);
-
-  if (!isPremiumUser()) {
-    const presetButtons = $$(".preset-btn.active");
-    if (presetButtons.length > 0) {
-      const activeBtn = presetButtons[0];
-      work = safeNumber(activeBtn.dataset.work, 25);
-      brk = safeNumber(activeBtn.dataset.break, 5);
-    } else {
-      work = 25;
-      brk = 5;
-    }
-
-    if ($("pomodoroWork")) $("pomodoroWork").value = work;
-    if ($("pomodoroBreak")) $("pomodoroBreak").value = brk;
-  }
+  const work = safeNumber($("pomodoroWork")?.value, 25);
+  const brk = safeNumber($("pomodoroBreak")?.value, 5);
 
   if (work <= 0 || brk <= 0) return;
 
   clearInterval(timerState.timerId);
   timerState.timerId = null;
+
   timerState.running = false;
   timerState.paused = false;
+  timerState.timeLeft = 0;
+  timerState.totalTime = 0;
+  timerState.lastTick = 0;
   timerState.endAt = 0;
-  alarmState.pendingPomodoroAdvance = false;
+  timerState.mode = "pomodoro";
 
   pomodoroState.enabled = true;
   pomodoroState.phase = "work";
   pomodoroState.workMinutes = work;
   pomodoroState.breakMinutes = brk;
 
+  alarmState.pendingPomodoroAdvance = false;
+
   loadPomodoroPhase();
-  setPomodoroStatus();
-  startTimer();
+  updatePomodoroUI();
   savePomodoroState();
+
+  startTimer(true);
 }
 
 function loadPomodoroPhase() {
@@ -1481,22 +1327,26 @@ function handlePomodoroSwitch() {
   savePomodoroState();
 
   setTimeout(() => {
-    startTimer();
-  }, 350);
+    startTimer(true);
+  }, 300);
 }
 
 function resetPomodoro() {
   clearInterval(timerState.timerId);
   timerState.timerId = null;
+
   timerState.running = false;
   timerState.paused = false;
   timerState.timeLeft = 0;
   timerState.totalTime = 0;
   timerState.lastTick = 0;
   timerState.endAt = 0;
+  timerState.mode = "timer";
 
   pomodoroState.enabled = false;
   pomodoroState.phase = "work";
+  pomodoroState.workMinutes = 25;
+  pomodoroState.breakMinutes = 5;
   alarmState.pendingPomodoroAdvance = false;
 
   if ($("pomodoroWork")) $("pomodoroWork").value = 25;
@@ -1506,10 +1356,7 @@ function resetPomodoro() {
   if ($("minutes")) $("minutes").value = 0;
   if ($("seconds")) $("seconds").value = 0;
 
-  const display = $("timerDisplay");
-  if (display) display.textContent = "00:00:00";
-
-  updateTimerRing();
+  updateTimerDisplay();
   cancelTimerNotification();
   setText("timerStatus", "ready");
   updateTimerStartButton();
@@ -1528,12 +1375,7 @@ function updatePomodoroUI() {
   const title = $("pomodoroTitle");
   if (!title) return;
 
-  if (pomodoroState.phase === "work") {
-    title.textContent = `${t("pomodoro")} - ${t("work")}`;
-  } else {
-    title.textContent = `${t("pomodoro")} - ${t("break")}`;
-  }
-
+  title.textContent = `${t("pomodoro")} - ${pomodoroState.phase === "work" ? t("work") : t("break")}`;
   setPomodoroStatus();
 }
 
@@ -1564,27 +1406,6 @@ function setupPomodoroPresets() {
       if ($("pomodoroBreak")) $("pomodoroBreak").value = btn.dataset.break || 5;
     });
   });
-
-  const workInput = $("pomodoroWork");
-  const breakInput = $("pomodoroBreak");
-
-  if (workInput) {
-    workInput.addEventListener("input", () => {
-      if (!isPremiumUser()) {
-        workInput.value = 25;
-      }
-    });
-  }
-
-  if (breakInput) {
-    breakInput.addEventListener("input", () => {
-      if (!isPremiumUser()) {
-        breakInput.value = 5;
-      }
-    });
-  }
-
-  enforcePomodoroAccess();
 }
 
 // ===============================
@@ -1595,13 +1416,13 @@ function formatStopwatch(ms) {
   const hours = Math.floor(totalSec / 3600);
   const minutes = Math.floor((totalSec % 3600) / 60);
   const seconds = totalSec % 60;
-  const milliseconds = Math.floor((ms % 1000) / 100);
+  const tenths = Math.floor((ms % 1000) / 100);
 
   return (
     hours.toString().padStart(2, "0") + ":" +
     minutes.toString().padStart(2, "0") + ":" +
     seconds.toString().padStart(2, "0") + "." +
-    milliseconds
+    tenths
   );
 }
 
@@ -1698,15 +1519,11 @@ function renderLaps() {
   });
 }
 
-function limitLaps(max = 50) {
+function limitLaps(max = 100) {
   if (stopwatchState.laps.length > max) {
     stopwatchState.laps = stopwatchState.laps.slice(0, max);
   }
 }
-
-setInterval(() => {
-  if (stopwatchState.running) limitLaps(100);
-}, 5000);
 
 // ===============================
 // TAB SYSTEM
@@ -1730,7 +1547,6 @@ function switchTab(targetId) {
 
 function setupTabs() {
   const tabs = $$(".tab-btn");
-
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       const target = tab.dataset.tab;
@@ -1756,46 +1572,27 @@ function initTabs() {
 }
 
 // ===============================
-// STORAGE SYSTEM
+// STORAGE
 // ===============================
 function saveAppState() {
-  const data = {
+  localStorage.setItem(STORAGE_KEYS.app, JSON.stringify({
     language: $("language")?.value || "tr",
     theme: "dark",
-    lastTab: appState.lastTab,
-    isPremium: appState.isPremium,
-    adsEnabled: appState.adsEnabled
-  };
-  localStorage.setItem(STORAGE_KEYS.app, JSON.stringify(data));
+    lastTab: appState.lastTab
+  }));
 }
 
 function loadAppState() {
   const data = safeParse(localStorage.getItem(STORAGE_KEYS.app));
-
-  document.body.classList.remove("light");
-  appState.theme = "dark";
-
   if (!data) return;
 
   if (data.language && $("language")) {
     $("language").value = data.language;
     appState.language = data.language;
-  } else {
-    appState.language = "tr";
   }
 
   if (data.lastTab) {
     appState.lastTab = data.lastTab;
-  }
-
-  if (typeof data.isPremium === "boolean") {
-    appState.isPremium = data.isPremium;
-  }
-
-  if (typeof data.adsEnabled === "boolean") {
-    appState.adsEnabled = data.adsEnabled;
-  } else {
-    appState.adsEnabled = !appState.isPremium;
   }
 }
 
@@ -1805,7 +1602,8 @@ function saveTimerState() {
     totalTime: timerState.totalTime,
     running: timerState.running,
     paused: timerState.paused,
-    endAt: timerState.endAt
+    endAt: timerState.endAt,
+    mode: timerState.mode
   }));
 }
 
@@ -1813,9 +1611,9 @@ function loadTimerState() {
   const data = safeParse(localStorage.getItem(STORAGE_KEYS.timer));
   if (!data) return;
 
-  timerState.timeLeft = data.timeLeft || 0;
   timerState.totalTime = data.totalTime || 0;
   timerState.endAt = data.endAt || 0;
+  timerState.mode = data.mode || "timer";
 
   if (data.running && data.endAt) {
     const remaining = Math.max(0, Math.ceil((data.endAt - Date.now()) / 1000));
@@ -1823,8 +1621,9 @@ function loadTimerState() {
     timerState.running = false;
     timerState.paused = remaining > 0;
   } else {
+    timerState.timeLeft = data.timeLeft || 0;
     timerState.running = false;
-    timerState.paused = data.timeLeft > 0;
+    timerState.paused = (data.timeLeft || 0) > 0;
   }
 
   updateTimerDisplay();
@@ -1864,19 +1663,17 @@ function saveSoundState() {
 
 function loadSoundState() {
   const saved = localStorage.getItem(STORAGE_KEYS.sound);
-  if (saved) selectedSoundId = saved;
+  if (saved && sounds.some((s) => s.id === saved)) {
+    selectedSoundId = saved;
+  }
 }
 
 function restoreAllState() {
   loadAppState();
-  loadPremiumState();
   loadSoundState();
   loadPomodoroState();
   loadStopwatchState();
   loadTimerState();
-
-  document.body.classList.remove("light");
-  appState.theme = "dark";
 }
 
 // ===============================
@@ -1896,15 +1693,14 @@ function bind(id, event, handler) {
 }
 
 function toggleTheme() {
-  document.body.classList.remove("light");
-  appState.theme = "dark";
-  saveAppState();
+  // parlak mod kaldırıldı
+  return;
 }
 
 function initEvents() {
   bind("timerStartBtn", "click", async () => {
     await ensureHtmlAudioUnlocked();
-    startTimer();
+    startTimer(false);
   });
 
   bind("timerPauseBtn", "click", pauseTimer);
@@ -1973,12 +1769,10 @@ async function initApp() {
     setupPomodoroPresets();
     setupQuickButtons();
 
-    updateAdsState();
-    enforcePomodoroAccess();
-
     await createNotificationChannel();
     await registerNotificationActions();
     await setupNotificationListeners();
+    await requestNotificationPermission();
 
     applyLanguage();
     updateTimerDisplay();
@@ -2013,8 +1807,5 @@ function onReady(fn) {
   }
 }
 
-onReady(() => {
-  initApp();
-});
-
+onReady(initApp);
 console.log("🔥 APP FULLY READY");
