@@ -4,57 +4,72 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Timer Trink PRO</title>
+<title>Timer Trink</title>
 
 <style>
 :root{
-  --bg:#0f172a;
-  --card:#1e293b;
-  --text:#e2e8f0;
+  --bg:#0b132b;
+  --card:#1c2541;
+  --text:#eaeaea;
 
-  --grad1:#7c3aed;
-  --grad2:#06b6d4;
-  --rest:#1e293b;
+  --primary:#7c3aed;
+  --secondary:#06b6d4;
+  --ring-rest:#1c2541;
 }
 
 body{
   margin:0;
   font-family:system-ui;
-  background:var(--bg);
+  background:linear-gradient(180deg,#0b132b,#1c2541);
   color:var(--text);
 }
 
+/* CONTAINER */
 .container{
   max-width:900px;
   margin:auto;
   padding:20px;
 }
 
+/* TABS */
 .tabs{
   display:flex;
   gap:10px;
+  margin-bottom:20px;
 }
 
-.tab{
+.tab-btn{
   flex:1;
-  padding:12px;
-  border-radius:12px;
-  background:var(--card);
+  padding:14px;
+  border-radius:14px;
+  background:#24325a;
   text-align:center;
   cursor:pointer;
 }
 
-.tab.active{
-  background:linear-gradient(90deg,var(--grad1),var(--grad2));
+.tab-btn.active{
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
 }
 
-.panel{display:none;}
-.panel.active{display:block;}
+/* PANELS */
+.panel{
+  display:none;
+}
+
+.panel.active{
+  display:block;
+}
+
+/* TIMER RING */
+.timer-wrapper{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
 .ring{
-  width:260px;
-  height:260px;
-  margin:30px auto;
+  width:280px;
+  height:280px;
   border-radius:50%;
   display:flex;
   align-items:center;
@@ -62,33 +77,26 @@ body{
 }
 
 .inner{
-  width:210px;
-  height:210px;
+  width:220px;
+  height:220px;
   border-radius:50%;
   background:#020617;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
-  font-size:28px;
 }
 
+#timerDisplay{
+  font-size:32px;
+  font-weight:bold;
+}
+
+/* INPUTS */
 .row{
   display:flex;
   gap:10px;
-  margin-top:10px;
-}
-
-button{
-  flex:1;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  background:var(--card);
-  color:white;
-}
-
-button.primary{
-  background:linear-gradient(90deg,var(--grad1),var(--grad2));
+  margin-top:15px;
 }
 
 input{
@@ -96,244 +104,128 @@ input{
   padding:12px;
   border:none;
   border-radius:10px;
-  background:#1e293b;
+  background:#24325a;
   color:white;
 }
 
-.sound{
-  padding:10px;
-  background:#1e293b;
+/* BUTTONS */
+button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#24325a;
+  color:white;
+}
+
+button.primary{
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+}
+
+/* STOPWATCH FIX */
+#stopwatchPanel .row{
+  margin-top:20px;
+}
+
+/* SOUND */
+.sound-item{
+  padding:12px;
+  background:#24325a;
   border-radius:10px;
-  margin:5px 0;
+  margin-bottom:8px;
 }
 
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
+<!-- TABS -->
 <div class="tabs">
-  <div class="tab active" onclick="tab('timer')">Timer</div>
-  <div class="tab" onclick="tab('pomodoro')">Pomodoro</div>
-  <div class="tab" onclick="tab('sw')">Kronometre</div>
-  <div class="tab" onclick="tab('sound')">Ses</div>
+  <div class="tab-btn active" data-tab="timerPanel">Timer</div>
+  <div class="tab-btn" data-tab="pomodoroPanel">Pomodoro</div>
+  <div class="tab-btn" data-tab="stopwatchPanel">Kronometre</div>
+  <div class="tab-btn" data-tab="soundPanel">Ses</div>
 </div>
 
 <!-- TIMER -->
-<div id="timer" class="panel active">
-  <div id="ring" class="ring">
-    <div id="display" class="inner">00:00:00</div>
+<div id="timerPanel" class="panel active">
+
+  <div class="timer-wrapper">
+    <div id="timerRing" class="ring">
+      <div class="inner">
+        <div id="timerDisplay">00:00:00</div>
+        <div id="timerStatus">Hazır</div>
+      </div>
+    </div>
   </div>
 
   <div class="row">
-    <input id="h" placeholder="Saat">
-    <input id="m" placeholder="Dakika">
-    <input id="s" placeholder="Saniye">
+    <input id="hours" placeholder="Saat">
+    <input id="minutes" placeholder="Dakika">
+    <input id="seconds" placeholder="Saniye">
   </div>
 
   <div class="row">
-    <button class="primary" onclick="start()">Başlat</button>
-    <button onclick="pause()">Duraklat</button>
-    <button onclick="reset()">Sıfırla</button>
+    <button id="timerStartBtn" class="primary">Başlat</button>
+    <button id="timerPauseBtn">Duraklat</button>
+    <button id="timerResetBtn">Sıfırla</button>
   </div>
+
 </div>
 
 <!-- POMODORO -->
-<div id="pomodoro" class="panel">
-  <h3>Pomodoro</h3>
+<div id="pomodoroPanel" class="panel">
+  <h2>Pomodoro</h2>
 
   <div class="row">
-    <input id="pw" value="25">
-    <input id="pb" value="5">
+    <input id="pomodoroWork" value="25">
+    <input id="pomodoroBreak" value="5">
   </div>
 
   <div class="row">
-    <button class="primary" onclick="startPomodoro()">Başlat</button>
+    <button id="applyPomodoroBtn" class="primary">Başlat</button>
   </div>
+
+  <div id="pomodoroStatus">Hazır</div>
 </div>
 
 <!-- STOPWATCH -->
-<div id="sw" class="panel">
-  <div class="ring">
-    <div id="swDisplay" class="inner">00:00:00.0</div>
+<div id="stopwatchPanel" class="panel">
+
+  <div class="timer-wrapper">
+    <div class="ring">
+      <div class="inner">
+        <div id="stopwatchDisplay">00:00:00.0</div>
+      </div>
+    </div>
   </div>
 
   <div class="row">
-    <button class="primary" onclick="toggleSW()">Başlat</button>
-    <button onclick="lap()">Tur</button>
-    <button onclick="resetSW()">Sıfırla</button>
+    <button id="swStartBtn" class="primary">Başlat</button>
+    <button id="swLapBtn">Tur</button>
+    <button id="swResetBtn">Sıfırla</button>
   </div>
 
-  <div id="laps"></div>
+  <div class="row">
+    <button id="swClearLapsBtn">Turları temizle</button>
+  </div>
+
+  <div id="lapsList"></div>
 </div>
 
 <!-- SOUND -->
-<div id="sound" class="panel"></div>
+<div id="soundPanel" class="panel">
+  <h2>Alarm sesleri</h2>
+  <button id="previewSoundBtn" class="primary">Sesi dinle</button>
+  <div id="soundList"></div>
+</div>
 
 </div>
 
-<script>
-/* -------------------- STATE -------------------- */
-let timer={running:false,end:0,total:0,left:0}
-let pomodoro={on:false,phase:"work",w:25,b:5}
-let sw={run:false,start:0,elapsed:0,laps:[]}
-
-let selectedSound=0;
-
-/* -------------------- 20 UNIQUE SOUNDS -------------------- */
-const freqs=[
-220,261,293,329,349,392,440,493,523,587,
-659,698,783,880,987,1046,1174,1318,1480,1661
-];
-
-/* -------------------- SOUND -------------------- */
-function beep(i){
-  const ctx=new AudioContext();
-  const o=ctx.createOscillator();
-  const g=ctx.createGain();
-
-  o.type=i%2?"square":"sine";
-  o.frequency.value=freqs[i];
-
-  o.connect(g);
-  g.connect(ctx.destination);
-
-  g.gain.value=0.3;
-  o.start();
-  setTimeout(()=>o.stop(),400);
-}
-
-/* -------------------- TIMER -------------------- */
-function start(){
-  const h=+hEl.value||0;
-  const m=+mEl.value||0;
-  const s=+sEl.value||0;
-
-  const total=h*3600+m*60+s;
-  if(!total)return;
-
-  pomodoro.on=false;
-
-  timer.total=total;
-  timer.end=Date.now()+total*1000;
-  timer.running=true;
-}
-
-function pause(){
-  timer.running=false;
-}
-
-function reset(){
-  timer.running=false;
-  timer.left=0;
-  updateDisplay(0);
-}
-
-/* -------------------- POMODORO -------------------- */
-function startPomodoro(){
-  pomodoro.on=true;
-  pomodoro.phase="work";
-  nextPhase();
-}
-
-function nextPhase(){
-  let t=pomodoro.phase==="work"?pomodoro.w:pomodoro.b;
-
-  timer.total=t*60;
-  timer.end=Date.now()+t*60000;
-  timer.running=true;
-}
-
-/* -------------------- LOOP -------------------- */
-function loop(){
-  if(timer.running){
-    timer.left=Math.max(0,(timer.end-Date.now())/1000);
-
-    if(timer.left<=0){
-      timer.running=false;
-
-      beep(selectedSound);
-
-      if(navigator.vibrate) navigator.vibrate([200,100,200]);
-
-      if(pomodoro.on){
-        pomodoro.phase = pomodoro.phase==="work"?"break":"work";
-        setTimeout(nextPhase,1000);
-      }
-    }
-
-    updateDisplay(timer.left);
-  }
-
-  if(sw.run){
-    let t=sw.elapsed+(Date.now()-sw.start);
-    swDisplay.textContent=format(t/1000);
-  }
-
-  requestAnimationFrame(loop);
-}
-
-function updateDisplay(t){
-  display.textContent=format(t);
-
-  let p=(timer.total-timer.left)/timer.total||0;
-  let deg=p*360;
-
-  ring.style.background=
-  `conic-gradient(var(--grad1) 0deg,var(--grad2) ${deg}deg,var(--rest) ${deg}deg)`;
-}
-
-function format(s){
-  let h=Math.floor(s/3600);
-  let m=Math.floor((s%3600)/60);
-  let sec=Math.floor(s%60);
-  return `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${sec.toString().padStart(2,"0")}`;
-}
-
-/* -------------------- STOPWATCH -------------------- */
-function toggleSW(){
-  if(!sw.run){
-    sw.start=Date.now();
-    sw.run=true;
-  }else{
-    sw.elapsed+=Date.now()-sw.start;
-    sw.run=false;
-  }
-}
-
-function lap(){
-  let t=sw.elapsed+(Date.now()-sw.start);
-  sw.laps.unshift(format(t/1000));
-  renderLaps();
-}
-
-function resetSW(){
-  sw={run:false,start:0,elapsed:0,laps:[]};
-  swDisplay.textContent="00:00:00.0";
-  renderLaps();
-}
-
-function renderLaps(){
-  laps.innerHTML=sw.laps.map((l,i)=>`<div>${i+1}. ${l}</div>`).join("");
-}
-
-/* -------------------- TABS -------------------- */
-function tab(id){
-  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-
-  document.getElementById(id).classList.add("active");
-  event.target.classList.add("active");
-}
-
-/* -------------------- INIT -------------------- */
-const hEl=document.getElementById("h");
-const mEl=document.getElementById("m");
-const sEl=document.getElementById("s");
-
-loop();
-</script>
+<script src="app.js"></script>
 
 </body>
 </html>
