@@ -312,26 +312,226 @@ const baseTranslations = {
 // 20 UNIQUE SOUNDS
 // ===============================
 const SOUND_LIBRARY = [
-  { id: "s1",  name: { tr: "Kristal Çan",      en: "Crystal Bell" },      kind: "crystal",  assetPath: "sound1.mp3",  seq: [1040, 1560, 2080] },
-  { id: "s2",  name: { tr: "Gece Zili",        en: "Night Bell" },        kind: "glass",    assetPath: "sound2.mp3",  seq: [1260, 1820, 2440] },
-  { id: "s3",  name: { tr: "Derin Gong",       en: "Deep Gong" },         kind: "gong",     assetPath: "sound3.mp3",  seq: [220, 330, 440] },
-  { id: "s4",  name: { tr: "Dijital Bip",      en: "Digital Beep" },      kind: "digital",  assetPath: "sound4.mp3",  seq: [880, 1320, 1760] },
-  { id: "s5",  name: { tr: "Marimba Işık",     en: "Marimba Light" },     kind: "marimba",  assetPath: "sound5.mp3",  seq: [660, 990, 1320] },
-  { id: "s6",  name: { tr: "Yankı Uyarı",      en: "Echo Alert" },        kind: "echo",     assetPath: "sound6.mp3",  seq: [480, 720, 960] },
-  { id: "s7",  name: { tr: "Sakin Tını",       en: "Calm Tone" },         kind: "calm",     assetPath: "sound7.mp3",  seq: [420, 630, 840] },
-  { id: "s8",  name: { tr: "Parlak Alarm",     en: "Bright Alarm" },      kind: "bright",   assetPath: "sound8.mp3",  seq: [940, 1410, 1880] },
-  { id: "s9",  name: { tr: "Zen Kase",         en: "Zen Bowl" },          kind: "zen",      assetPath: "sound9.mp3",  seq: [320, 480, 640] },
-  { id: "s10", name: { tr: "Sıcak Çınlama",    en: "Warm Chime" },        kind: "warm",     assetPath: "sound10.mp3", seq: [540, 810, 1080] },
-  { id: "s11", name: { tr: "Buz Camı",         en: "Ice Glass" },         kind: "glass",    assetPath: "sound11.mp3", seq: [1330, 1880, 2550] },
-  { id: "s12", name: { tr: "Ay Gongu",         en: "Moon Gong" },         kind: "gong",     assetPath: "sound12.mp3", seq: [260, 390, 520] },
-  { id: "s13", name: { tr: "Kısa Bip",         en: "Short Beep" },        kind: "digital",  assetPath: "sound13.mp3", seq: [990, 1485, 1980] },
-  { id: "s14", name: { tr: "Ahşap Marimba",    en: "Wood Marimba" },      kind: "marimba",  assetPath: "sound14.mp3", seq: [610, 915, 1220] },
-  { id: "s15", name: { tr: "Uzun Yankı",       en: "Long Echo" },         kind: "echo",     assetPath: "sound15.mp3", seq: [450, 675, 900] },
-  { id: "s16", name: { tr: "Sakin Nabız",      en: "Calm Pulse" },        kind: "calm",     assetPath: "sound16.mp3", seq: [360, 540, 720] },
-  { id: "s17", name: { tr: "Mavi Işık",        en: "Blue Light" },        kind: "bright",   assetPath: "sound17.mp3", seq: [1020, 1530, 2040] },
-  { id: "s18", name: { tr: "Zen Derin",        en: "Zen Deep" },          kind: "zen",      assetPath: "sound18.mp3", seq: [280, 420, 560] },
-  { id: "s19", name: { tr: "Kristal Şafak",    en: "Crystal Dawn" },      kind: "crystal",  assetPath: "sound19.mp3", seq: [1180, 1680, 2240] },
-  { id: "s20", name: { tr: "Sıcak Uyarı",      en: "Warm Alert" },        kind: "warm",     assetPath: "sound20.mp3", seq: [500, 760, 1020] }
+  {
+    id: "s1",
+    name: {
+      tr: "Kristal Çan", en: "Crystal Bell", de: "Kristallglocke", fr: "Cloche Cristal",
+      es: "Campana Cristal", ru: "Хрустальный колокол", ar: "جرس كريستالي",
+      it: "Campana di Cristallo", pt: "Sino de Cristal", zh: "水晶铃声"
+    },
+    kind: "crystal",
+    assetPath: "sound1.mp3",
+    seq: [1040, 1560, 2080]
+  },
+  {
+    id: "s2",
+    name: {
+      tr: "Gece Zili", en: "Night Bell", de: "Nachtglocke", fr: "Cloche Nocturne",
+      es: "Campana Nocturna", ru: "Ночной колокол", ar: "جرس ليلي",
+      it: "Campana Notturna", pt: "Sino Noturno", zh: "夜铃"
+    },
+    kind: "glass",
+    assetPath: "sound2.mp3",
+    seq: [1260, 1820, 2440]
+  },
+  {
+    id: "s3",
+    name: {
+      tr: "Derin Gong", en: "Deep Gong", de: "Tiefer Gong", fr: "Gong Profond",
+      es: "Gong Profundo", ru: "Глубокий гонг", ar: "غونغ عميق",
+      it: "Gong Profondo", pt: "Gongo Profundo", zh: "深沉铜锣"
+    },
+    kind: "gong",
+    assetPath: "sound3.mp3",
+    seq: [220, 330, 440]
+  },
+  {
+    id: "s4",
+    name: {
+      tr: "Dijital Bip", en: "Digital Beep", de: "Digitaler Piepton", fr: "Bip Numérique",
+      es: "Bip Digital", ru: "Цифровой сигнал", ar: "بيب رقمي",
+      it: "Bip Digitale", pt: "Bipe Digital", zh: "数字提示音"
+    },
+    kind: "digital",
+    assetPath: "sound4.mp3",
+    seq: [880, 1320, 1760]
+  },
+  {
+    id: "s5",
+    name: {
+      tr: "Marimba Işık", en: "Marimba Light", de: "Marimba Licht", fr: "Marimba Lumière",
+      es: "Marimba Luz", ru: "Светлая маримба", ar: "ماريمبا مضيئة",
+      it: "Marimba Luce", pt: "Marimba Luz", zh: "马林巴轻音"
+    },
+    kind: "marimba",
+    assetPath: "sound5.mp3",
+    seq: [660, 990, 1320]
+  },
+  {
+    id: "s6",
+    name: {
+      tr: "Yankı Uyarı", en: "Echo Alert", de: "Echo Alarm", fr: "Alerte Écho",
+      es: "Alerta Eco", ru: "Эхо-сигнал", ar: "تنبيه صدى",
+      it: "Avviso Eco", pt: "Alerta Eco", zh: "回声提醒"
+    },
+    kind: "echo",
+    assetPath: "sound6.mp3",
+    seq: [480, 720, 960]
+  },
+  {
+    id: "s7",
+    name: {
+      tr: "Sakin Tını", en: "Calm Tone", de: "Ruhiger Ton", fr: "Ton Calme",
+      es: "Tono Calmo", ru: "Спокойный тон", ar: "نغمة هادئة",
+      it: "Tono Calmo", pt: "Tom Calmo", zh: "安静音色"
+    },
+    kind: "calm",
+    assetPath: "sound7.mp3",
+    seq: [420, 630, 840]
+  },
+  {
+    id: "s8",
+    name: {
+      tr: "Parlak Alarm", en: "Bright Alarm", de: "Heller Alarm", fr: "Alarme Brillante",
+      es: "Alarma Brillante", ru: "Яркий сигнал", ar: "إنذار ساطع",
+      it: "Allarme Brillante", pt: "Alarme Brilhante", zh: "明亮警报"
+    },
+    kind: "bright",
+    assetPath: "sound8.mp3",
+    seq: [940, 1410, 1880]
+  },
+  {
+    id: "s9",
+    name: {
+      tr: "Zen Kase", en: "Zen Bowl", de: "Zen-Schale", fr: "Bol Zen",
+      es: "Cuenco Zen", ru: "Дзен-чаша", ar: "وعاء زن",
+      it: "Ciotola Zen", pt: "Tigela Zen", zh: "禅意钵声"
+    },
+    kind: "zen",
+    assetPath: "sound9.mp3",
+    seq: [320, 480, 640]
+  },
+  {
+    id: "s10",
+    name: {
+      tr: "Sıcak Çınlama", en: "Warm Chime", de: "Warmer Klang", fr: "Carillon Chaleureux",
+      es: "Campanilla Cálida", ru: "Тёплый звон", ar: "رنين دافئ",
+      it: "Rintocco Caldo", pt: "Toque Quente", zh: "温暖钟声"
+    },
+    kind: "warm",
+    assetPath: "sound10.mp3",
+    seq: [540, 810, 1080]
+  },
+  {
+    id: "s11",
+    name: {
+      tr: "Buz Camı", en: "Ice Glass", de: "Eisglas", fr: "Verre de Glace",
+      es: "Cristal Helado", ru: "Ледяное стекло", ar: "زجاج جليدي",
+      it: "Vetro Ghiaccio", pt: "Vidro de Gelo", zh: "冰晶玻璃"
+    },
+    kind: "glass",
+    assetPath: "sound11.mp3",
+    seq: [1330, 1880, 2550]
+  },
+  {
+    id: "s12",
+    name: {
+      tr: "Ay Gongu", en: "Moon Gong", de: "Mondgong", fr: "Gong Lunaire",
+      es: "Gong Lunar", ru: "Лунный гонг", ar: "غونغ القمر",
+      it: "Gong Lunare", pt: "Gongo Lunar", zh: "月光铜锣"
+    },
+    kind: "gong",
+    assetPath: "sound12.mp3",
+    seq: [260, 390, 520]
+  },
+  {
+    id: "s13",
+    name: {
+      tr: "Kısa Bip", en: "Short Beep", de: "Kurzer Piepton", fr: "Bip Court",
+      es: "Bip Corto", ru: "Короткий сигнал", ar: "بيب قصير",
+      it: "Bip Breve", pt: "Bipe Curto", zh: "短促提示音"
+    },
+    kind: "digital",
+    assetPath: "sound13.mp3",
+    seq: [990, 1485, 1980]
+  },
+  {
+    id: "s14",
+    name: {
+      tr: "Ahşap Marimba", en: "Wood Marimba", de: "Holz-Marimba", fr: "Marimba Bois",
+      es: "Marimba de Madera", ru: "Деревянная маримба", ar: "ماريمبا خشبية",
+      it: "Marimba in Legno", pt: "Marimba de Madeira", zh: "木质马林巴"
+    },
+    kind: "marimba",
+    assetPath: "sound14.mp3",
+    seq: [610, 915, 1220]
+  },
+  {
+    id: "s15",
+    name: {
+      tr: "Uzun Yankı", en: "Long Echo", de: "Langes Echo", fr: "Long Écho",
+      es: "Eco Largo", ru: "Долгое эхо", ar: "صدى طويل",
+      it: "Eco Lungo", pt: "Eco Longo", zh: "长回声"
+    },
+    kind: "echo",
+    assetPath: "sound15.mp3",
+    seq: [450, 675, 900]
+  },
+  {
+    id: "s16",
+    name: {
+      tr: "Sakin Nabız", en: "Calm Pulse", de: "Ruhiger Puls", fr: "Pouls Calme",
+      es: "Pulso Calmado", ru: "Спокойный пульс", ar: "نبض هادئ",
+      it: "Impulso Calmo", pt: "Pulso Calmo", zh: "平静脉冲"
+    },
+    kind: "calm",
+    assetPath: "sound16.mp3",
+    seq: [360, 540, 720]
+  },
+  {
+    id: "s17",
+    name: {
+      tr: "Mavi Işık", en: "Blue Light", de: "Blaues Licht", fr: "Lumière Bleue",
+      es: "Luz Azul", ru: "Синий свет", ar: "ضوء أزرق",
+      it: "Luce Blu", pt: "Luz Azul", zh: "蓝色光芒"
+    },
+    kind: "bright",
+    assetPath: "sound17.mp3",
+    seq: [1020, 1530, 2040]
+  },
+  {
+    id: "s18",
+    name: {
+      tr: "Zen Derin", en: "Zen Deep", de: "Zen Tief", fr: "Zen Profond",
+      es: "Zen Profundo", ru: "Глубокий дзен", ar: "زن عميق",
+      it: "Zen Profondo", pt: "Zen Profundo", zh: "深沉禅音"
+    },
+    kind: "zen",
+    assetPath: "sound18.mp3",
+    seq: [280, 420, 560]
+  },
+  {
+    id: "s19",
+    name: {
+      tr: "Kristal Şafak", en: "Crystal Dawn", de: "Kristalldämmerung", fr: "Aube Cristal",
+      es: "Amanecer Cristal", ru: "Хрустальный рассвет", ar: "فجر كريستالي",
+      it: "Alba di Cristallo", pt: "Amanhecer de Cristal", zh: "水晶晨曦"
+    },
+    kind: "crystal",
+    assetPath: "sound19.mp3",
+    seq: [1180, 1680, 2240]
+  },
+  {
+    id: "s20",
+    name: {
+      tr: "Sıcak Uyarı", en: "Warm Alert", de: "Warme Warnung", fr: "Alerte Chaude",
+      es: "Alerta Cálida", ru: "Тёплое предупреждение", ar: "تنبيه دافئ",
+      it: "Avviso Caldo", pt: "Alerta Quente", zh: "温暖提醒"
+    },
+    kind: "warm",
+    assetPath: "sound20.mp3",
+    seq: [500, 760, 1020]
+  }
 ];
 
 const sounds = SOUND_LIBRARY.map((s) => ({
@@ -799,14 +999,22 @@ function dismissAlarm() {
 
   unlockUI();
 
-  if (pomodoroState.enabled === true && alarmState.pendingPomodoroAdvance === true) {
-    alarmState.pendingPomodoroAdvance = false;
-    handlePomodoroSwitch();
-    return;
-  }
+  const shouldAdvancePomodoro =
+    timerState.mode === "pomodoro" &&
+    pomodoroState.enabled === true &&
+    pomodoroState.autoAdvance === true &&
+    alarmState.pendingPomodoroAdvance === true;
 
   alarmState.pendingPomodoroAdvance = false;
-  pomodoroState.enabled = false;
+
+  if (shouldAdvancePomodoro) {
+    handlePomodoroSwitch();
+  } else {
+    timerState.mode = "timer";
+  }
+
+  saveTimerState();
+  savePomodoroState();
 }
 
 function updateSoundCount() {
@@ -895,7 +1103,7 @@ async function createNotificationChannel() {
       importance: 5,
       visibility: 1,
       vibration: true,
-      sound: "beep" // android/app/src/main/res/raw/beep.wav varsa kullanır
+      sound: "beep"
     });
   } catch {}
 }
@@ -1021,7 +1229,9 @@ function hardResetTimerState() {
   updateTimerDisplay();
   setText("timerStatus", "ready");
   updateTimerStartButton();
+
   saveTimerState();
+  savePomodoroState();
 }
 
 async function setupNotificationListeners() {
@@ -1032,6 +1242,7 @@ async function setupNotificationListeners() {
       "localNotificationActionPerformed",
       async (event) => {
         const notificationId = event?.notification?.id;
+
         hardResetTimerState();
 
         try {
@@ -1145,12 +1356,13 @@ function startTimer(fromPomodoro = false) {
   clearInterval(timerState.timerId);
   timerState.timerId = null;
 
-  if (!fromPomodoro) {
+  if (fromPomodoro) {
+    timerState.mode = "pomodoro";
+  } else {
+    timerState.mode = "timer";
     pomodoroState.enabled = false;
     alarmState.pendingPomodoroAdvance = false;
-    timerState.mode = "timer";
-  } else {
-    timerState.mode = "pomodoro";
+    savePomodoroState();
   }
 
   timerState.totalTime = total;
@@ -1230,7 +1442,9 @@ function resetTimer() {
   cancelTimerNotification();
   setText("timerStatus", "ready");
   updateTimerStartButton();
+
   saveTimerState();
+  savePomodoroState();
 }
 
 function onTimerFinished() {
@@ -1250,7 +1464,9 @@ function onTimerFinished() {
   updateTimerStartButton();
 
   alarmState.pendingPomodoroAdvance =
-    timerState.mode === "pomodoro" && pomodoroState.enabled === true;
+    timerState.mode === "pomodoro" &&
+    pomodoroState.enabled === true &&
+    pomodoroState.autoAdvance === true;
 
   saveTimerState();
 }
@@ -1259,9 +1475,17 @@ function setupQuickButtons() {
   const buttons = $$(".quick-btn");
   buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
+      pomodoroState.enabled = false;
+      alarmState.pendingPomodoroAdvance = false;
+      timerState.mode = "timer";
+
       if ($("hours")) $("hours").value = btn.dataset.h || 0;
       if ($("minutes")) $("minutes").value = btn.dataset.m || 0;
       if ($("seconds")) $("seconds").value = btn.dataset.s || 0;
+
+      savePomodoroState();
+      saveTimerState();
+      updatePomodoroUI();
     });
   });
 }
@@ -1327,7 +1551,9 @@ function handlePomodoroSwitch() {
   savePomodoroState();
 
   setTimeout(() => {
-    startTimer(true);
+    if (pomodoroState.enabled) {
+      startTimer(true);
+    }
   }, 300);
 }
 
@@ -1361,6 +1587,7 @@ function resetPomodoro() {
   setText("timerStatus", "ready");
   updateTimerStartButton();
   updatePomodoroUI();
+
   savePomodoroState();
   saveTimerState();
 }
@@ -1693,7 +1920,6 @@ function bind(id, event, handler) {
 }
 
 function toggleTheme() {
-  // parlak mod kaldırıldı
   return;
 }
 
