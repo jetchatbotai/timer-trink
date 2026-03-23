@@ -1,18 +1,13 @@
 {
   "appId": "com.timertrink.app",
-  "appName": "Timer Trink!",
-  "webDir": "www",
+  "appName": "Timer Trink",
+  "webDir": ".",
   "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https"
-  },
-  "android": {
-    "allowMixedContent": true
-  },
   "plugins": {
     "LocalNotifications": {
-      "smallIcon": "ic_stat_name",
-      "iconColor": "#6456ff"
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#ffffff",
+      "sound": "beep.wav"
     }
   }
 }
