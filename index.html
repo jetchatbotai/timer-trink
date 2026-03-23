@@ -1,173 +1,244 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Timer Trink!</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+  <title>Timer Trink</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="bg-orb orb-1"></div>
-  <div class="bg-orb orb-2"></div>
-
   <div class="app-shell">
     <header class="topbar">
-      <div>
-        <h1 class="brand">⏱ Timer Trink!</h1>
-        <p id="subtitle" class="subtitle">Simple timer for focus and daily use</p>
+      <div class="brand-wrap">
+        <h1 class="app-title">Timer Trink</h1>
+        <p id="subtitle" class="subtitle">
+          Simple timer for focus and daily use
+        </p>
       </div>
 
-      <div class="top-actions">
-        <select id="language">
-          <option value="tr">Türkçe</option>
-          <option value="en">English</option>
-          <option value="de">Deutsch</option>
-          <option value="fr">Français</option>
-          <option value="es">Español</option>
-          <option value="ru">Русский</option>
-          <option value="ar">العربية</option>
-          <option value="it">Italiano</option>
-          <option value="pt">Português</option>
-          <option value="zh">中文</option>
-        </select>
-        <button id="themeToggle" class="icon-btn" type="button">🌙</button>
+      <div class="topbar-actions">
+        <div class="control-chip">
+          <label for="language" class="sr-only">Language</label>
+          <select id="language">
+            <option value="en">EN</option>
+            <option value="tr">TR</option>
+            <option value="de">DE</option>
+            <option value="fr">FR</option>
+            <option value="es">ES</option>
+            <option value="ru">RU</option>
+            <option value="ar">AR</option>
+            <option value="it">IT</option>
+            <option value="pt">PT</option>
+            <option value="zh">ZH</option>
+          </select>
+        </div>
+
+        <button id="themeToggle" class="icon-btn" type="button">
+          Theme
+        </button>
       </div>
     </header>
 
     <nav class="tabs">
-      <button class="tab-btn active" data-tab="timerPanel" id="tabTimer">Timer</button>
-      <button class="tab-btn" data-tab="pomodoroPanel" id="tabPomodoro">Pomodoro</button>
-      <button class="tab-btn" data-tab="stopwatchPanel" id="tabStopwatch">Stopwatch</button>
-      <button class="tab-btn" data-tab="soundsPanel" id="tabSounds">Sounds</button>
+      <button id="tabTimer" class="tab-btn active" data-tab="timerPanel">
+        Timer
+      </button>
+      <button id="tabPomodoro" class="tab-btn" data-tab="pomodoroPanel">
+        Pomodoro
+      </button>
+      <button id="tabStopwatch" class="tab-btn" data-tab="stopwatchPanel">
+        Stopwatch
+      </button>
+      <button id="tabSounds" class="tab-btn" data-tab="soundsPanel">
+        sounds
+      </button>
     </nav>
 
-    <section id="timerPanel" class="panel active">
-      <div class="display-wrap">
-        <div id="timerRing" class="ring"></div>
-        <div id="timerDisplay" class="display">00:00:00</div>
-      </div>
+    <main class="main-content">
+      <!-- TIMER PANEL -->
+      <section id="timerPanel" class="panel active">
+        <div class="card hero-card">
+          <div class="timer-ring-wrap">
+            <div id="timerRing" class="timer-ring">
+              <div class="timer-ring-inner">
+                <div id="timerDisplay" class="timer-display">00:00:00</div>
+                <div id="timerStatus" class="status-text">Ready</div>
+              </div>
+            </div>
+          </div>
 
-      <div class="quick-row">
-        <button class="chip quick-btn" data-h="0" data-m="1" data-s="0" type="button">1m</button>
-        <button class="chip quick-btn" data-h="0" data-m="5" data-s="0" type="button">5m</button>
-        <button class="chip quick-btn" data-h="0" data-m="10" data-s="0" type="button">10m</button>
-        <button class="chip quick-btn" data-h="0" data-m="25" data-s="0" type="button">25m</button>
-      </div>
+          <div class="time-inputs">
+            <div class="input-group">
+              <label id="hoursLabel" for="hours">Hours</label>
+              <input id="hours" type="number" min="0" max="99" value="0" />
+            </div>
 
-      <div class="inputs-grid">
-        <div class="field">
-          <label id="hoursLabel" for="hours">Hours</label>
-          <input id="hours" type="number" min="0" value="0" />
+            <div class="input-group">
+              <label id="minutesLabel" for="minutes">Minutes</label>
+              <input id="minutes" type="number" min="0" max="59" value="0" />
+            </div>
+
+            <div class="input-group">
+              <label id="secondsLabel" for="seconds">Seconds</label>
+              <input id="seconds" type="number" min="0" max="59" value="0" />
+            </div>
+          </div>
+
+          <div class="quick-grid">
+            <button class="quick-btn" data-h="0" data-m="1" data-s="0" type="button">1m</button>
+            <button class="quick-btn" data-h="0" data-m="5" data-s="0" type="button">5m</button>
+            <button class="quick-btn" data-h="0" data-m="10" data-s="0" type="button">10m</button>
+            <button class="quick-btn" data-h="0" data-m="15" data-s="0" type="button">15m</button>
+            <button class="quick-btn" data-h="0" data-m="25" data-s="0" type="button">25m</button>
+            <button class="quick-btn" data-h="1" data-m="0" data-s="0" type="button">1h</button>
+          </div>
+
+          <div class="button-row">
+            <button id="timerStartBtn" class="primary-btn" type="button">
+              Start
+            </button>
+            <button id="timerPauseBtn" type="button">Pause</button>
+            <button id="timerResetBtn" type="button">Reset</button>
+          </div>
         </div>
-        <div class="field">
-          <label id="minutesLabel" for="minutes">Minutes</label>
-          <input id="minutes" type="number" min="0" value="0" />
+
+        <div class="card settings-card">
+          <h3>Alarm</h3>
+
+          <div class="toggle-row">
+            <label class="toggle-item">
+              <input id="soundToggle" type="checkbox" checked />
+              <span id="soundLabel">Sound on</span>
+            </label>
+
+            <label class="toggle-item">
+              <input id="vibrationToggle" type="checkbox" checked />
+              <span id="vibrationLabel">Vibration on</span>
+            </label>
+          </div>
+
+          <div class="ad-container">
+            <div class="ad-box">Ad space</div>
+          </div>
         </div>
-        <div class="field">
-          <label id="secondsLabel" for="seconds">Seconds</label>
-          <input id="seconds" type="number" min="0" value="0" />
+      </section>
+
+      <!-- POMODORO PANEL -->
+      <section id="pomodoroPanel" class="panel">
+        <div class="card">
+          <h2 id="pomodoroTitle">Pomodoro - Work</h2>
+          <p id="pomodoroDesc">Choose a focus preset and load it into timer.</p>
+          <p id="pomodoroStatus" class="status-text">Ready • Cycle: 0</p>
+
+          <div class="preset-grid">
+            <button class="preset-btn active" data-work="25" data-break="5" type="button">25 / 5</button>
+            <button class="preset-btn" data-work="50" data-break="10" type="button">50 / 10</button>
+            <button class="preset-btn" data-work="90" data-break="15" type="button">90 / 15</button>
+            <button class="preset-btn" data-work="15" data-break="3" type="button">15 / 3</button>
+            <button class="preset-btn" data-work="45" data-break="8" type="button">45 / 8</button>
+          </div>
+
+          <div class="pomodoro-inputs">
+            <div class="input-group">
+              <label id="workLabel" for="pomodoroWork">Work</label>
+              <input id="pomodoroWork" type="number" min="1" max="180" value="25" />
+            </div>
+
+            <div class="input-group">
+              <label id="breakLabel" for="pomodoroBreak">Break</label>
+              <input id="pomodoroBreak" type="number" min="1" max="60" value="5" />
+            </div>
+          </div>
+
+          <div id="pomodoroPremiumNotice" class="premium-note">
+            Custom work and break durations are a Premium feature.
+          </div>
+
+          <div class="button-row">
+            <button id="applyPomodoroBtn" class="primary-btn" type="button">
+              Apply Pomodoro
+            </button>
+            <button id="pomodoroResetBtn" type="button">
+              Reset Pomodoro
+            </button>
+            <button id="pomodoroCycleResetBtn" type="button">
+              Reset Cycle
+            </button>
+          </div>
+
+          <button id="pomodoroSkipBtn" type="button" style="display:none;">
+            Skip
+          </button>
         </div>
-      </div>
 
-      <div class="controls">
-        <button id="timerStartBtn" class="primary" type="button">Start</button>
-        <button id="timerPauseBtn" type="button">Pause</button>
-        <button id="timerResetBtn" type="button">Reset</button>
-      </div>
-
-      <div class="toggles">
-        <label class="toggle-item">
-          <input type="checkbox" id="soundToggle" checked />
-          <span id="soundLabel">Sound on</span>
-        </label>
-        <label class="toggle-item">
-          <input type="checkbox" id="vibrationToggle" checked />
-          <span id="vibrationLabel">Vibration on</span>
-        </label>
-      </div>
-
-      <div id="timerStatus" class="status">Ready</div>
-    </section>
-
-    <section id="pomodoroPanel" class="panel">
-      <h2 id="pomodoroTitle">Pomodoro - Work</h2>
-      <p id="pomodoroDesc" class="panel-text">Choose a focus preset and load it into timer.</p>
-
-      <div class="quick-row">
-        <button class="preset-btn" data-work="25" data-break="5" type="button">25 / 5</button>
-        <button class="preset-btn" data-work="50" data-break="10" type="button">50 / 10</button>
-        <button class="preset-btn" data-work="15" data-break="3" type="button">15 / 3</button>
-        <button class="preset-btn" data-work="90" data-break="20" type="button">90 / 20</button>
-      </div>
-
-      <div class="inputs-grid two">
-        <div class="field">
-          <label id="workLabel" for="pomodoroWork">Work</label>
-          <input id="pomodoroWork" type="number" min="1" value="25" />
+        <div class="card premium-hide-ads">
+          <h3>Focus Tips</h3>
+          <p>
+            Use Premium for ad-free use and custom Pomodoro durations.
+          </p>
         </div>
-        <div class="field">
-          <label id="breakLabel" for="pomodoroBreak">Break</label>
-          <input id="pomodoroBreak" type="number" min="1" value="5" />
+      </section>
+
+      <!-- STOPWATCH PANEL -->
+      <section id="stopwatchPanel" class="panel">
+        <div class="card hero-card">
+          <div class="stopwatch-display-wrap">
+            <div id="stopwatchDisplay" class="stopwatch-display">00:00:00.0</div>
+            <div id="stopwatchStatus" class="status-text">Ready</div>
+          </div>
+
+          <div class="button-row">
+            <button id="swStartBtn" class="primary-btn" type="button">
+              Start
+            </button>
+            <button id="swLapBtn" type="button">Lap</button>
+            <button id="swResetBtn" type="button">Reset</button>
+            <button id="swClearLapsBtn" type="button">Clear Laps</button>
+          </div>
         </div>
-      </div>
 
-      <div class="controls single">
-        <button id="applyPomodoroBtn" class="primary" type="button">Apply Pomodoro</button>
-      </div>
+        <div class="card">
+          <div class="card-head">
+            <h3 id="lapsTitle">Laps</h3>
+          </div>
+          <div id="lapsList" class="laps-list"></div>
+        </div>
+      </section>
 
-      <div class="controls">
-        <button id="pomodoroResetBtn" type="button">Reset Pomodoro</button>
-        <button id="pomodoroCycleResetBtn" type="button">Reset Cycle</button>
-        <button id="pomodoroSkipBtn" type="button">Next Phase</button>
-      </div>
+      <!-- SOUNDS PANEL -->
+      <section id="soundsPanel" class="panel">
+        <div class="card">
+          <div class="card-head card-head-split">
+            <div>
+              <h2 id="soundsTitle">Alarm sounds</h2>
+              <p id="soundsDesc">Select a sound and preview it.</p>
+            </div>
+            <div id="soundCountLabel" class="sound-count">50 sounds</div>
+          </div>
 
-      <div id="pomodoroStatus" class="status">Ready</div>
-    </section>
+          <div id="soundList" class="sound-list"></div>
 
-    <section id="stopwatchPanel" class="panel">
-      <div class="display-wrap small">
-        <div class="ring stopwatch-ring"></div>
-        <div id="stopwatchDisplay" class="display stopwatch-display">00:00:00.0</div>
-      </div>
-
-      <div class="controls">
-        <button id="swStartBtn" class="primary" type="button">Start</button>
-        <button id="swLapBtn" type="button">Lap</button>
-        <button id="swResetBtn" type="button">Reset</button>
-      </div>
-
-      <div class="controls single">
-        <button id="swClearLapsBtn" type="button">Clear Laps</button>
-      </div>
-
-      <div id="stopwatchStatus" class="status">Ready</div>
-
-      <div class="laps-box">
-        <div id="lapsTitle" class="laps-title">Laps</div>
-        <div id="lapsList" class="laps-list"></div>
-      </div>
-    </section>
-
-    <section id="soundsPanel" class="panel">
-      <h2 id="soundsTitle">Alarm sounds</h2>
-      <p id="soundsDesc" class="panel-text">Select a sound and preview it.</p>
-
-      <div class="controls single">
-        <button id="previewSoundBtn" class="primary" type="button">Preview sound</button>
-      </div>
-
-      <div id="soundCountLabel" class="sound-count">50 sounds</div>
-      <div id="soundList" class="sound-list"></div>
-    </section>
+          <div class="button-row top-gap">
+            <button id="previewSoundBtn" class="primary-btn" type="button">
+              Preview sound
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <div id="toast" class="toast"></div>
-
+  <!-- ALARM OVERLAY -->
   <div id="alarmOverlay" class="alarm-overlay hidden">
     <div class="alarm-box">
-      <div id="alarmTitle" class="alarm-title">Time is up!</div>
-      <div id="alarmMessage" class="alarm-message">Alarm is ringing</div>
-      <button id="dismissAlarmBtn" class="primary alarm-btn" type="button">Dismiss</button>
+      <h2 id="alarmTitle">Time is up!</h2>
+      <p id="alarmMessage">Alarm ringing</p>
+      <button id="dismissAlarmBtn" class="primary-btn" type="button">
+        Dismiss
+      </button>
     </div>
   </div>
 
