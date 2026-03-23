@@ -24,6 +24,26 @@ function resolveAssetPath(path) {
   }
 }
 
+function safeParse(str) {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return null;
+  }
+}
+
+// ===============================
+// STORAGE KEYS
+// ===============================
+const STORAGE_KEYS = {
+  app: "tt_app_state",
+  timer: "tt_timer_state",
+  stopwatch: "tt_stopwatch_state",
+  pomodoro: "tt_pomodoro_state",
+  sound: "tt_sound",
+  premium: "tt_premium_state"
+};
+
 // ===============================
 // NOTIFICATION STATE
 // ===============================
@@ -40,7 +60,9 @@ const appState = {
   initialized: false,
   language: "en",
   theme: "dark",
-  lastTab: "timerPanel"
+  lastTab: "timerPanel",
+  isPremium: false,
+  adsEnabled: true
 };
 
 // ===============================
@@ -131,10 +153,6 @@ const baseTranslations = {
   done: {
     tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!",
     ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！"
-  },
-  preview: {
-    tr: "Dinle", en: "Preview", de: "Anhören", fr: "Écouter", es: "Escuchar",
-    ru: "Прослушать", ar: "معاينة", it: "Ascolta", pt: "Ouvir", zh: "试听"
   },
   dismissAlarm: {
     tr: "Kapat", en: "Dismiss", de: "Schließen", fr: "Fermer", es: "Cerrar",
@@ -287,6 +305,18 @@ const baseTranslations = {
   resetCycle: {
     tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo",
     ru: "Сбросить цикл", ar: "إعادة ضبط الدورة", it: "Reimposta ciclo", pt: "Redefinir ciclo", zh: "重置周期"
+  },
+  premiumPomodoroNotice: {
+    tr: "Özel çalışma ve mola süreleri Premium özelliktir.",
+    en: "Custom work and break durations are a Premium feature.",
+    de: "Benutzerdefinierte Arbeits- und Pausenzeiten sind Premium.",
+    fr: "Les durées personnalisées sont une fonctionnalité Premium.",
+    es: "Las duraciones personalizadas son una función Premium.",
+    ru: "Свои интервалы доступны в Premium.",
+    ar: "المدد المخصصة ميزة بريميوم.",
+    it: "Le durate personalizzate sono Premium.",
+    pt: "Durações personalizadas são Premium.",
+    zh: "自定义时长为高级功能。"
   }
 };
 
@@ -376,6 +406,46 @@ function updateStopwatchStartButton() {
 }
 
 // ===============================
+// PREMIUM SYSTEM
+// ===============================
+function isPremiumUser() {
+  return !!appState.isPremium;
+}
+
+function updateAdsState() {
+  appState.adsEnabled = !appState.isPremium;
+
+  const adEls = document.querySelectorAll(".ad-container, .premium-hide-ads");
+  adEls.forEach((el) => {
+    el.style.display = appState.adsEnabled ? "" : "none";
+  });
+}
+
+function savePremiumState() {
+  localStorage.setItem(STORAGE_KEYS.premium, JSON.stringify({
+    isPremium: appState.isPremium
+  }));
+}
+
+function loadPremiumState() {
+  const data = safeParse(localStorage.getItem(STORAGE_KEYS.premium));
+  if (!data) return;
+
+  appState.isPremium = !!data.isPremium;
+  appState.adsEnabled = !appState.isPremium;
+}
+
+function setPremium(enabled) {
+  appState.isPremium = !!enabled;
+  appState.adsEnabled = !appState.isPremium;
+
+  savePremiumState();
+  saveAppState();
+  updateAdsState();
+  enforcePomodoroAccess();
+}
+
+// ===============================
 // APPLY LANGUAGE
 // ===============================
 function applyLanguage() {
@@ -418,6 +488,11 @@ function applyLanguage() {
   setText("pomodoroResetBtn", "resetPomodoro");
   setText("pomodoroCycleResetBtn", "resetCycle");
 
+  const pomodoroPremiumNotice = $("pomodoroPremiumNotice");
+  if (pomodoroPremiumNotice) {
+    pomodoroPremiumNotice.textContent = t("premiumPomodoroNotice");
+  }
+
   const skipBtn = $("pomodoroSkipBtn");
   if (skipBtn) skipBtn.style.display = "none";
 
@@ -440,6 +515,7 @@ function applyLanguage() {
   updateSoundCount();
   renderSounds();
   updatePomodoroUI();
+  enforcePomodoroAccess();
 }
 
 // ===============================
@@ -781,7 +857,7 @@ function previewSound(sound) {
 }
 
 function getSelectedSound() {
-  return sounds.find(s => s.id === selectedSoundId) || sounds[0];
+  return sounds.find((s) => s.id === selectedSoundId) || sounds[0];
 }
 
 function startAlarmLoop() {
@@ -1294,7 +1370,7 @@ function onTimerFinished() {
 function setupQuickButtons() {
   const buttons = $$(".quick-btn");
 
-  buttons.forEach(btn => {
+  buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
       if ($("hours")) $("hours").value = btn.dataset.h || 0;
       if ($("minutes")) $("minutes").value = btn.dataset.m || 0;
@@ -1306,9 +1382,50 @@ function setupQuickButtons() {
 // ===============================
 // POMODORO ENGINE
 // ===============================
+function enforcePomodoroAccess() {
+  const workInput = $("pomodoroWork");
+  const breakInput = $("pomodoroBreak");
+  const premiumNotice = $("pomodoroPremiumNotice");
+
+  if (!workInput || !breakInput) return;
+
+  if (isPremiumUser()) {
+    workInput.disabled = false;
+    breakInput.disabled = false;
+    workInput.readOnly = false;
+    breakInput.readOnly = false;
+
+    if (premiumNotice) premiumNotice.style.display = "none";
+    return;
+  }
+
+  workInput.disabled = true;
+  breakInput.disabled = true;
+  workInput.readOnly = true;
+  breakInput.readOnly = true;
+
+  if (premiumNotice) premiumNotice.style.display = "";
+}
+
 function applyPomodoro() {
-  const work = safeNumber($("pomodoroWork")?.value, 25);
-  const brk = safeNumber($("pomodoroBreak")?.value, 5);
+  let work = safeNumber($("pomodoroWork")?.value, 25);
+  let brk = safeNumber($("pomodoroBreak")?.value, 5);
+
+  if (!isPremiumUser()) {
+    const presetButtons = $$(".preset-btn.active");
+    if (presetButtons.length > 0) {
+      const activeBtn = presetButtons[0];
+      work = safeNumber(activeBtn.dataset.work, 25);
+      brk = safeNumber(activeBtn.dataset.break, 5);
+    } else {
+      work = 25;
+      brk = 5;
+    }
+
+    if ($("pomodoroWork")) $("pomodoroWork").value = work;
+    if ($("pomodoroBreak")) $("pomodoroBreak").value = brk;
+  }
+
   if (work <= 0 || brk <= 0) return;
 
   clearInterval(timerState.timerId);
@@ -1430,12 +1547,36 @@ function setPomodoroStatus() {
 function setupPomodoroPresets() {
   const presets = $$(".preset-btn");
 
-  presets.forEach(btn => {
+  presets.forEach((btn) => {
     btn.addEventListener("click", () => {
+      presets.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
       if ($("pomodoroWork")) $("pomodoroWork").value = btn.dataset.work || 25;
       if ($("pomodoroBreak")) $("pomodoroBreak").value = btn.dataset.break || 5;
     });
   });
+
+  const workInput = $("pomodoroWork");
+  const breakInput = $("pomodoroBreak");
+
+  if (workInput) {
+    workInput.addEventListener("input", () => {
+      if (!isPremiumUser()) {
+        workInput.value = 25;
+      }
+    });
+  }
+
+  if (breakInput) {
+    breakInput.addEventListener("input", () => {
+      if (!isPremiumUser()) {
+        breakInput.value = 5;
+      }
+    });
+  }
+
+  enforcePomodoroAccess();
 }
 
 // ===============================
@@ -1566,8 +1707,8 @@ function switchTab(targetId) {
   const panels = $$(".panel");
   const tabs = $$(".tab-btn");
 
-  panels.forEach(p => p.classList.remove("active"));
-  tabs.forEach(t => t.classList.remove("active"));
+  panels.forEach((p) => p.classList.remove("active"));
+  tabs.forEach((t) => t.classList.remove("active"));
 
   const targetPanel = $(targetId);
   if (targetPanel) targetPanel.classList.add("active");
@@ -1582,7 +1723,7 @@ function switchTab(targetId) {
 function setupTabs() {
   const tabs = $$(".tab-btn");
 
-  tabs.forEach(tab => {
+  tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       const target = tab.dataset.tab;
       switchTab(target);
@@ -1594,7 +1735,7 @@ function ensureValidPanel() {
   const panels = $$(".panel");
   let found = false;
 
-  panels.forEach(p => {
+  panels.forEach((p) => {
     if (p.classList.contains("active")) found = true;
   });
 
@@ -1609,27 +1750,13 @@ function initTabs() {
 // ===============================
 // STORAGE SYSTEM
 // ===============================
-const STORAGE_KEYS = {
-  app: "tt_app_state",
-  timer: "tt_timer_state",
-  stopwatch: "tt_stopwatch_state",
-  pomodoro: "tt_pomodoro_state",
-  sound: "tt_sound"
-};
-
-function safeParse(str) {
-  try {
-    return JSON.parse(str);
-  } catch {
-    return null;
-  }
-}
-
 function saveAppState() {
   const data = {
     language: $("language")?.value || "en",
     theme: document.body.classList.contains("light") ? "light" : "dark",
-    lastTab: appState.lastTab
+    lastTab: appState.lastTab,
+    isPremium: appState.isPremium,
+    adsEnabled: appState.adsEnabled
   };
   localStorage.setItem(STORAGE_KEYS.app, JSON.stringify(data));
 }
@@ -1649,6 +1776,16 @@ function loadAppState() {
 
   if (data.lastTab) {
     appState.lastTab = data.lastTab;
+  }
+
+  if (typeof data.isPremium === "boolean") {
+    appState.isPremium = data.isPremium;
+  }
+
+  if (typeof data.adsEnabled === "boolean") {
+    appState.adsEnabled = data.adsEnabled;
+  } else {
+    appState.adsEnabled = !appState.isPremium;
   }
 }
 
@@ -1722,6 +1859,7 @@ function loadSoundState() {
 
 function restoreAllState() {
   loadAppState();
+  loadPremiumState();
   loadSoundState();
   loadPomodoroState();
   loadStopwatchState();
@@ -1820,6 +1958,9 @@ async function initApp() {
     initSoundSystem();
     setupPomodoroPresets();
     setupQuickButtons();
+
+    updateAdsState();
+    enforcePomodoroAccess();
 
     await createNotificationChannel();
     await registerNotificationActions();
