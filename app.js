@@ -1196,10 +1196,25 @@ function updateTimerRing() {
   if (!ring) return;
 
   if (!timerState.totalTime || timerState.totalTime <= 0) {
-    ring.style.background = "";
+    ring.style.background =
+      `conic-gradient(var(--ring-rest) 0deg 360deg)`;
     return;
   }
 
+  const progress = Math.max(
+    0,
+    Math.min(1, (timerState.totalTime - timerState.timeLeft) / timerState.totalTime)
+  );
+
+  const deg = progress * 360;
+
+  ring.style.background =
+    `conic-gradient(
+      var(--primary) 0deg,
+      var(--secondary) ${deg}deg,
+      var(--ring-rest) ${deg}deg 360deg
+    )`;
+}
   const percent = 1 - (timerState.timeLeft / timerState.totalTime);
   const deg = Math.max(0, Math.min(360, percent * 360));
 
