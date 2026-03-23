@@ -3,6 +3,7 @@
   --bg2: #071b47;
   --card: rgba(14, 33, 73, 0.90);
   --card-2: #2a3d63;
+  --card-3: #223454;
   --text: #f4f7fb;
   --muted: #b4bfd3;
   --border: rgba(255, 255, 255, 0.08);
@@ -15,25 +16,6 @@
   --secondary: #31b6e9;
   --ring-rest: rgba(255, 255, 255, 0.16);
   --inner-ring: #142d63;
-}
-
-body.light {
-  --bg: #eef4fb;
-  --bg2: #dde8f8;
-  --card: rgba(255, 255, 255, 0.96);
-  --card-2: #dfe7f3;
-  --text: #132238;
-  --muted: #617188;
-  --border: rgba(15, 23, 42, 0.08);
-  --shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
-
-  --grad-a: #6f5cff;
-  --grad-b: #31b6e9;
-
-  --primary: #6f5cff;
-  --secondary: #31b6e9;
-  --ring-rest: rgba(15, 23, 42, 0.14);
-  --inner-ring: #173064;
 }
 
 * {
@@ -53,11 +35,8 @@ body {
     linear-gradient(180deg, var(--bg2) 0%, var(--bg) 60%);
 }
 
-body.light {
-  background:
-    radial-gradient(circle at top left, rgba(111, 92, 255, 0.10) 0%, transparent 24%),
-    radial-gradient(circle at bottom right, rgba(49, 182, 233, 0.10) 0%, transparent 22%),
-    linear-gradient(180deg, #eef4fb 0%, #e3edf9 100%);
+body {
+  overflow-x: hidden;
 }
 
 button,
@@ -80,6 +59,17 @@ button:hover {
   transform: translateY(-1px);
 }
 
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 input,
 select {
   width: 100%;
@@ -89,6 +79,7 @@ select {
   color: var(--text);
   padding: 16px 18px;
   outline: none;
+  box-shadow: none;
 }
 
 input:focus,
@@ -102,12 +93,19 @@ select:focus {
   padding: 28px 20px 36px;
 }
 
+/* TOPBAR */
+
 .topbar {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 18px;
+}
+
+.brand-wrap {
+  flex: 1;
+  min-width: 0;
 }
 
 .app-title {
@@ -121,6 +119,7 @@ select:focus {
   margin: 10px 0 0;
   color: var(--muted);
   font-size: 1rem;
+  line-height: 1.45;
 }
 
 .topbar-actions {
@@ -136,12 +135,6 @@ select:focus {
   box-shadow: var(--shadow);
 }
 
-body.light .select-control,
-body.light .moon-btn {
-  background: rgba(53, 74, 116, 0.96);
-  color: #fff;
-}
-
 .select-control {
   min-width: 210px;
 }
@@ -150,7 +143,10 @@ body.light .moon-btn {
   width: 58px;
   min-width: 58px;
   padding: 15px 0;
+  text-align: center;
 }
+
+/* TABS */
 
 .tabs {
   display: grid;
@@ -173,6 +169,8 @@ body.light .moon-btn {
   color: #fff;
 }
 
+/* PANELS */
+
 .panel {
   display: none;
 }
@@ -180,6 +178,8 @@ body.light .moon-btn {
 .panel.active {
   display: block;
 }
+
+/* CARDS */
 
 .card {
   background: linear-gradient(135deg, rgba(19, 38, 79, 0.94), rgba(15, 33, 73, 0.92));
@@ -190,10 +190,6 @@ body.light .moon-btn {
   margin-bottom: 20px;
 }
 
-body.light .card {
-  background: rgba(255, 255, 255, 0.94);
-}
-
 .card h2 {
   margin: 0 0 10px;
   font-size: 2rem;
@@ -202,7 +198,8 @@ body.light .card {
 
 .card h3 {
   margin: 0 0 10px;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
+  font-weight: 800;
 }
 
 .card p {
@@ -212,6 +209,12 @@ body.light .card {
 .hero-card {
   min-height: 520px;
 }
+
+.settings-card {
+  min-height: auto;
+}
+
+/* TIMER RING */
 
 .timer-ring-wrap,
 .stopwatch-ring-wrap {
@@ -233,7 +236,11 @@ body.light .card {
 }
 
 .timer-ring {
-  background: conic-gradient(var(--primary) 0deg, var(--secondary) 0deg, var(--ring-rest) 0deg 360deg);
+  background: conic-gradient(
+    var(--primary) 0deg,
+    var(--secondary) 0deg,
+    var(--ring-rest) 0deg 360deg
+  );
 }
 
 .stopwatch-ring {
@@ -250,11 +257,6 @@ body.light .card {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-body.light .timer-ring-inner,
-body.light .stopwatch-ring-inner {
-  color: #f7fbff;
 }
 
 .timer-display,
@@ -274,14 +276,40 @@ body.light .stopwatch-ring-inner {
   text-align: center;
 }
 
-body.light .timer-ring-inner .status-text,
-body.light .stopwatch-ring-inner .status-text {
-  color: rgba(255, 255, 255, 0.78);
-}
-
 .bottom-status {
   margin-top: 18px;
 }
+
+/* INPUT AREAS */
+
+.time-inputs,
+.pomodoro-inputs {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.time-inputs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pomodoro-inputs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* QUICK BUTTONS */
 
 .timer-quick-grid {
   margin-bottom: 20px;
@@ -313,32 +341,7 @@ body.light .stopwatch-ring-inner .status-text {
   outline: 2px solid rgba(49, 182, 233, 0.5);
 }
 
-.time-inputs,
-.pomodoro-inputs {
-  display: grid;
-  gap: 18px;
-  margin-bottom: 22px;
-}
-
-.time-inputs {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.pomodoro-inputs {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.input-group label {
-  color: var(--muted);
-  font-size: 0.95rem;
-  font-weight: 700;
-}
+/* BUTTON LAYOUTS */
 
 .button-row {
   display: flex;
@@ -354,6 +357,14 @@ body.light .stopwatch-ring-inner .status-text {
 .half-buttons {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stopwatch-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 6px;
 }
 
 .primary-btn {
@@ -364,6 +375,27 @@ body.light .stopwatch-ring-inner .status-text {
 .wide-btn {
   width: 100%;
 }
+
+.wide-btn {
+  margin-top: 12px;
+}
+
+/* TOGGLES */
+
+.toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+/* SOUND AREA */
 
 .sound-count {
   color: var(--text);
@@ -380,6 +412,7 @@ body.light .stopwatch-ring-inner .status-text {
   gap: 16px;
   max-height: 520px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .sound-item {
@@ -393,26 +426,12 @@ body.light .stopwatch-ring-inner .status-text {
   font-size: 1rem;
 }
 
-body.light .sound-item {
-  background: #dfe7f3;
-}
-
 .sound-item input {
   width: auto;
   margin: 0;
 }
 
-.toggle-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.toggle-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* LAPS */
 
 .laps-list {
   display: grid;
@@ -430,14 +449,14 @@ body.light .sound-item {
   padding: 14px 16px;
 }
 
-body.light .lap-row {
-  background: #dfe7f3;
-}
+/* PREMIUM NOTE HIDDEN */
 
 .premium-note,
 .hidden-note {
   display: none !important;
 }
+
+/* ALARM OVERLAY */
 
 .alarm-overlay {
   position: fixed;
@@ -478,6 +497,8 @@ body.light .lap-row {
   margin-top: 18px;
 }
 
+/* RESPONSIVE */
+
 @media (max-width: 1100px) {
   .timer-ring,
   .stopwatch-ring {
@@ -511,7 +532,8 @@ body.light .lap-row {
   .pomodoro-inputs,
   .quick-grid,
   .preset-grid,
-  .half-buttons {
+  .half-buttons,
+  .stopwatch-buttons {
     grid-template-columns: 1fr;
   }
 
