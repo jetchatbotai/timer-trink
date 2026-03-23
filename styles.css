@@ -1,31 +1,29 @@
 :root {
-  --bg: #08152f;
-  --bg-soft: #0b1d42;
-  --card: #081a3a;
-  --card-2: #223454;
-  --card-3: #1b2c49;
-  --text: #f3f6fb;
-  --muted: #aab6cc;
-  --primary: #3b82f6;
-  --primary-strong: #2563eb;
+  --bg: #031130;
+  --bg2: #071b47;
+  --card: rgba(14, 33, 73, 0.88);
+  --card-2: #26385a;
+  --text: #f4f7fb;
+  --muted: #b4bfd3;
   --border: rgba(255, 255, 255, 0.08);
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
-  --ring-rest: #263a5d;
+  --grad-a: #6f5cff;
+  --grad-b: #31b6e9;
+  --ring-rest: rgba(255, 255, 255, 0.14);
 }
 
 body.light {
-  --bg: #f4f7fb;
-  --bg-soft: #eef3fa;
-  --card: #ffffff;
-  --card-2: #edf2f7;
-  --card-3: #e7edf5;
-  --text: #0f172a;
+  --bg: #eef4fb;
+  --bg2: #dfe9f7;
+  --card: rgba(255, 255, 255, 0.96);
+  --card-2: #e8eef8;
+  --text: #132238;
   --muted: #64748b;
-  --primary: #3b82f6;
-  --primary-strong: #2563eb;
   --border: rgba(15, 23, 42, 0.08);
-  --shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
-  --ring-rest: #d6e2f0;
+  --shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  --grad-a: #6f5cff;
+  --grad-b: #31b6e9;
+  --ring-rest: rgba(15, 23, 42, 0.12);
 }
 
 * {
@@ -37,14 +35,12 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  font-family: Inter, Arial, sans-serif;
-  background:
-    radial-gradient(circle at top center, var(--bg-soft) 0%, var(--bg) 48%, var(--bg) 100%);
+  font-family: Inter, Arial, Helvetica, sans-serif;
   color: var(--text);
-}
-
-body.light {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(111, 92, 255, 0.28) 0%, transparent 22%),
+    radial-gradient(circle at bottom right, rgba(49, 182, 233, 0.25) 0%, transparent 22%),
+    linear-gradient(180deg, var(--bg2) 0%, var(--bg) 60%);
 }
 
 button,
@@ -55,12 +51,12 @@ select {
 
 button {
   border: none;
-  border-radius: 18px;
-  padding: 14px 18px;
+  border-radius: 20px;
+  padding: 15px 18px;
   background: var(--card-2);
   color: var(--text);
   cursor: pointer;
-  transition: 0.18s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 button:hover {
@@ -70,76 +66,87 @@ button:hover {
 input,
 select {
   width: 100%;
+  border-radius: 20px;
   border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 15px 16px;
   background: var(--card-2);
   color: var(--text);
+  padding: 16px 18px;
   outline: none;
 }
 
 input:focus,
 select:focus {
-  border-color: var(--primary);
+  border-color: rgba(49, 182, 233, 0.45);
 }
 
 .app-shell {
-  max-width: 1240px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 22px 18px 36px;
+  padding: 28px 20px 36px;
 }
 
 .topbar {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
 }
 
 .app-title {
   margin: 0;
-  font-size: 2.1rem;
+  font-size: 2.3rem;
   font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .subtitle {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   color: var(--muted);
   font-size: 1rem;
 }
 
 .topbar-actions {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
 }
 
 .select-control,
-.theme-btn {
-  min-width: 140px;
-  background: transparent;
+.moon-btn {
+  background: rgba(36, 53, 88, 0.92);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
 
+.select-control {
+  min-width: 210px;
+}
+
+.moon-btn {
+  width: 58px;
+  min-width: 58px;
+  padding: 15px 0;
+}
+
 .tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .tab-btn {
   min-height: 62px;
   font-weight: 700;
-  background: transparent;
+  background: rgba(36, 53, 88, 0.9);
   border: 1px solid var(--border);
-  color: var(--text);
+  box-shadow: var(--shadow);
 }
 
-.tab-btn.active {
-  background: var(--primary);
+.tab-btn.active,
+.gradient-btn {
+  background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
   color: white;
 }
 
@@ -152,139 +159,213 @@ select:focus {
 }
 
 .card {
-  background: rgba(8, 26, 58, 0.84);
+  background: linear-gradient(135deg, rgba(19, 38, 79, 0.92), rgba(15, 33, 73, 0.9));
   border: 1px solid var(--border);
-  border-radius: 28px;
-  padding: 22px;
+  border-radius: 30px;
   box-shadow: var(--shadow);
-  margin-bottom: 18px;
-  backdrop-filter: blur(4px);
+  padding: 28px 32px;
+  margin-bottom: 20px;
 }
 
 body.light .card {
   background: var(--card);
 }
 
+.card h2 {
+  margin: 0 0 10px;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.card h3 {
+  margin: 0 0 10px;
+  font-size: 1.4rem;
+}
+
+.card p {
+  margin: 0;
+}
+
 .hero-card {
-  min-height: 320px;
+  min-height: 520px;
 }
 
-.timer-ring-wrap {
+.timer-ring-wrap,
+.stopwatch-ring-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 22px;
+  margin-bottom: 28px;
 }
 
-.timer-ring {
-  width: 320px;
-  height: 320px;
+.timer-ring,
+.stopwatch-ring {
+  width: 430px;
+  height: 430px;
   border-radius: 50%;
-  background: conic-gradient(var(--primary) 0deg, var(--ring-rest) 0deg);
-  padding: 18px;
+  background: conic-gradient(var(--grad-a) 0deg, var(--grad-b) 0deg, var(--ring-rest) 0deg);
+  padding: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.timer-ring-inner {
+.stopwatch-ring {
+  background: conic-gradient(var(--grad-a) 0deg, var(--grad-b) 330deg, var(--ring-rest) 330deg);
+}
+
+.timer-ring-inner,
+.stopwatch-ring-inner {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: #081a3a;
+  background: rgba(16, 34, 72, 0.96);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-body.light .timer-ring-inner {
-  background: var(--card);
-}
-
-.timer-display {
-  font-size: 3rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-}
-
-.stopwatch-display-wrap {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  min-height: 180px;
-  align-content: center;
-}
-
+.timer-display,
 .stopwatch-display {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: 5.2rem;
+  line-height: 1;
+  font-weight: 900;
   letter-spacing: 0.03em;
   text-align: center;
 }
 
 .status-text {
-  margin-top: 10px;
+  margin-top: 18px;
   color: var(--muted);
   font-weight: 700;
   font-size: 1rem;
+  text-align: center;
+}
+
+.bottom-status {
+  margin-top: 18px;
+}
+
+.timer-quick-grid {
+  margin-bottom: 20px;
+}
+
+.quick-grid,
+.preset-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.quick-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.preset-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 22px 0 18px;
+}
+
+.quick-btn,
+.preset-btn {
+  min-height: 66px;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.preset-btn.active {
+  outline: 2px solid rgba(49, 182, 233, 0.5);
 }
 
 .time-inputs,
 .pomodoro-inputs {
   display: grid;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 18px;
+  margin-bottom: 22px;
 }
 
 .time-inputs {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .pomodoro-inputs {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.input-group,
-.field {
+.input-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.input-group label,
-.field label {
+.input-group label {
   color: var(--muted);
   font-size: 0.95rem;
-}
-
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+  font-weight: 700;
 }
 
 .button-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
+}
+
+.button-column {
+  display: grid;
+  gap: 16px;
+}
+
+.half-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .primary-btn {
-  background: var(--primary);
-  color: white;
-  font-weight: 700;
+  font-weight: 800;
 }
 
-.primary-btn:hover {
-  background: var(--primary-strong);
+.full-btn,
+.wide-btn {
+  width: 100%;
+}
+
+.sound-count {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.under-preview {
+  margin: 18px 0 16px;
+}
+
+.sound-list {
+  display: grid;
+  gap: 16px;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.sound-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(40, 57, 92, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 18px 20px;
+  font-size: 1rem;
+}
+
+.sound-item input {
+  width: auto;
+  margin: 0;
 }
 
 .toggle-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 20px;
 }
 
 .toggle-item {
@@ -293,72 +374,9 @@ body.light .timer-ring-inner {
   gap: 10px;
 }
 
-.preset-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin: 18px 0;
-}
-
-.preset-btn {
-  background: var(--card-2);
-}
-
-.preset-btn.active {
-  outline: 2px solid var(--primary);
-  background: rgba(59, 130, 246, 0.12);
-}
-
-.premium-note {
-  margin: 8px 0 16px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  color: var(--muted);
-  background: rgba(59, 130, 246, 0.07);
-  border: 1px solid rgba(59, 130, 246, 0.15);
-}
-
-.sounds-head,
-.card-head,
-.card-head-split {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.sound-count {
-  color: var(--muted);
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.sound-list {
-  max-height: 420px;
-  overflow-y: auto;
-  display: grid;
-  gap: 10px;
-}
-
-.sound-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--card-2);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 14px 16px;
-}
-
-.sound-item input {
-  width: auto;
-  margin: 0;
-}
-
 .laps-list {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .lap-row {
@@ -366,24 +384,24 @@ body.light .timer-ring-inner {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  background: var(--card-2);
+  background: rgba(40, 57, 92, 0.96);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 12px 14px;
+  border-radius: 18px;
+  padding: 14px 16px;
 }
 
-.top-gap {
-  margin-top: 18px;
+.premium-note {
+  display: none;
 }
 
-.settings-card {
-  background: rgba(8, 26, 58, 0.74);
+.hidden-note {
+  display: none !important;
 }
 
 .alarm-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.56);
+  background: rgba(8, 16, 36, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -396,48 +414,48 @@ body.light .timer-ring-inner {
 }
 
 .alarm-box {
-  width: min(420px, 100%);
-  background: var(--card);
+  width: min(460px, 100%);
+  background: linear-gradient(135deg, rgba(19, 38, 79, 0.98), rgba(15, 33, 73, 0.96));
   border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 26px;
+  border-radius: 28px;
+  padding: 28px;
   text-align: center;
   box-shadow: var(--shadow);
 }
 
 .alarm-box h2 {
   margin: 0 0 10px;
+  font-size: 1.8rem;
 }
 
 .alarm-box p {
-  margin: 0 0 18px;
   color: var(--muted);
+  margin-bottom: 18px;
 }
 
-@media (max-width: 900px) {
-  .tabs {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.top-gap {
+  margin-top: 18px;
+}
 
-  .time-inputs,
-  .pomodoro-inputs,
-  .preset-grid,
-  .quick-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .timer-ring {
-    width: 260px;
-    height: 260px;
+@media (max-width: 1100px) {
+  .timer-ring,
+  .stopwatch-ring {
+    width: 340px;
+    height: 340px;
   }
 
   .timer-display,
   .stopwatch-display {
-    font-size: 2.3rem;
+    font-size: 4rem;
+  }
+
+  .quick-grid,
+  .preset-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 760px) {
   .topbar {
     flex-direction: column;
     align-items: stretch;
@@ -450,8 +468,9 @@ body.light .timer-ring-inner {
   .tabs,
   .time-inputs,
   .pomodoro-inputs,
+  .quick-grid,
   .preset-grid,
-  .quick-grid {
+  .half-buttons {
     grid-template-columns: 1fr;
   }
 
@@ -459,17 +478,26 @@ body.light .timer-ring-inner {
     flex-direction: column;
   }
 
-  .timer-ring {
-    width: 220px;
-    height: 220px;
+  .timer-ring,
+  .stopwatch-ring {
+    width: 260px;
+    height: 260px;
   }
 
   .timer-display,
   .stopwatch-display {
-    font-size: 1.9rem;
+    font-size: 2.7rem;
+  }
+
+  .card {
+    padding: 20px;
   }
 
   .app-title {
-    font-size: 1.8rem;
+    font-size: 1.9rem;
+  }
+
+  .select-control {
+    min-width: 160px;
   }
 }
