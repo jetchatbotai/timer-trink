@@ -1,18 +1,20 @@
 :root {
   --bg: #08142f;
-  --card: #0b1736;
-  --card-2: #1c2a43;
+  --bg-2: #0a1d46;
+  --card: rgba(8, 20, 47, 0.78);
+  --card-2: #1e2d49;
   --text: #f3f4f6;
-  --muted: #a8b0c2;
+  --muted: #aeb6c8;
   --primary: #22c55e;
   --primary-strong: #16a34a;
   --border: rgba(255, 255, 255, 0.08);
-  --shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
-  --ring-rest: #20304b;
+  --shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+  --ring-rest: #223453;
 }
 
 body.light {
-  --bg: #f4f7fb;
+  --bg: #f5f7fb;
+  --bg-2: #eef3fb;
   --card: #ffffff;
   --card-2: #edf2f7;
   --text: #0f172a;
@@ -20,7 +22,7 @@ body.light {
   --primary: #22c55e;
   --primary-strong: #16a34a;
   --border: rgba(15, 23, 42, 0.08);
-  --shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+  --shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
   --ring-rest: #dbe5f0;
 }
 
@@ -33,9 +35,10 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: radial-gradient(circle at top, #0d2250 0%, var(--bg) 45%);
-  color: var(--text);
   font-family: Inter, Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top center, var(--bg-2) 0%, var(--bg) 45%, var(--bg) 100%);
 }
 
 body.light {
@@ -67,7 +70,7 @@ select {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 16px 18px;
+  padding: 15px 16px;
   background: var(--card-2);
   color: var(--text);
   outline: none;
@@ -78,10 +81,10 @@ select:focus {
   border-color: var(--primary);
 }
 
-.app-container {
-  max-width: 1280px;
+.app-shell {
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 28px 18px 40px;
+  padding: 22px 18px 36px;
 }
 
 .topbar {
@@ -89,12 +92,12 @@ select:focus {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .app-title {
   margin: 0;
-  font-size: 2.2rem;
+  font-size: 2.1rem;
   font-weight: 800;
 }
 
@@ -104,7 +107,7 @@ select:focus {
   font-size: 1rem;
 }
 
-.top-actions {
+.topbar-actions {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -112,39 +115,29 @@ select:focus {
 
 .select-control,
 .theme-btn {
-  min-width: 110px;
-  background: rgba(11, 23, 54, 0.9);
+  min-width: 140px;
+  background: transparent;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
-}
-
-body.light .select-control,
-body.light .theme-btn {
-  background: var(--card);
 }
 
 .tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .tab-btn {
+  min-height: 62px;
+  font-weight: 700;
   background: transparent;
   border: 1px solid var(--border);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-  font-weight: 700;
-  min-height: 62px;
 }
 
 .tab-btn.active {
   background: var(--primary);
   color: white;
-}
-
-.panels {
-  display: block;
 }
 
 .panel {
@@ -156,68 +149,62 @@ body.light .theme-btn {
 }
 
 .card {
-  background: rgba(8, 20, 47, 0.72);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 28px;
-  padding: 24px;
+  padding: 22px;
   box-shadow: var(--shadow);
   margin-bottom: 18px;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
-body.light .card {
-  background: var(--card);
+.hero-card {
+  min-height: 320px;
 }
 
-.timer-card,
-.stopwatch-card {
-  min-height: 360px;
-}
-
-.timer-ring-wrap {
+.timer-ring-wrap,
+.stopwatch-circle-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
 .timer-ring {
-  width: 340px;
-  height: 340px;
+  width: 320px;
+  height: 320px;
   border-radius: 50%;
   background: conic-gradient(var(--primary) 0deg, var(--ring-rest) 0deg);
+  padding: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18px;
 }
 
-.timer-ring-inner {
+.timer-ring-inner,
+.stopwatch-circle {
   width: 100%;
   height: 100%;
   border-radius: 50%;
+  background: rgba(8, 20, 47, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+body.light .timer-ring-inner,
+body.light .stopwatch-circle {
   background: var(--card);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 
-.timer-display {
-  font-size: 3rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
+.stopwatch-circle {
+  width: 320px;
+  height: 320px;
+  border: 16px solid var(--ring-rest);
 }
 
-.stopwatch-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 160px;
-  margin-bottom: 20px;
-}
-
+.timer-display,
 .stopwatch-display {
   font-size: 3rem;
   font-weight: 800;
@@ -228,18 +215,18 @@ body.light .card {
 .status-text {
   margin-top: 10px;
   color: var(--muted);
-  font-size: 1rem;
   font-weight: 700;
+  font-size: 1rem;
 }
 
-.timer-inputs,
+.time-inputs,
 .pomodoro-inputs {
   display: grid;
   gap: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
-.timer-inputs {
+.time-inputs {
   grid-template-columns: repeat(3, 1fr);
 }
 
@@ -262,7 +249,7 @@ body.light .card {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .button-row {
@@ -301,17 +288,17 @@ body.light .card {
 }
 
 .preset-btn.active {
-  background: rgba(34, 197, 94, 0.12);
   outline: 2px solid var(--primary);
+  background: rgba(34, 197, 94, 0.12);
 }
 
 .premium-note {
   margin: 8px 0 16px;
   padding: 14px 16px;
   border-radius: 18px;
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.18);
   color: var(--muted);
+  background: rgba(34, 197, 94, 0.07);
+  border: 1px solid rgba(34, 197, 94, 0.16);
 }
 
 .sounds-head {
@@ -319,13 +306,12 @@ body.light .card {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .sound-count {
   color: var(--muted);
   font-weight: 800;
-  white-space: nowrap;
 }
 
 .sound-list {
@@ -350,10 +336,6 @@ body.light .card {
   margin: 0;
 }
 
-.top-gap {
-  margin-top: 18px;
-}
-
 .laps-list {
   display: grid;
   gap: 10px;
@@ -363,26 +345,17 @@ body.light .card {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   background: var(--card-2);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 12px 14px;
 }
 
-.ad-box {
-  margin-top: 16px;
-  border: 1px dashed var(--border);
-  border-radius: 18px;
-  padding: 18px;
-  text-align: center;
-  color: var(--muted);
-  background: var(--card-2);
-}
-
 .alarm-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.56);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -399,7 +372,7 @@ body.light .card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 24px;
-  padding: 28px;
+  padding: 26px;
   text-align: center;
   box-shadow: var(--shadow);
 }
@@ -413,26 +386,31 @@ body.light .card {
   color: var(--muted);
 }
 
+.top-gap {
+  margin-top: 18px;
+}
+
 @media (max-width: 900px) {
   .tabs {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .timer-inputs,
+  .time-inputs,
   .pomodoro-inputs,
   .preset-grid,
   .quick-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .timer-ring {
-    width: 280px;
-    height: 280px;
+  .timer-ring,
+  .stopwatch-circle {
+    width: 260px;
+    height: 260px;
   }
 
   .timer-display,
   .stopwatch-display {
-    font-size: 2.4rem;
+    font-size: 2.3rem;
   }
 }
 
@@ -442,12 +420,12 @@ body.light .card {
     align-items: stretch;
   }
 
-  .top-actions {
+  .topbar-actions {
     justify-content: space-between;
   }
 
   .tabs,
-  .timer-inputs,
+  .time-inputs,
   .pomodoro-inputs,
   .preset-grid,
   .quick-grid {
@@ -458,14 +436,15 @@ body.light .card {
     flex-direction: column;
   }
 
-  .timer-ring {
+  .timer-ring,
+  .stopwatch-circle {
     width: 220px;
     height: 220px;
   }
 
   .timer-display,
   .stopwatch-display {
-    font-size: 2rem;
+    font-size: 1.9rem;
   }
 
   .app-title {
