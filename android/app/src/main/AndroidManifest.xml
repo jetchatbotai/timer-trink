@@ -1,14 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.timer.trink">
+    package="com.timertrink.app">
 
-    <!-- Android 13+ bildirim izni -->
+    <!-- 🔔 Bildirim izni (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Internet (Capacitor için gerekli) -->
+    <!-- 🌐 Internet (Capacitor gerekli) -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- WakeLock (alarm düzgün çalışsın diye) -->
+    <!-- ⚡ Alarm ve arka plan için -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- 📳 Titreşim -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- ⏰ Kesin alarm (Android 12+) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -19,7 +25,7 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.App">
 
-        <!-- Ana activity -->
+        <!-- 🚀 Ana activity -->
         <activity
             android:name="com.getcapacitor.BridgeActivity"
             android:exported="true"
@@ -27,7 +33,6 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:windowSoftInputMode="adjustResize">
 
-            <!-- Uygulama açılışı -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -35,13 +40,12 @@
 
         </activity>
 
-        <!-- Capacitor gerekli provider -->
+        <!-- 📁 FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
-            android:grantUriPermissions="true">
-        </provider>
+            android:grantUriPermissions="true" />
 
     </application>
 
