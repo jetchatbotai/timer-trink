@@ -1,11 +1,11 @@
 workflows:
-  timer_trink_android_release:
-    name: Timer Trink Android Release AAB
+  android-release:
+    name: Android Release
     max_build_duration: 60
 
     environment:
       node: 20
-      java: 21
+      java: 17
 
     triggering:
       events:
@@ -20,17 +20,17 @@ workflows:
         script: |
           npm install
 
-      - name: Prepare web assets
+      - name: Check web files
         script: |
-          rm -rf www
-          mkdir -p www
-          cp index.html www/
-          cp styles.css www/
-          cp app.js www/
+          echo "Checking web assets..."
+          ls -la
+          ls -la www
+          test -f www/index.html
+          test -f www/app.js
 
       - name: Add Android platform if missing
         script: |
-          if [ ! -d "android" ]; then
+          if [ ! -d android ]; then
             npx cap add android
           fi
 
@@ -38,10 +38,24 @@ workflows:
         script: |
           npx cap sync android
 
-      - name: Build Android release bundle
+      - name: Build Android release APK
         script: |
           cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Build Android release AAB
+        script: |
+          cd android
+          chmod +x gradlew
           ./gradlew bundleRelease
 
     artifacts:
+      - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/**/*.aab
+
+    cache:
+      cache_paths:
+        - ~/.npm
+        - ~/.gradle/caches
+        - ~/.gradle/wrapper
