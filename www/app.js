@@ -3,6 +3,10 @@
 // ===============================
 const CapacitorLocalNotifications =
   window.Capacitor?.Plugins?.LocalNotifications || null;
+const CapacitorApp =
+  window.Capacitor?.Plugins?.App || null;
+const CapacitorHaptics =
+  window.Capacitor?.Plugins?.Haptics || null;
 
 // ===============================
 // HELPERS
@@ -32,6 +36,10 @@ function resolveAssetPath(path) {
   }
 }
 
+function nowMs() {
+  return Date.now();
+}
+
 // ===============================
 // STORAGE KEYS
 // ===============================
@@ -49,6 +57,14 @@ const STORAGE_KEYS = {
 const notificationState = {
   permissionGranted: false,
   scheduledTimerNotificationId: 1001,
+  listenersReady: false
+};
+
+// ===============================
+// VISIBILITY STATE
+// ===============================
+const visibilityState = {
+  isForeground: document.visibilityState === "visible",
   listenersReady: false
 };
 
@@ -187,7 +203,7 @@ const baseTranslations = {
   },
   pomodoro: {
     tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro",
-    ru: "Помодоро", ar: "بومодورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
+    ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟"
   },
   soundOn: {
     tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado",
@@ -654,6 +670,64 @@ function applyLanguage() {
 }
 
 // ===============================
+// VISIBILITY / FOREGROUND
+// ===============================
+function isAppForeground() {
+  return visibilityState.isForeground;
+}
+
+async function syncNotificationWithAppState() {
+  if (!timerState.running || timerState.timeLeft <= 0) {
+    await cancelTimerNotification();
+    return;
+  }
+
+  if (isAppForeground()) {
+    await cancelTimerNotification();
+  } else {
+    await scheduleTimerNotification(timerState.timeLeft);
+  }
+}
+
+async function handleAppForeground() {
+  visibilityState.isForeground = true;
+  await cancelTimerNotification();
+}
+
+async function handleAppBackground() {
+  visibilityState.isForeground = false;
+  if (timerState.running && timerState.timeLeft > 0) {
+    await scheduleTimerNotification(timerState.timeLeft);
+  }
+}
+
+async function setupVisibilityListeners() {
+  if (visibilityState.listenersReady) return;
+
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible") {
+      await handleAppForeground();
+    } else {
+      await handleAppBackground();
+    }
+  });
+
+  if (CapacitorApp?.addListener) {
+    try {
+      await CapacitorApp.addListener("appStateChange", async ({ isActive }) => {
+        if (isActive) {
+          await handleAppForeground();
+        } else {
+          await handleAppBackground();
+        }
+      });
+    } catch {}
+  }
+
+  visibilityState.listenersReady = true;
+}
+
+// ===============================
 // SOUND SYSTEM
 // ===============================
 function getAudioContext() {
@@ -953,9 +1027,32 @@ function getSelectedSound() {
   return sounds.find((s) => s.id === selectedSoundId) || sounds[0];
 }
 
+async function triggerVibrationPulse() {
+  if (!$("vibrationToggle")?.checked) return;
+
+  try {
+    if (navigator.vibrate) {
+      navigator.vibrate([250, 90, 250, 90, 320]);
+    }
+  } catch {}
+
+  try {
+    if (CapacitorHaptics?.vibrate) {
+      await CapacitorHaptics.vibrate();
+    }
+  } catch {}
+}
+
+async function stopAllVibration() {
+  try {
+    if (navigator.vibrate) navigator.vibrate(0);
+  } catch {}
+}
+
 function startAlarmLoop() {
   stopAlarmLoop();
   alarmState.active = true;
+  alarmState.lastPlay = 0;
 
   const selected = getSelectedSound();
 
@@ -969,37 +1066,54 @@ function startAlarmLoop() {
         startSynthAlarmLoop();
       }
     });
-    return;
+  } else {
+    startSynthAlarmLoop();
   }
 
-  startSynthAlarmLoop();
+  triggerVibrationPulse();
+  alarmState.intervalId = setInterval(() => {
+    triggerVibrationPulse();
+  }, 1700);
 }
 
 function startSynthAlarmLoop() {
-  alarmState.intervalId = setInterval(() => {
-    const now = Date.now();
+  const synthLoop = setInterval(() => {
+    if (!alarmState.active) {
+      clearInterval(synthLoop);
+      return;
+    }
+
+    const now = nowMs();
     if (now - alarmState.lastPlay < 1200) return;
     alarmState.lastPlay = now;
 
     playSoundOnce(getSelectedSound(), "alarm");
-
-    if ($("vibrationToggle")?.checked && navigator.vibrate) {
-      navigator.vibrate([250, 90, 250, 90, 320]);
-    }
   }, 1350);
+
+  const previous = alarmState.intervalId;
+  alarmState.intervalId = {
+    stop() {
+      clearInterval(synthLoop);
+      if (previous && typeof previous === "number") clearInterval(previous);
+      if (previous && typeof previous.stop === "function") previous.stop();
+    }
+  };
 }
 
 function stopAlarmLoop() {
   if (alarmState.intervalId) {
-    clearInterval(alarmState.intervalId);
+    if (typeof alarmState.intervalId === "number") {
+      clearInterval(alarmState.intervalId);
+    } else if (typeof alarmState.intervalId.stop === "function") {
+      alarmState.intervalId.stop();
+    }
     alarmState.intervalId = null;
   }
 
   stopHtmlAudio();
   stopPreviewAudio();
   alarmState.active = false;
-
-  if (navigator.vibrate) navigator.vibrate(0);
+  stopAllVibration();
 }
 
 function lockUIWhileAlarm() {
@@ -1010,8 +1124,9 @@ function unlockUI() {
   document.body.classList.remove("alarm-active");
 }
 
-function dismissAlarm() {
+async function dismissAlarm() {
   stopAlarmLoop();
+  await cancelTimerNotification();
 
   const overlay = $("alarmOverlay");
   if (overlay) overlay.classList.add("hidden");
@@ -1059,9 +1174,13 @@ function renderSounds() {
     radio.value = sound.id;
     radio.checked = sound.id === selectedSoundId;
 
-    radio.addEventListener("change", () => {
+    radio.addEventListener("change", async () => {
       selectedSoundId = sound.id;
       saveSoundState();
+
+      if (!isAppForeground() && timerState.running && timerState.timeLeft > 0) {
+        await scheduleTimerNotification(timerState.timeLeft);
+      }
     });
 
     const name = document.createElement("span");
@@ -1094,10 +1213,6 @@ function initSoundSystem() {
 // ===============================
 function getSoundChannelId(soundId) {
   return `timer_alerts_${soundId}`;
-}
-
-function getSelectedSoundChannelId() {
-  return getSoundChannelId(selectedSoundId);
 }
 
 async function ensureNotificationChannels() {
@@ -1221,6 +1336,7 @@ function getNotificationChannelForCurrentSound() {
 async function scheduleTimerNotification(secondsFromNow) {
   if (!CapacitorLocalNotifications) return;
   if (!secondsFromNow || secondsFromNow <= 0) return;
+  if (isAppForeground()) return;
 
   try {
     await cancelTimerNotification();
@@ -1240,7 +1356,7 @@ async function scheduleTimerNotification(secondsFromNow) {
             mode: timerState.mode
           },
           schedule: {
-            at: new Date(Date.now() + secondsFromNow * 1000),
+            at: new Date(nowMs() + secondsFromNow * 1000),
             allowWhileIdle: true
           }
         }
@@ -1257,34 +1373,6 @@ async function cancelTimerNotification() {
   try {
     await CapacitorLocalNotifications.cancel({
       notifications: [{ id: notificationState.scheduledTimerNotificationId }]
-    });
-  } catch {}
-}
-
-async function fireFinishNotification() {
-  if (!CapacitorLocalNotifications) return;
-
-  try {
-    await CapacitorLocalNotifications.schedule({
-      notifications: [
-        {
-          id: Date.now() % 2147483000,
-          title: t("notifTimerTitle"),
-          body: t("notifTimerBody"),
-          largeBody: t("notifTimerBody"),
-          channelId: getNotificationChannelForCurrentSound(),
-          actionTypeId: "TIMER_DONE",
-          extra: {
-            source: "timer",
-            autoResetTimer: true,
-            mode: timerState.mode
-          },
-          schedule: {
-            at: new Date(Date.now() + 250),
-            allowWhileIdle: true
-          }
-        }
-      ]
     });
   } catch {}
 }
@@ -1395,7 +1483,7 @@ function updateTimerDisplay() {
 function timerTick() {
   if (!timerState.running) return;
 
-  const now = Date.now();
+  const now = nowMs();
 
   if (timerState.endAt > 0) {
     timerState.timeLeft = Math.max(0, Math.ceil((timerState.endAt - now) / 1000));
@@ -1426,7 +1514,7 @@ function timerTick() {
   updateTimerDisplay();
 }
 
-function startTimer(fromPomodoro = false) {
+async function startTimer(fromPomodoro = false) {
   if (timerState.running) return;
 
   if (timerState.paused && timerState.timeLeft > 0) {
@@ -1457,8 +1545,8 @@ function startTimer(fromPomodoro = false) {
   timerState.timeLeft = total;
   timerState.running = true;
   timerState.paused = false;
-  timerState.lastTick = Date.now();
-  timerState.endAt = Date.now() + total * 1000;
+  timerState.lastTick = nowMs();
+  timerState.endAt = nowMs() + total * 1000;
 
   updateTimerDisplay();
   timerState.timerId = setInterval(timerTick, 250);
@@ -1467,12 +1555,11 @@ function startTimer(fromPomodoro = false) {
   updateTimerStartButton();
   saveTimerState();
 
-  requestNotificationPermission().then(async () => {
-    await scheduleTimerNotification(total);
-  });
+  await requestNotificationPermission();
+  await syncNotificationWithAppState();
 }
 
-function pauseTimer() {
+async function pauseTimer() {
   if (!timerState.running) return;
 
   clearInterval(timerState.timerId);
@@ -1481,13 +1568,13 @@ function pauseTimer() {
   timerState.paused = true;
   timerState.endAt = 0;
 
-  cancelTimerNotification();
+  await cancelTimerNotification();
   setText("timerStatus", "paused");
   updateTimerStartButton();
   saveTimerState();
 }
 
-function resumeTimer() {
+async function resumeTimer() {
   if (!timerState.paused && timerState.timeLeft <= 0) return;
 
   clearInterval(timerState.timerId);
@@ -1495,19 +1582,19 @@ function resumeTimer() {
 
   timerState.running = true;
   timerState.paused = false;
-  timerState.lastTick = Date.now();
-  timerState.endAt = Date.now() + timerState.timeLeft * 1000;
+  timerState.lastTick = nowMs();
+  timerState.endAt = nowMs() + timerState.timeLeft * 1000;
   timerState.timerId = setInterval(timerTick, 250);
 
   setText("timerStatus", "running");
   updateTimerStartButton();
   updateTimerDisplay();
 
-  scheduleTimerNotification(timerState.timeLeft);
+  await syncNotificationWithAppState();
   saveTimerState();
 }
 
-function resetTimer() {
+async function resetTimer() {
   clearInterval(timerState.timerId);
   timerState.timerId = null;
 
@@ -1527,7 +1614,7 @@ function resetTimer() {
   if ($("seconds")) $("seconds").value = 0;
 
   updateTimerDisplay();
-  cancelTimerNotification();
+  await cancelTimerNotification();
   setText("timerStatus", "ready");
   updateTimerStartButton();
 
@@ -1535,10 +1622,8 @@ function resetTimer() {
   savePomodoroState();
 }
 
-function onTimerFinished() {
-  cancelTimerNotification();
-  fireFinishNotification();
-  startAlarmLoop();
+async function onTimerFinished() {
+  await cancelTimerNotification();
 
   const titleEl = $("alarmTitle");
   const msgEl = $("alarmMessage");
@@ -1546,16 +1631,19 @@ function onTimerFinished() {
 
   if (titleEl) titleEl.textContent = t("alarmTitle");
   if (msgEl) msgEl.textContent = t("alarmMsg");
-  if (overlay) overlay.classList.remove("hidden");
-
-  lockUIWhileAlarm();
-  updateTimerStartButton();
 
   alarmState.pendingPomodoroAdvance =
     timerState.mode === "pomodoro" &&
     pomodoroState.enabled === true &&
     pomodoroState.autoAdvance === true;
 
+  if (isAppForeground()) {
+    if (overlay) overlay.classList.remove("hidden");
+    lockUIWhileAlarm();
+    startAlarmLoop();
+  }
+
+  updateTimerStartButton();
   saveTimerState();
 }
 
@@ -1645,7 +1733,7 @@ function handlePomodoroSwitch() {
   }, 300);
 }
 
-function resetPomodoro() {
+async function resetPomodoro() {
   clearInterval(timerState.timerId);
   timerState.timerId = null;
 
@@ -1671,7 +1759,7 @@ function resetPomodoro() {
   if ($("seconds")) $("seconds").value = 0;
 
   updateTimerDisplay();
-  cancelTimerNotification();
+  await cancelTimerNotification();
   setText("timerStatus", "ready");
   updateTimerStartButton();
   updatePomodoroUI();
@@ -1746,7 +1834,7 @@ function updateStopwatchDisplay() {
   if (!el) return;
 
   const current = stopwatchState.running
-    ? stopwatchState.elapsedMs + (Date.now() - stopwatchState.lastStart)
+    ? stopwatchState.elapsedMs + (nowMs() - stopwatchState.lastStart)
     : stopwatchState.elapsedMs;
 
   el.textContent = formatStopwatch(current);
@@ -1760,7 +1848,7 @@ function stopwatchTick() {
 function toggleStopwatch() {
   if (!stopwatchState.running) {
     stopwatchState.running = true;
-    stopwatchState.lastStart = Date.now();
+    stopwatchState.lastStart = nowMs();
 
     clearInterval(stopwatchState.intervalId);
     stopwatchState.intervalId = setInterval(stopwatchTick, 50);
@@ -1772,7 +1860,7 @@ function toggleStopwatch() {
     clearInterval(stopwatchState.intervalId);
     stopwatchState.intervalId = null;
 
-    stopwatchState.elapsedMs += Date.now() - stopwatchState.lastStart;
+    stopwatchState.elapsedMs += nowMs() - stopwatchState.lastStart;
     setText("stopwatchStatus", "paused");
   }
 
@@ -1803,7 +1891,7 @@ function clearLaps() {
 
 function addLap() {
   const currentTime = stopwatchState.running
-    ? stopwatchState.elapsedMs + (Date.now() - stopwatchState.lastStart)
+    ? stopwatchState.elapsedMs + (nowMs() - stopwatchState.lastStart)
     : stopwatchState.elapsedMs;
 
   stopwatchState.laps.unshift(currentTime);
@@ -1931,7 +2019,7 @@ function loadTimerState() {
   timerState.mode = data.mode || "timer";
 
   if (data.running && data.endAt) {
-    const remaining = Math.max(0, Math.ceil((data.endAt - Date.now()) / 1000));
+    const remaining = Math.max(0, Math.ceil((data.endAt - nowMs()) / 1000));
     timerState.timeLeft = remaining;
     timerState.running = false;
     timerState.paused = remaining > 0;
@@ -2014,18 +2102,26 @@ function toggleTheme() {
 function initEvents() {
   bind("timerStartBtn", "click", async () => {
     await ensureHtmlAudioUnlocked();
-    startTimer(false);
+    await startTimer(false);
   });
 
-  bind("timerPauseBtn", "click", pauseTimer);
-  bind("timerResetBtn", "click", resetTimer);
+  bind("timerPauseBtn", "click", async () => {
+    await pauseTimer();
+  });
+
+  bind("timerResetBtn", "click", async () => {
+    await resetTimer();
+  });
 
   bind("applyPomodoroBtn", "click", async () => {
     await ensureHtmlAudioUnlocked();
     applyPomodoro();
   });
 
-  bind("pomodoroResetBtn", "click", resetPomodoro);
+  bind("pomodoroResetBtn", "click", async () => {
+    await resetPomodoro();
+  });
+
   bind("pomodoroCycleResetBtn", "click", resetPomodoroCycle);
 
   bind("swStartBtn", "click", toggleStopwatch);
@@ -2033,7 +2129,9 @@ function initEvents() {
   bind("swResetBtn", "click", resetStopwatch);
   bind("swClearLapsBtn", "click", clearLaps);
 
-  bind("dismissAlarmBtn", "click", dismissAlarm);
+  bind("dismissAlarmBtn", "click", async () => {
+    await dismissAlarm();
+  });
 
   bind("previewSoundBtn", "click", async () => {
     await ensureHtmlAudioUnlocked();
@@ -2086,6 +2184,7 @@ async function initApp() {
     await ensureNotificationChannels();
     await registerNotificationActions();
     await setupNotificationListeners();
+    await setupVisibilityListeners();
     await requestNotificationPermission();
 
     applyLanguage();
@@ -2097,6 +2196,7 @@ async function initApp() {
 
     switchTab(appState.lastTab || "timerPanel");
     startUIRenderLoop();
+    await syncNotificationWithAppState();
 
     setInterval(() => {
       saveAppState();
