@@ -1,47 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!-- ========================= -->
-    <!-- İZİNLER -->
-    <!-- ========================= -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.timer.trink">
 
     <!-- Android 13+ bildirim izni -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Alarm & zamanlayıcı -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-
-    <!-- Arka plan -->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
-    <!-- Titreşim -->
-    <uses-permission android:name="android.permission.VIBRATE" />
-
-    <!-- İnternet -->
+    <!-- Internet (Capacitor için gerekli) -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- ========================= -->
-    <!-- UYGULAMA -->
-    <!-- ========================= -->
+    <!-- WakeLock (alarm düzgün çalışsın diye) -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/AppTheme"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.App">
 
-        <!-- ========================= -->
-        <!-- MAIN ACTIVITY -->
-        <!-- ========================= -->
+        <!-- Ana activity -->
         <activity
             android:name="com.getcapacitor.BridgeActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode">
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:windowSoftInputMode="adjustResize">
 
+            <!-- Uygulama açılışı -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -49,19 +35,13 @@
 
         </activity>
 
-        <!-- ========================= -->
-        <!-- BOOT RECEIVER (alarm devam etsin diye) -->
-        <!-- ========================= -->
-        <receiver
-            android:name="com.getcapacitor.plugin.localnotifications.LocalNotificationBootReceiver"
-            android:enabled="true"
-            android:exported="false">
-
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-
-        </receiver>
+        <!-- Capacitor gerekli provider -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+        </provider>
 
     </application>
 
