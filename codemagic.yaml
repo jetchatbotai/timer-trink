@@ -28,15 +28,39 @@ workflows:
           test -f www/index.html
           test -f www/app.js
 
-      - name: Add Android platform if missing
+      - name: Backup raw sounds if present
         script: |
-          if [ ! -d android ]; then
+          mkdir -p /tmp/timer_raw_backup
+          if [ -d android/app/src/main/res/raw ]; then
+            cp -R android/app/src/main/res/raw/. /tmp/timer_raw_backup/ || true
+          fi
+          ls -la /tmp/timer_raw_backup || true
+
+      - name: Ensure Android platform exists
+        script: |
+          if [ ! -f android/gradlew ]; then
+            echo "gradlew missing -> recreating android platform"
+            rm -rf android
             npx cap add android
           fi
+
+      - name: Restore raw sounds after android recreation
+        script: |
+          mkdir -p android/app/src/main/res/raw
+          if [ -d /tmp/timer_raw_backup ]; then
+            cp -R /tmp/timer_raw_backup/. android/app/src/main/res/raw/ || true
+          fi
+          ls -la android/app/src/main/res/raw || true
 
       - name: Sync Capacitor Android
         script: |
           npx cap sync android
+
+      - name: Verify Android files
+        script: |
+          ls -la android
+          test -f android/gradlew
+          test -f android/app/src/main/AndroidManifest.xml
 
       - name: Build Android release APK
         script: |
