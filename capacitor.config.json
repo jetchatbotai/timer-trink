@@ -1,13 +1,13 @@
 {
   "appId": "com.timertrink.app",
   "appName": "Timer Trink",
-  "webDir": ".",
+  "webDir": "www",
   "bundledWebRuntime": false,
   "plugins": {
     "LocalNotifications": {
       "smallIcon": "ic_stat_icon_config_sample",
       "iconColor": "#ffffff",
-      "sound": "beep.wav"
+      "sound": "beep"
     }
   }
 }
