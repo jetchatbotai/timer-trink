@@ -49,7 +49,6 @@ const STORAGE_KEYS = {
 const notificationState = {
   permissionGranted: false,
   scheduledTimerNotificationId: 1001,
-  channelId: "timer_alerts",
   listenersReady: false
 };
 
@@ -314,222 +313,162 @@ const baseTranslations = {
 const SOUND_LIBRARY = [
   {
     id: "s1",
-    name: {
-      tr: "Kristal Çan", en: "Crystal Bell", de: "Kristallglocke", fr: "Cloche Cristal",
-      es: "Campana Cristal", ru: "Хрустальный колокол", ar: "جرس كريستالي",
-      it: "Campana di Cristallo", pt: "Sino de Cristal", zh: "水晶铃声"
-    },
+    name: { tr: "Kristal Çan", en: "Crystal Bell", de: "Kristallglocke", fr: "Cloche Cristal", es: "Campana Cristal", ru: "Хрустальный колокол", ar: "جرس كريستالي", it: "Campana di Cristallo", pt: "Sino de Cristal", zh: "水晶铃声" },
     kind: "crystal",
     assetPath: "sound1.mp3",
+    notifSound: "sound1.wav",
     seq: [1040, 1560, 2080]
   },
   {
     id: "s2",
-    name: {
-      tr: "Gece Zili", en: "Night Bell", de: "Nachtglocke", fr: "Cloche Nocturne",
-      es: "Campana Nocturna", ru: "Ночной колокол", ar: "جرس ليلي",
-      it: "Campana Notturna", pt: "Sino Noturno", zh: "夜铃"
-    },
+    name: { tr: "Gece Zili", en: "Night Bell", de: "Nachtglocke", fr: "Cloche Nocturne", es: "Campana Nocturna", ru: "Ночной колокол", ar: "جرس ليلي", it: "Campana Notturna", pt: "Sino Noturno", zh: "夜铃" },
     kind: "glass",
     assetPath: "sound2.mp3",
+    notifSound: "sound2.wav",
     seq: [1260, 1820, 2440]
   },
   {
     id: "s3",
-    name: {
-      tr: "Derin Gong", en: "Deep Gong", de: "Tiefer Gong", fr: "Gong Profond",
-      es: "Gong Profundo", ru: "Глубокий гонг", ar: "غونغ عميق",
-      it: "Gong Profondo", pt: "Gongo Profundo", zh: "深沉铜锣"
-    },
+    name: { tr: "Derin Gong", en: "Deep Gong", de: "Tiefer Gong", fr: "Gong Profond", es: "Gong Profundo", ru: "Глубокий гонг", ar: "غونغ عميق", it: "Gong Profondo", pt: "Gongo Profundo", zh: "深沉铜锣" },
     kind: "gong",
     assetPath: "sound3.mp3",
+    notifSound: "sound3.wav",
     seq: [220, 330, 440]
   },
   {
     id: "s4",
-    name: {
-      tr: "Dijital Bip", en: "Digital Beep", de: "Digitaler Piepton", fr: "Bip Numérique",
-      es: "Bip Digital", ru: "Цифровой сигнал", ar: "بيب رقمي",
-      it: "Bip Digitale", pt: "Bipe Digital", zh: "数字提示音"
-    },
+    name: { tr: "Dijital Bip", en: "Digital Beep", de: "Digitaler Piepton", fr: "Bip Numérique", es: "Bip Digital", ru: "Цифровой сигнал", ar: "بيب رقمي", it: "Bip Digitale", pt: "Bipe Digital", zh: "数字提示音" },
     kind: "digital",
     assetPath: "sound4.mp3",
+    notifSound: "sound4.wav",
     seq: [880, 1320, 1760]
   },
   {
     id: "s5",
-    name: {
-      tr: "Marimba Işık", en: "Marimba Light", de: "Marimba Licht", fr: "Marimba Lumière",
-      es: "Marimba Luz", ru: "Светлая маримба", ar: "ماريمبا مضيئة",
-      it: "Marimba Luce", pt: "Marimba Luz", zh: "马林巴轻音"
-    },
+    name: { tr: "Marimba Işık", en: "Marimba Light", de: "Marimba Licht", fr: "Marimba Lumière", es: "Marimba Luz", ru: "Светлая маримба", ar: "ماريمبا مضيئة", it: "Marimba Luce", pt: "Marimba Luz", zh: "马林巴轻音" },
     kind: "marimba",
     assetPath: "sound5.mp3",
+    notifSound: "sound5.wav",
     seq: [660, 990, 1320]
   },
   {
     id: "s6",
-    name: {
-      tr: "Yankı Uyarı", en: "Echo Alert", de: "Echo Alarm", fr: "Alerte Écho",
-      es: "Alerta Eco", ru: "Эхо-сигнал", ar: "تنبيه صدى",
-      it: "Avviso Eco", pt: "Alerta Eco", zh: "回声提醒"
-    },
+    name: { tr: "Yankı Uyarı", en: "Echo Alert", de: "Echo Alarm", fr: "Alerte Écho", es: "Alerta Eco", ru: "Эхо-сигнал", ar: "تنبيه صدى", it: "Avviso Eco", pt: "Alerta Eco", zh: "回声提醒" },
     kind: "echo",
     assetPath: "sound6.mp3",
+    notifSound: "sound6.wav",
     seq: [480, 720, 960]
   },
   {
     id: "s7",
-    name: {
-      tr: "Sakin Tını", en: "Calm Tone", de: "Ruhiger Ton", fr: "Ton Calme",
-      es: "Tono Calmo", ru: "Спокойный тон", ar: "نغمة هادئة",
-      it: "Tono Calmo", pt: "Tom Calmo", zh: "安静音色"
-    },
+    name: { tr: "Sakin Tını", en: "Calm Tone", de: "Ruhiger Ton", fr: "Ton Calme", es: "Tono Calmo", ru: "Спокойный тон", ar: "نغمة هادئة", it: "Tono Calmo", pt: "Tom Calmo", zh: "安静音色" },
     kind: "calm",
     assetPath: "sound7.mp3",
+    notifSound: "sound7.wav",
     seq: [420, 630, 840]
   },
   {
     id: "s8",
-    name: {
-      tr: "Parlak Alarm", en: "Bright Alarm", de: "Heller Alarm", fr: "Alarme Brillante",
-      es: "Alarma Brillante", ru: "Яркий сигнал", ar: "إنذار ساطع",
-      it: "Allarme Brillante", pt: "Alarme Brilhante", zh: "明亮警报"
-    },
+    name: { tr: "Parlak Alarm", en: "Bright Alarm", de: "Heller Alarm", fr: "Alarme Brillante", es: "Alarma Brillante", ru: "Яркий сигнал", ar: "إنذار ساطع", it: "Allarme Brillante", pt: "Alarme Brilhante", zh: "明亮警报" },
     kind: "bright",
     assetPath: "sound8.mp3",
+    notifSound: "sound8.wav",
     seq: [940, 1410, 1880]
   },
   {
     id: "s9",
-    name: {
-      tr: "Zen Kase", en: "Zen Bowl", de: "Zen-Schale", fr: "Bol Zen",
-      es: "Cuenco Zen", ru: "Дзен-чаша", ar: "وعاء زن",
-      it: "Ciotola Zen", pt: "Tigela Zen", zh: "禅意钵声"
-    },
+    name: { tr: "Zen Kase", en: "Zen Bowl", de: "Zen-Schale", fr: "Bol Zen", es: "Cuenco Zen", ru: "Дзен-чаша", ar: "وعاء زن", it: "Ciotola Zen", pt: "Tigela Zen", zh: "禅意钵声" },
     kind: "zen",
     assetPath: "sound9.mp3",
+    notifSound: "sound9.wav",
     seq: [320, 480, 640]
   },
   {
     id: "s10",
-    name: {
-      tr: "Sıcak Çınlama", en: "Warm Chime", de: "Warmer Klang", fr: "Carillon Chaleureux",
-      es: "Campanilla Cálida", ru: "Тёплый звон", ar: "رنين دافئ",
-      it: "Rintocco Caldo", pt: "Toque Quente", zh: "温暖钟声"
-    },
+    name: { tr: "Sıcak Çınlama", en: "Warm Chime", de: "Warmer Klang", fr: "Carillon Chaleureux", es: "Campanilla Cálida", ru: "Тёплый звон", ar: "رنين دافئ", it: "Rintocco Caldo", pt: "Toque Quente", zh: "温暖钟声" },
     kind: "warm",
     assetPath: "sound10.mp3",
+    notifSound: "sound10.wav",
     seq: [540, 810, 1080]
   },
   {
     id: "s11",
-    name: {
-      tr: "Buz Camı", en: "Ice Glass", de: "Eisglas", fr: "Verre de Glace",
-      es: "Cristal Helado", ru: "Ледяное стекло", ar: "زجاج جليدي",
-      it: "Vetro Ghiaccio", pt: "Vidro de Gelo", zh: "冰晶玻璃"
-    },
+    name: { tr: "Buz Camı", en: "Ice Glass", de: "Eisglas", fr: "Verre de Glace", es: "Cristal Helado", ru: "Ледяное стекло", ar: "زجاج جليدي", it: "Vetro Ghiaccio", pt: "Vidro de Gelo", zh: "冰晶玻璃" },
     kind: "glass",
     assetPath: "sound11.mp3",
+    notifSound: "sound11.wav",
     seq: [1330, 1880, 2550]
   },
   {
     id: "s12",
-    name: {
-      tr: "Ay Gongu", en: "Moon Gong", de: "Mondgong", fr: "Gong Lunaire",
-      es: "Gong Lunar", ru: "Лунный гонг", ar: "غونغ القمر",
-      it: "Gong Lunare", pt: "Gongo Lunar", zh: "月光铜锣"
-    },
+    name: { tr: "Ay Gongu", en: "Moon Gong", de: "Mondgong", fr: "Gong Lunaire", es: "Gong Lunar", ru: "Лунный гонг", ar: "غونغ القمر", it: "Gong Lunare", pt: "Gongo Lunar", zh: "月光铜锣" },
     kind: "gong",
     assetPath: "sound12.mp3",
+    notifSound: "sound12.wav",
     seq: [260, 390, 520]
   },
   {
     id: "s13",
-    name: {
-      tr: "Kısa Bip", en: "Short Beep", de: "Kurzer Piepton", fr: "Bip Court",
-      es: "Bip Corto", ru: "Короткий сигнал", ar: "بيب قصير",
-      it: "Bip Breve", pt: "Bipe Curto", zh: "短促提示音"
-    },
+    name: { tr: "Kısa Bip", en: "Short Beep", de: "Kurzer Piepton", fr: "Bip Court", es: "Bip Corto", ru: "Короткий сигнал", ar: "بيب قصير", it: "Bip Breve", pt: "Bipe Curto", zh: "短促提示音" },
     kind: "digital",
     assetPath: "sound13.mp3",
+    notifSound: "sound13.wav",
     seq: [990, 1485, 1980]
   },
   {
     id: "s14",
-    name: {
-      tr: "Ahşap Marimba", en: "Wood Marimba", de: "Holz-Marimba", fr: "Marimba Bois",
-      es: "Marimba de Madera", ru: "Деревянная маримба", ar: "ماريمبا خشبية",
-      it: "Marimba in Legno", pt: "Marimba de Madeira", zh: "木质马林巴"
-    },
+    name: { tr: "Ahşap Marimba", en: "Wood Marimba", de: "Holz-Marimba", fr: "Marimba Bois", es: "Marimba de Madera", ru: "Деревянная маримба", ar: "ماريمبا خشبية", it: "Marimba in Legno", pt: "Marimba de Madeira", zh: "木质马林巴" },
     kind: "marimba",
     assetPath: "sound14.mp3",
+    notifSound: "sound14.wav",
     seq: [610, 915, 1220]
   },
   {
     id: "s15",
-    name: {
-      tr: "Uzun Yankı", en: "Long Echo", de: "Langes Echo", fr: "Long Écho",
-      es: "Eco Largo", ru: "Долгое эхо", ar: "صدى طويل",
-      it: "Eco Lungo", pt: "Eco Longo", zh: "长回声"
-    },
+    name: { tr: "Uzun Yankı", en: "Long Echo", de: "Langes Echo", fr: "Long Écho", es: "Eco Largo", ru: "Долгое эхо", ar: "صدى طويل", it: "Eco Lungo", pt: "Eco Longo", zh: "长回声" },
     kind: "echo",
     assetPath: "sound15.mp3",
+    notifSound: "sound15.wav",
     seq: [450, 675, 900]
   },
   {
     id: "s16",
-    name: {
-      tr: "Sakin Nabız", en: "Calm Pulse", de: "Ruhiger Puls", fr: "Pouls Calme",
-      es: "Pulso Calmado", ru: "Спокойный пульс", ar: "نبض هادئ",
-      it: "Impulso Calmo", pt: "Pulso Calmo", zh: "平静脉冲"
-    },
+    name: { tr: "Sakin Nabız", en: "Calm Pulse", de: "Ruhiger Puls", fr: "Pouls Calme", es: "Pulso Calmado", ru: "Спокойный пульс", ar: "نبض هادئ", it: "Impulso Calmo", pt: "Pulso Calmo", zh: "平静脉冲" },
     kind: "calm",
     assetPath: "sound16.mp3",
+    notifSound: "sound16.wav",
     seq: [360, 540, 720]
   },
   {
     id: "s17",
-    name: {
-      tr: "Mavi Işık", en: "Blue Light", de: "Blaues Licht", fr: "Lumière Bleue",
-      es: "Luz Azul", ru: "Синий свет", ar: "ضوء أزرق",
-      it: "Luce Blu", pt: "Luz Azul", zh: "蓝色光芒"
-    },
+    name: { tr: "Mavi Işık", en: "Blue Light", de: "Blaues Licht", fr: "Lumière Bleue", es: "Luz Azul", ru: "Синий свет", ar: "ضوء أزرق", it: "Luce Blu", pt: "Luz Azul", zh: "蓝色光芒" },
     kind: "bright",
     assetPath: "sound17.mp3",
+    notifSound: "sound17.wav",
     seq: [1020, 1530, 2040]
   },
   {
     id: "s18",
-    name: {
-      tr: "Zen Derin", en: "Zen Deep", de: "Zen Tief", fr: "Zen Profond",
-      es: "Zen Profundo", ru: "Глубокий дзен", ar: "زن عميق",
-      it: "Zen Profondo", pt: "Zen Profundo", zh: "深沉禅音"
-    },
+    name: { tr: "Zen Derin", en: "Zen Deep", de: "Zen Tief", fr: "Zen Profond", es: "Zen Profundo", ru: "Глубокий дзен", ar: "زن عميق", it: "Zen Profondo", pt: "Zen Profundo", zh: "深沉禅音" },
     kind: "zen",
     assetPath: "sound18.mp3",
+    notifSound: "sound18.wav",
     seq: [280, 420, 560]
   },
   {
     id: "s19",
-    name: {
-      tr: "Kristal Şafak", en: "Crystal Dawn", de: "Kristalldämmerung", fr: "Aube Cristal",
-      es: "Amanecer Cristal", ru: "Хрустальный рассвет", ar: "فجر كريستالي",
-      it: "Alba di Cristallo", pt: "Amanhecer de Cristal", zh: "水晶晨曦"
-    },
+    name: { tr: "Kristal Şafak", en: "Crystal Dawn", de: "Kristalldämmerung", fr: "Aube Cristal", es: "Amanecer Cristal", ru: "Хрустальный рассвет", ar: "فجر كريستالي", it: "Alba di Cristallo", pt: "Amanhecer de Cristal", zh: "水晶晨曦" },
     kind: "crystal",
     assetPath: "sound19.mp3",
+    notifSound: "sound19.wav",
     seq: [1180, 1680, 2240]
   },
   {
     id: "s20",
-    name: {
-      tr: "Sıcak Uyarı", en: "Warm Alert", de: "Warme Warnung", fr: "Alerte Chaude",
-      es: "Alerta Cálida", ru: "Тёплое предупреждение", ar: "تنبيه دافئ",
-      it: "Avviso Caldo", pt: "Alerta Quente", zh: "温暖提醒"
-    },
+    name: { tr: "Sıcak Uyarı", en: "Warm Alert", de: "Warme Warnung", fr: "Alerte Chaude", es: "Alerta Cálida", ru: "Тёплое предупреждение", ar: "تنبيه دافئ", it: "Avviso Caldo", pt: "Alerta Quente", zh: "温暖提醒" },
     kind: "warm",
     assetPath: "sound20.mp3",
+    notifSound: "sound20.wav",
     seq: [500, 760, 1020]
   }
 ];
@@ -1073,10 +1012,19 @@ function initSoundSystem() {
 // ===============================
 // NOTIFICATIONS
 // ===============================
+function getNotificationChannelIdForSound(sound) {
+  return `timer_alert_${sound?.id || "default"}_v1`;
+}
+
 async function requestNotificationPermission() {
   if (!CapacitorLocalNotifications) return false;
 
   try {
+    if (typeof CapacitorLocalNotifications.areEnabled === "function") {
+      const enabled = await CapacitorLocalNotifications.areEnabled();
+      if (enabled?.value === false) return false;
+    }
+
     const check = await CapacitorLocalNotifications.checkPermissions();
 
     if (check.display === "granted") {
@@ -1087,25 +1035,48 @@ async function requestNotificationPermission() {
     const req = await CapacitorLocalNotifications.requestPermissions();
     notificationState.permissionGranted = req.display === "granted";
     return notificationState.permissionGranted;
-  } catch {
+  } catch (e) {
+    console.warn("Notification permission error:", e);
     return false;
   }
 }
 
-async function createNotificationChannel() {
+async function createBaseNotificationChannel() {
   if (!CapacitorLocalNotifications) return;
 
   try {
     await CapacitorLocalNotifications.createChannel({
-      id: notificationState.channelId,
-      name: "Timer Alerts",
-      description: "Timer finished alerts",
+      id: "timer_alert_default_v1",
+      name: "Timer Default",
+      description: "Default timer alerts",
       importance: 5,
       visibility: 1,
       vibration: true,
-      sound: "beep"
+      sound: "beep.wav"
     });
-  } catch {}
+  } catch (e) {
+    console.warn("Default channel create error:", e);
+  }
+}
+
+async function createSoundChannels() {
+  if (!CapacitorLocalNotifications) return;
+
+  for (const sound of sounds) {
+    try {
+      await CapacitorLocalNotifications.createChannel({
+        id: getNotificationChannelIdForSound(sound),
+        name: `Timer ${sound.id}`,
+        description: `Timer alert for ${sound.id}`,
+        importance: 5,
+        visibility: 1,
+        vibration: true,
+        sound: sound.notifSound || "beep.wav"
+      });
+    } catch (e) {
+      console.warn("Channel create error:", sound.id, e);
+    }
+  }
 }
 
 async function registerNotificationActions() {
@@ -1125,80 +1096,9 @@ async function registerNotificationActions() {
         }
       ]
     });
-  } catch {}
-}
-
-async function scheduleTimerNotification(secondsFromNow) {
-  if (!CapacitorLocalNotifications) return;
-  if (!secondsFromNow || secondsFromNow <= 0) return;
-
-  try {
-    await CapacitorLocalNotifications.cancel({
-      notifications: [{ id: notificationState.scheduledTimerNotificationId }]
-    });
-
-    await CapacitorLocalNotifications.schedule({
-      notifications: [
-        {
-          id: notificationState.scheduledTimerNotificationId,
-          title: t("notifTimerTitle"),
-          body: t("notifTimerBody"),
-          largeBody: t("notifTimerBody"),
-          channelId: notificationState.channelId,
-          actionTypeId: "TIMER_DONE",
-          extra: {
-            source: "timer",
-            autoResetTimer: true,
-            mode: timerState.mode
-          },
-          schedule: {
-            at: new Date(Date.now() + secondsFromNow * 1000),
-            allowWhileIdle: true
-          }
-        }
-      ]
-    });
   } catch (e) {
-    console.warn("Schedule notification error:", e);
+    console.warn("registerActionTypes error:", e);
   }
-}
-
-async function cancelTimerNotification() {
-  if (!CapacitorLocalNotifications) return;
-
-  try {
-    await CapacitorLocalNotifications.cancel({
-      notifications: [{ id: notificationState.scheduledTimerNotificationId }]
-    });
-  } catch {}
-}
-
-async function fireFinishNotification() {
-  if (!CapacitorLocalNotifications) return;
-
-  try {
-    await CapacitorLocalNotifications.schedule({
-      notifications: [
-        {
-          id: Date.now() % 2147483000,
-          title: t("notifTimerTitle"),
-          body: t("notifTimerBody"),
-          largeBody: t("notifTimerBody"),
-          channelId: notificationState.channelId,
-          actionTypeId: "TIMER_DONE",
-          extra: {
-            source: "timer",
-            autoResetTimer: true,
-            mode: timerState.mode
-          },
-          schedule: {
-            at: new Date(Date.now() + 250),
-            allowWhileIdle: true
-          }
-        }
-      ]
-    });
-  } catch {}
 }
 
 function hardResetTimerState() {
@@ -1259,8 +1159,122 @@ async function setupNotificationListeners() {
       }
     );
 
+    if (typeof CapacitorLocalNotifications.addListener === "function") {
+      await CapacitorLocalNotifications.addListener(
+        "localNotificationReceived",
+        (notification) => {
+          console.log("Notification received:", notification);
+        }
+      );
+    }
+
     notificationState.listenersReady = true;
-  } catch {}
+  } catch (e) {
+    console.warn("Notification listener error:", e);
+  }
+}
+
+async function scheduleTimerNotification(secondsFromNow) {
+  if (!CapacitorLocalNotifications) return;
+  if (!secondsFromNow || secondsFromNow <= 0) return;
+
+  const selected = getSelectedSound();
+  const channelId = getNotificationChannelIdForSound(selected);
+
+  try {
+    await CapacitorLocalNotifications.cancel({
+      notifications: [{ id: notificationState.scheduledTimerNotificationId }]
+    });
+
+    await CapacitorLocalNotifications.schedule({
+      notifications: [
+        {
+          id: notificationState.scheduledTimerNotificationId,
+          title: t("notifTimerTitle"),
+          body: t("notifTimerBody"),
+          largeBody: t("notifTimerBody"),
+          channelId,
+          actionTypeId: "TIMER_DONE",
+          autoCancel: true,
+          ongoing: false,
+          extra: {
+            source: "timer",
+            autoResetTimer: true,
+            mode: timerState.mode,
+            soundId: selected.id
+          },
+          schedule: {
+            at: new Date(Date.now() + secondsFromNow * 1000),
+            allowWhileIdle: true
+          }
+        }
+      ]
+    });
+  } catch (e) {
+    console.warn("Schedule notification error:", e);
+  }
+}
+
+async function cancelTimerNotification() {
+  if (!CapacitorLocalNotifications) return;
+
+  try {
+    await CapacitorLocalNotifications.cancel({
+      notifications: [{ id: notificationState.scheduledTimerNotificationId }]
+    });
+  } catch (e) {
+    console.warn("Cancel notification error:", e);
+  }
+}
+
+async function fireFinishNotification() {
+  if (!CapacitorLocalNotifications) return;
+
+  const selected = getSelectedSound();
+  const channelId = getNotificationChannelIdForSound(selected);
+  const deliveredId = Date.now() % 2147483000;
+
+  try {
+    await CapacitorLocalNotifications.schedule({
+      notifications: [
+        {
+          id: deliveredId,
+          title: t("notifTimerTitle"),
+          body: t("notifTimerBody"),
+          largeBody: t("notifTimerBody"),
+          channelId,
+          actionTypeId: "TIMER_DONE",
+          autoCancel: true,
+          ongoing: false,
+          extra: {
+            source: "timer",
+            autoResetTimer: true,
+            mode: timerState.mode,
+            soundId: selected.id
+          },
+          schedule: {
+            at: new Date(Date.now() + 250),
+            allowWhileIdle: true
+          }
+        }
+      ]
+    });
+  } catch (e) {
+    console.warn("Immediate finish notification error:", e);
+  }
+}
+
+async function initNotifications() {
+  const granted = await requestNotificationPermission();
+  if (!granted) {
+    console.warn("Notifications are not granted.");
+    return;
+  }
+
+  await createBaseNotificationChannel();
+  await createSoundChannels();
+  await registerNotificationActions();
+  await setupNotificationListeners();
 }
 
 // ===============================
@@ -1379,8 +1393,8 @@ function startTimer(fromPomodoro = false) {
   updateTimerStartButton();
   saveTimerState();
 
-  requestNotificationPermission().then(() => {
-    scheduleTimerNotification(total);
+  requestNotificationPermission().then((granted) => {
+    if (granted) scheduleTimerNotification(total);
   });
 }
 
@@ -1995,10 +2009,7 @@ async function initApp() {
     setupPomodoroPresets();
     setupQuickButtons();
 
-    await createNotificationChannel();
-    await registerNotificationActions();
-    await setupNotificationListeners();
-    await requestNotificationPermission();
+    await initNotifications();
 
     applyLanguage();
     updateTimerDisplay();
