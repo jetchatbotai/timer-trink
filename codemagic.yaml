@@ -12,7 +12,7 @@ workflows:
         script: |
           npm install
 
-      - name: Create Android platform
+      - name: Add Android platform
         script: |
           npx cap add android
 
@@ -20,7 +20,36 @@ workflows:
         script: |
           npx cap sync android
 
-      - name: Build Android
+      - name: Patch AndroidManifest permissions
+        script: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+          python3 - << 'PY'
+          from pathlib import Path
+
+          manifest_path = Path("android/app/src/main/AndroidManifest.xml")
+          text = manifest_path.read_text(encoding="utf-8")
+
+          permissions = [
+              '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+              '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+              '<uses-permission android:name="android.permission.WAKE_LOCK" />',
+              '<uses-permission android:name="android.permission.VIBRATE" />'
+          ]
+
+          for perm in permissions:
+              if perm not in text:
+                  text = text.replace("<application", perm + "\n\n    <application", 1)
+
+          manifest_path.write_text(text, encoding="utf-8")
+          print("AndroidManifest patched.")
+          PY
+
+      - name: Ensure raw sounds exist
+        script: |
+          ls -la www || true
+
+      - name: Build Android debug APK
         script: |
           cd android
           chmod +x gradlew
