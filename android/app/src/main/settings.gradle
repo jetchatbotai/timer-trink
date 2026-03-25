@@ -1,0 +1,2 @@
+rootProject.name = "timer-trink"
+include ':app'
