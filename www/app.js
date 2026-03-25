@@ -119,7 +119,8 @@ const pomodoroState = {
 // ALARM STATE
 // ===============================
 const alarmState = {
-  intervalId: null,
+  soundIntervalId: null,
+  vibrationIntervalId: null,
   active: false,
   audioContext: null,
   lastPlay: 0,
@@ -315,7 +316,7 @@ const baseTranslations = {
   },
   resetPomodoro: {
     tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro",
-    ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟"
+    ru: "Сбросить Помодоро", ar: "إعادة ضبط بومодورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟"
   },
   resetCycle: {
     tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo",
@@ -327,246 +328,26 @@ const baseTranslations = {
 // 20 UNIQUE SOUNDS
 // ===============================
 const SOUND_LIBRARY = [
-  {
-    id: "s1",
-    rawName: "sound1",
-    assetPath: "sound1.mp3",
-    kind: "crystal",
-    seq: [1040, 1560, 2080],
-    name: {
-      tr: "Kristal Çan", en: "Crystal Bell", de: "Kristallglocke", fr: "Cloche Cristal",
-      es: "Campana Cristal", ru: "Хрустальный колокол", ar: "جرس كريستالي",
-      it: "Campana di Cristallo", pt: "Sino de Cristal", zh: "水晶铃声"
-    }
-  },
-  {
-    id: "s2",
-    rawName: "sound2",
-    assetPath: "sound2.mp3",
-    kind: "glass",
-    seq: [1260, 1820, 2440],
-    name: {
-      tr: "Gece Zili", en: "Night Bell", de: "Nachtglocke", fr: "Cloche Nocturne",
-      es: "Campana Nocturna", ru: "Ночной колокол", ar: "جرس ليلي",
-      it: "Campana Notturna", pt: "Sino Noturno", zh: "夜铃"
-    }
-  },
-  {
-    id: "s3",
-    rawName: "sound3",
-    assetPath: "sound3.mp3",
-    kind: "gong",
-    seq: [220, 330, 440],
-    name: {
-      tr: "Derin Gong", en: "Deep Gong", de: "Tiefer Gong", fr: "Gong Profond",
-      es: "Gong Profundo", ru: "Глубокий гонг", ar: "غونغ عميق",
-      it: "Gong Profondo", pt: "Gongo Profundo", zh: "深沉铜锣"
-    }
-  },
-  {
-    id: "s4",
-    rawName: "sound4",
-    assetPath: "sound4.mp3",
-    kind: "digital",
-    seq: [880, 1320, 1760],
-    name: {
-      tr: "Dijital Bip", en: "Digital Beep", de: "Digitaler Piepton", fr: "Bip Numérique",
-      es: "Bip Digital", ru: "Цифровой сигнал", ar: "بيب رقمي",
-      it: "Bip Digitale", pt: "Bipe Digital", zh: "数字提示音"
-    }
-  },
-  {
-    id: "s5",
-    rawName: "sound5",
-    assetPath: "sound5.mp3",
-    kind: "marimba",
-    seq: [660, 990, 1320],
-    name: {
-      tr: "Marimba Işık", en: "Marimba Light", de: "Marimba Licht", fr: "Marimba Lumière",
-      es: "Marimba Luz", ru: "Светлая маримба", ar: "ماريمبا مضيئة",
-      it: "Marimba Luce", pt: "Marimba Luz", zh: "马林巴轻音"
-    }
-  },
-  {
-    id: "s6",
-    rawName: "sound6",
-    assetPath: "sound6.mp3",
-    kind: "echo",
-    seq: [480, 720, 960],
-    name: {
-      tr: "Yankı Uyarı", en: "Echo Alert", de: "Echo Alarm", fr: "Alerte Écho",
-      es: "Alerta Eco", ru: "Эхо-сигнал", ar: "تنبيه صدى",
-      it: "Avviso Eco", pt: "Alerta Eco", zh: "回声提醒"
-    }
-  },
-  {
-    id: "s7",
-    rawName: "sound7",
-    assetPath: "sound7.mp3",
-    kind: "calm",
-    seq: [420, 630, 840],
-    name: {
-      tr: "Sakin Tını", en: "Calm Tone", de: "Ruhiger Ton", fr: "Ton Calme",
-      es: "Tono Calmo", ru: "Спокойный тон", ar: "نغمة هادئة",
-      it: "Tono Calmo", pt: "Tom Calmo", zh: "安静音色"
-    }
-  },
-  {
-    id: "s8",
-    rawName: "sound8",
-    assetPath: "sound8.mp3",
-    kind: "bright",
-    seq: [940, 1410, 1880],
-    name: {
-      tr: "Parlak Alarm", en: "Bright Alarm", de: "Heller Alarm", fr: "Alarme Brillante",
-      es: "Alarma Brillante", ru: "Яркий сигнал", ar: "إنذار ساطع",
-      it: "Allarme Brillante", pt: "Alarme Brilhante", zh: "明亮警报"
-    }
-  },
-  {
-    id: "s9",
-    rawName: "sound9",
-    assetPath: "sound9.mp3",
-    kind: "zen",
-    seq: [320, 480, 640],
-    name: {
-      tr: "Zen Kase", en: "Zen Bowl", de: "Zen-Schale", fr: "Bol Zen",
-      es: "Cuenco Zen", ru: "Дзен-чаша", ar: "وعاء زن",
-      it: "Ciotola Zen", pt: "Tigela Zen", zh: "禅意钵声"
-    }
-  },
-  {
-    id: "s10",
-    rawName: "sound10",
-    assetPath: "sound10.mp3",
-    kind: "warm",
-    seq: [540, 810, 1080],
-    name: {
-      tr: "Sıcak Çınlama", en: "Warm Chime", de: "Warmer Klang", fr: "Carillon Chaleureux",
-      es: "Campanilla Cálida", ru: "Тёплый звон", ar: "رنين دافئ",
-      it: "Rintocco Caldo", pt: "Toque Quente", zh: "温暖钟声"
-    }
-  },
-  {
-    id: "s11",
-    rawName: "sound11",
-    assetPath: "sound11.mp3",
-    kind: "glass",
-    seq: [1330, 1880, 2550],
-    name: {
-      tr: "Buz Camı", en: "Ice Glass", de: "Eisglas", fr: "Verre de Glace",
-      es: "Cristal Helado", ru: "Ледяное стекло", ar: "زجاج جليدي",
-      it: "Vetro Ghiaccio", pt: "Vidro de Gelo", zh: "冰晶玻璃"
-    }
-  },
-  {
-    id: "s12",
-    rawName: "sound12",
-    assetPath: "sound12.mp3",
-    kind: "gong",
-    seq: [260, 390, 520],
-    name: {
-      tr: "Ay Gongu", en: "Moon Gong", de: "Mondgong", fr: "Gong Lunaire",
-      es: "Gong Lunar", ru: "Лунный гонг", ar: "غونغ القمر",
-      it: "Gong Lunare", pt: "Gongo Lunar", zh: "月光铜锣"
-    }
-  },
-  {
-    id: "s13",
-    rawName: "sound13",
-    assetPath: "sound13.mp3",
-    kind: "digital",
-    seq: [990, 1485, 1980],
-    name: {
-      tr: "Kısa Bip", en: "Short Beep", de: "Kurzer Piepton", fr: "Bip Court",
-      es: "Bip Corto", ru: "Короткий сигнал", ar: "بيب قصير",
-      it: "Bip Breve", pt: "Bipe Curto", zh: "短促提示音"
-    }
-  },
-  {
-    id: "s14",
-    rawName: "sound14",
-    assetPath: "sound14.mp3",
-    kind: "marimba",
-    seq: [610, 915, 1220],
-    name: {
-      tr: "Ahşap Marimba", en: "Wood Marimba", de: "Holz-Marimba", fr: "Marimba Bois",
-      es: "Marimba de Madera", ru: "Деревянная маримба", ar: "ماريمبا خشبية",
-      it: "Marimba in Legno", pt: "Marimba de Madeira", zh: "木质马林巴"
-    }
-  },
-  {
-    id: "s15",
-    rawName: "sound15",
-    assetPath: "sound15.mp3",
-    kind: "echo",
-    seq: [450, 675, 900],
-    name: {
-      tr: "Uzun Yankı", en: "Long Echo", de: "Langes Echo", fr: "Long Écho",
-      es: "Eco Largo", ru: "Долгое эхо", ar: "صدى طويل",
-      it: "Eco Lungo", pt: "Eco Longo", zh: "长回声"
-    }
-  },
-  {
-    id: "s16",
-    rawName: "sound16",
-    assetPath: "sound16.mp3",
-    kind: "calm",
-    seq: [360, 540, 720],
-    name: {
-      tr: "Sakin Nabız", en: "Calm Pulse", de: "Ruhiger Puls", fr: "Pouls Calme",
-      es: "Pulso Calmado", ru: "Спокойный пульс", ar: "نبض هادئ",
-      it: "Impulso Calmo", pt: "Pulso Calmo", zh: "平静脉冲"
-    }
-  },
-  {
-    id: "s17",
-    rawName: "sound17",
-    assetPath: "sound17.mp3",
-    kind: "bright",
-    seq: [1020, 1530, 2040],
-    name: {
-      tr: "Mavi Işık", en: "Blue Light", de: "Blaues Licht", fr: "Lumière Bleue",
-      es: "Luz Azul", ru: "Синий свет", ar: "ضوء أزرق",
-      it: "Luce Blu", pt: "Luz Azul", zh: "蓝色光芒"
-    }
-  },
-  {
-    id: "s18",
-    rawName: "sound18",
-    assetPath: "sound18.mp3",
-    kind: "zen",
-    seq: [280, 420, 560],
-    name: {
-      tr: "Zen Derin", en: "Zen Deep", de: "Zen Tief", fr: "Zen Profond",
-      es: "Zen Profundo", ru: "Глубокий дзен", ar: "زن عميق",
-      it: "Zen Profondo", pt: "Zen Profundo", zh: "深沉禅音"
-    }
-  },
-  {
-    id: "s19",
-    rawName: "sound19",
-    assetPath: "sound19.mp3",
-    kind: "crystal",
-    seq: [1180, 1680, 2240],
-    name: {
-      tr: "Kristal Şafak", en: "Crystal Dawn", de: "Kristalldämmerung", fr: "Aube Cristal",
-      es: "Amanecer Cristal", ru: "Хрустальный рассвет", ar: "فجر كريستالي",
-      it: "Alba di Cristallo", pt: "Amanhecer de Cristal", zh: "水晶晨曦"
-    }
-  },
-  {
-    id: "s20",
-    rawName: "sound20",
-    assetPath: "sound20.mp3",
-    kind: "warm",
-    seq: [500, 760, 1020],
-    name: {
-      tr: "Sıcak Uyarı", en: "Warm Alert", de: "Warme Warnung", fr: "Alerte Chaude",
-      es: "Alerta Cálida", ru: "Тёплое предупреждение", ar: "تنبيه دافئ",
-      it: "Avviso Caldo", pt: "Alerta Quente", zh: "温暖提醒"
-    }
-  }
+  { id: "s1", rawName: "sound1", assetPath: "sound1.mp3", kind: "crystal", seq: [1040, 1560, 2080], name: { tr: "Kristal Çan", en: "Crystal Bell", de: "Kristallglocke", fr: "Cloche Cristal", es: "Campana Cristal", ru: "Хрустальный колокол", ar: "جرس كريستالي", it: "Campana di Cristallo", pt: "Sino de Cristal", zh: "水晶铃声" } },
+  { id: "s2", rawName: "sound2", assetPath: "sound2.mp3", kind: "glass", seq: [1260, 1820, 2440], name: { tr: "Gece Zili", en: "Night Bell", de: "Nachtglocke", fr: "Cloche Nocturne", es: "Campana Nocturna", ru: "Ночной колокол", ar: "جرس ليلي", it: "Campana Notturna", pt: "Sino Noturno", zh: "夜铃" } },
+  { id: "s3", rawName: "sound3", assetPath: "sound3.mp3", kind: "gong", seq: [220, 330, 440], name: { tr: "Derin Gong", en: "Deep Gong", de: "Tiefer Gong", fr: "Gong Profond", es: "Gong Profundo", ru: "Глубокий гонг", ar: "غونغ عميق", it: "Gong Profondo", pt: "Gongo Profundo", zh: "深沉铜锣" } },
+  { id: "s4", rawName: "sound4", assetPath: "sound4.mp3", kind: "digital", seq: [880, 1320, 1760], name: { tr: "Dijital Bip", en: "Digital Beep", de: "Digitaler Piepton", fr: "Bip Numérique", es: "Bip Digital", ru: "Цифровой сигнал", ar: "بيب رقمي", it: "Bip Digitale", pt: "Bipe Digital", zh: "数字提示音" } },
+  { id: "s5", rawName: "sound5", assetPath: "sound5.mp3", kind: "marimba", seq: [660, 990, 1320], name: { tr: "Marimba Işık", en: "Marimba Light", de: "Marimba Licht", fr: "Marimba Lumière", es: "Marimba Luz", ru: "Светлая маримба", ar: "ماريمبا مضيئة", it: "Marimba Luce", pt: "Marimba Luz", zh: "马林巴轻音" } },
+  { id: "s6", rawName: "sound6", assetPath: "sound6.mp3", kind: "echo", seq: [480, 720, 960], name: { tr: "Yankı Uyarı", en: "Echo Alert", de: "Echo Alarm", fr: "Alerte Écho", es: "Alerta Eco", ru: "Эхо-сигнал", ar: "تنبيه صدى", it: "Avviso Eco", pt: "Alerta Eco", zh: "回声提醒" } },
+  { id: "s7", rawName: "sound7", assetPath: "sound7.mp3", kind: "calm", seq: [420, 630, 840], name: { tr: "Sakin Tını", en: "Calm Tone", de: "Ruhiger Ton", fr: "Ton Calme", es: "Tono Calmo", ru: "Спокойный тон", ar: "نغمة هادئة", it: "Tono Calmo", pt: "Tom Calmo", zh: "安静音色" } },
+  { id: "s8", rawName: "sound8", assetPath: "sound8.mp3", kind: "bright", seq: [940, 1410, 1880], name: { tr: "Parlak Alarm", en: "Bright Alarm", de: "Heller Alarm", fr: "Alarme Brillante", es: "Alarma Brillante", ru: "Яркий сигнал", ar: "إنذار ساطع", it: "Allarme Brillante", pt: "Alarme Brilhante", zh: "明亮警报" } },
+  { id: "s9", rawName: "sound9", assetPath: "sound9.mp3", kind: "zen", seq: [320, 480, 640], name: { tr: "Zen Kase", en: "Zen Bowl", de: "Zen-Schale", fr: "Bol Zen", es: "Cuenco Zen", ru: "Дзен-чаша", ar: "وعاء زن", it: "Ciotola Zen", pt: "Tigela Zen", zh: "禅意钵声" } },
+  { id: "s10", rawName: "sound10", assetPath: "sound10.mp3", kind: "warm", seq: [540, 810, 1080], name: { tr: "Sıcak Çınlama", en: "Warm Chime", de: "Warmer Klang", fr: "Carillon Chaleureux", es: "Campanilla Cálida", ru: "Тёплый звон", ar: "رنين دافئ", it: "Rintocco Caldo", pt: "Toque Quente", zh: "温暖钟声" } },
+  { id: "s11", rawName: "sound11", assetPath: "sound11.mp3", kind: "glass", seq: [1330, 1880, 2550], name: { tr: "Buz Camı", en: "Ice Glass", de: "Eisglas", fr: "Verre de Glace", es: "Cristal Helado", ru: "Ледяное стекло", ar: "زجاج جليدي", it: "Vetro Ghiaccio", pt: "Vidro de Gelo", zh: "冰晶玻璃" } },
+  { id: "s12", rawName: "sound12", assetPath: "sound12.mp3", kind: "gong", seq: [260, 390, 520], name: { tr: "Ay Gongu", en: "Moon Gong", de: "Mondgong", fr: "Gong Lunaire", es: "Gong Lunar", ru: "Лунный гонг", ar: "غونغ القمر", it: "Gong Lunare", pt: "Gongo Lunar", zh: "月光铜锣" } },
+  { id: "s13", rawName: "sound13", assetPath: "sound13.mp3", kind: "digital", seq: [990, 1485, 1980], name: { tr: "Kısa Bip", en: "Short Beep", de: "Kurzer Piepton", fr: "Bip Court", es: "Bip Corto", ru: "Короткий сигнал", ar: "بيب قصير", it: "Bip Breve", pt: "Bipe Curto", zh: "短促提示音" } },
+  { id: "s14", rawName: "sound14", assetPath: "sound14.mp3", kind: "marimba", seq: [610, 915, 1220], name: { tr: "Ahşap Marimba", en: "Wood Marimba", de: "Holz-Marimba", fr: "Marimba Bois", es: "Marimba de Madera", ru: "Деревянная маримба", ar: "ماريمبا خشبية", it: "Marimba in Legno", pt: "Marimba de Madeira", zh: "木质马林巴" } },
+  { id: "s15", rawName: "sound15", assetPath: "sound15.mp3", kind: "echo", seq: [450, 675, 900], name: { tr: "Uzun Yankı", en: "Long Echo", de: "Langes Echo", fr: "Long Écho", es: "Eco Largo", ru: "Долгое эхо", ar: "صدى طويل", it: "Eco Lungo", pt: "Eco Longo", zh: "长回声" } },
+  { id: "s16", rawName: "sound16", assetPath: "sound16.mp3", kind: "calm", seq: [360, 540, 720], name: { tr: "Sakin Nabız", en: "Calm Pulse", de: "Ruhiger Puls", fr: "Pouls Calme", es: "Pulso Calmado", ru: "Спокойный пульс", ar: "نبض هادئ", it: "Impulso Calmo", pt: "Pulso Calmo", zh: "平静脉冲" } },
+  { id: "s17", rawName: "sound17", assetPath: "sound17.mp3", kind: "bright", seq: [1020, 1530, 2040], name: { tr: "Mavi Işık", en: "Blue Light", de: "Blaues Licht", fr: "Lumière Bleue", es: "Luz Azul", ru: "Синий свет", ar: "ضوء أزرق", it: "Luce Blu", pt: "Luz Azul", zh: "蓝色光芒" } },
+  { id: "s18", rawName: "sound18", assetPath: "sound18.mp3", kind: "zen", seq: [280, 420, 560], name: { tr: "Zen Derin", en: "Zen Deep", de: "Zen Tief", fr: "Zen Profond", es: "Zen Profundo", ru: "Глубокий дзен", ar: "زن عميق", it: "Zen Profondo", pt: "Zen Profundo", zh: "深沉禅音" } },
+  { id: "s19", rawName: "sound19", assetPath: "sound19.mp3", kind: "crystal", seq: [1180, 1680, 2240], name: { tr: "Kristal Şafak", en: "Crystal Dawn", de: "Kristalldämmerung", fr: "Aube Cristal", es: "Amanecer Cristal", ru: "Хрустальный рассвет", ar: "فجر كريستالي", it: "Alba di Cristallo", pt: "Amanhecer de Cristal", zh: "水晶晨曦" } },
+  { id: "s20", rawName: "sound20", assetPath: "sound20.mp3", kind: "warm", seq: [500, 760, 1020], name: { tr: "Sıcak Uyarı", en: "Warm Alert", de: "Warme Warnung", fr: "Alerte Chaude", es: "Alerta Cálida", ru: "Тёплое предупреждение", ar: "تنبيه دافئ", it: "Avviso Caldo", pt: "Alerta Quente", zh: "温暖提醒" } }
 ];
 
 const sounds = SOUND_LIBRARY.map((s) => ({
@@ -676,6 +457,10 @@ function isAppForeground() {
   return visibilityState.isForeground;
 }
 
+function isTimerExpired() {
+  return timerState.endAt > 0 && nowMs() >= timerState.endAt;
+}
+
 async function syncNotificationWithAppState() {
   if (!timerState.running || timerState.timeLeft <= 0) {
     await cancelTimerNotification();
@@ -692,10 +477,27 @@ async function syncNotificationWithAppState() {
 async function handleAppForeground() {
   visibilityState.isForeground = true;
   await cancelTimerNotification();
+
+  if (timerState.running && isTimerExpired()) {
+    timerState.timeLeft = 0;
+    timerState.running = false;
+    timerState.paused = false;
+    timerState.endAt = 0;
+
+    clearInterval(timerState.timerId);
+    timerState.timerId = null;
+
+    updateTimerDisplay();
+    setText("timerStatus", "done");
+    updateTimerStartButton();
+
+    await onTimerFinished();
+  }
 }
 
 async function handleAppBackground() {
   visibilityState.isForeground = false;
+
   if (timerState.running && timerState.timeLeft > 0) {
     await scheduleTimerNotification(timerState.timeLeft);
   }
@@ -1032,7 +834,7 @@ async function triggerVibrationPulse() {
 
   try {
     if (navigator.vibrate) {
-      navigator.vibrate([250, 90, 250, 90, 320]);
+      navigator.vibrate([350, 120, 350, 120, 500]);
     }
   } catch {}
 
@@ -1043,71 +845,53 @@ async function triggerVibrationPulse() {
   } catch {}
 }
 
-async function stopAllVibration() {
+function stopAllVibration() {
   try {
     if (navigator.vibrate) navigator.vibrate(0);
   } catch {}
 }
 
-function startAlarmLoop() {
+async function startAlarmLoop() {
   stopAlarmLoop();
   alarmState.active = true;
   alarmState.lastPlay = 0;
 
   const selected = getSelectedSound();
-
   if (selected.audioAvailable === null) {
     probeSoundAsset(selected);
   }
 
-  if (selected.audioAvailable === true) {
-    playRealSoundOnce(selected, true).then((ok) => {
-      if (!ok && alarmState.active) {
-        startSynthAlarmLoop();
-      }
-    });
-  } else {
-    startSynthAlarmLoop();
+  const playCurrentAlarmSound = async () => {
+    if (!alarmState.active) return;
+    const now = nowMs();
+    if (now - alarmState.lastPlay < 1100) return;
+    alarmState.lastPlay = now;
+    await playSoundOnce(getSelectedSound(), "alarm");
+  };
+
+  const realLoopStarted =
+    selected.audioAvailable === true
+      ? await playRealSoundOnce(selected, true)
+      : false;
+
+  if (!realLoopStarted) {
+    await playCurrentAlarmSound();
+    alarmState.soundIntervalId = setInterval(playCurrentAlarmSound, 1400);
   }
 
-  triggerVibrationPulse();
-  alarmState.intervalId = setInterval(() => {
-    triggerVibrationPulse();
-  }, 1700);
-}
-
-function startSynthAlarmLoop() {
-  const synthLoop = setInterval(() => {
-    if (!alarmState.active) {
-      clearInterval(synthLoop);
-      return;
-    }
-
-    const now = nowMs();
-    if (now - alarmState.lastPlay < 1200) return;
-    alarmState.lastPlay = now;
-
-    playSoundOnce(getSelectedSound(), "alarm");
-  }, 1350);
-
-  const previous = alarmState.intervalId;
-  alarmState.intervalId = {
-    stop() {
-      clearInterval(synthLoop);
-      if (previous && typeof previous === "number") clearInterval(previous);
-      if (previous && typeof previous.stop === "function") previous.stop();
-    }
-  };
+  await triggerVibrationPulse();
+  alarmState.vibrationIntervalId = setInterval(triggerVibrationPulse, 1800);
 }
 
 function stopAlarmLoop() {
-  if (alarmState.intervalId) {
-    if (typeof alarmState.intervalId === "number") {
-      clearInterval(alarmState.intervalId);
-    } else if (typeof alarmState.intervalId.stop === "function") {
-      alarmState.intervalId.stop();
-    }
-    alarmState.intervalId = null;
+  if (alarmState.soundIntervalId) {
+    clearInterval(alarmState.soundIntervalId);
+    alarmState.soundIntervalId = null;
+  }
+
+  if (alarmState.vibrationIntervalId) {
+    clearInterval(alarmState.vibrationIntervalId);
+    alarmState.vibrationIntervalId = null;
   }
 
   stopHtmlAudio();
@@ -1122,6 +906,18 @@ function lockUIWhileAlarm() {
 
 function unlockUI() {
   document.body.classList.remove("alarm-active");
+}
+
+function showAlarmOverlay() {
+  const titleEl = $("alarmTitle");
+  const msgEl = $("alarmMessage");
+  const overlay = $("alarmOverlay");
+
+  if (titleEl) titleEl.textContent = t("alarmTitle");
+  if (msgEl) msgEl.textContent = t("alarmMsg");
+  if (overlay) overlay.classList.remove("hidden");
+
+  lockUIWhileAlarm();
 }
 
 async function dismissAlarm() {
@@ -1219,6 +1015,34 @@ async function ensureNotificationChannels() {
   if (!CapacitorLocalNotifications) return;
 
   try {
+    const createAllChannels = async () => {
+      for (const sound of sounds) {
+        try {
+          await CapacitorLocalNotifications.createChannel({
+            id: getSoundChannelId(sound.id),
+            name: `Timer ${sound.rawName}`,
+            description: `Timer alerts - ${sound.rawName}`,
+            importance: 5,
+            visibility: 1,
+            vibration: true,
+            sound: sound.rawName
+          });
+        } catch {}
+      }
+
+      try {
+        await CapacitorLocalNotifications.createChannel({
+          id: "timer_alerts_fallback",
+          name: "Timer fallback",
+          description: "Fallback timer alerts",
+          importance: 5,
+          visibility: 1,
+          vibration: true,
+          sound: "beep"
+        });
+      } catch {}
+    };
+
     if (CapacitorLocalNotifications.listChannels) {
       const res = await CapacitorLocalNotifications.listChannels();
       const existingIds = new Set((res?.channels || []).map((c) => c.id));
@@ -1253,35 +1077,9 @@ async function ensureNotificationChannels() {
           });
         } catch {}
       }
-
-      return;
+    } else {
+      await createAllChannels();
     }
-
-    for (const sound of sounds) {
-      try {
-        await CapacitorLocalNotifications.createChannel({
-          id: getSoundChannelId(sound.id),
-          name: `Timer ${sound.rawName}`,
-          description: `Timer alerts - ${sound.rawName}`,
-          importance: 5,
-          visibility: 1,
-          vibration: true,
-          sound: sound.rawName
-        });
-      } catch {}
-    }
-
-    try {
-      await CapacitorLocalNotifications.createChannel({
-        id: "timer_alerts_fallback",
-        name: "Timer fallback",
-        description: "Fallback timer alerts",
-        importance: 5,
-        visibility: 1,
-        vibration: true,
-        sound: "beep"
-      });
-    } catch {}
   } catch {}
 }
 
@@ -1518,7 +1316,7 @@ async function startTimer(fromPomodoro = false) {
   if (timerState.running) return;
 
   if (timerState.paused && timerState.timeLeft > 0) {
-    resumeTimer();
+    await resumeTimer();
     return;
   }
 
@@ -1615,6 +1413,12 @@ async function resetTimer() {
 
   updateTimerDisplay();
   await cancelTimerNotification();
+  stopAlarmLoop();
+
+  const overlay = $("alarmOverlay");
+  if (overlay) overlay.classList.add("hidden");
+  unlockUI();
+
   setText("timerStatus", "ready");
   updateTimerStartButton();
 
@@ -1625,28 +1429,23 @@ async function resetTimer() {
 async function onTimerFinished() {
   await cancelTimerNotification();
 
-  const titleEl = $("alarmTitle");
-  const msgEl = $("alarmMessage");
-  const overlay = $("alarmOverlay");
-
-  if (titleEl) titleEl.textContent = t("alarmTitle");
-  if (msgEl) msgEl.textContent = t("alarmMsg");
-
   alarmState.pendingPomodoroAdvance =
     timerState.mode === "pomodoro" &&
     pomodoroState.enabled === true &&
     pomodoroState.autoAdvance === true;
 
   if (isAppForeground()) {
-    if (overlay) overlay.classList.remove("hidden");
-    lockUIWhileAlarm();
-    startAlarmLoop();
+    showAlarmOverlay();
+    await startAlarmLoop();
   }
 
   updateTimerStartButton();
   saveTimerState();
 }
 
+// ===============================
+// QUICK BUTTONS
+// ===============================
 function setupQuickButtons() {
   const buttons = $$(".quick-btn");
   buttons.forEach((btn) => {
@@ -1760,6 +1559,12 @@ async function resetPomodoro() {
 
   updateTimerDisplay();
   await cancelTimerNotification();
+  stopAlarmLoop();
+
+  const overlay = $("alarmOverlay");
+  if (overlay) overlay.classList.add("hidden");
+  unlockUI();
+
   setText("timerStatus", "ready");
   updateTimerStartButton();
   updatePomodoroUI();
@@ -2021,8 +1826,12 @@ function loadTimerState() {
   if (data.running && data.endAt) {
     const remaining = Math.max(0, Math.ceil((data.endAt - nowMs()) / 1000));
     timerState.timeLeft = remaining;
-    timerState.running = false;
-    timerState.paused = remaining > 0;
+    timerState.running = remaining > 0;
+    timerState.paused = false;
+
+    if (remaining > 0) {
+      timerState.timerId = setInterval(timerTick, 250);
+    }
   } else {
     timerState.timeLeft = data.timeLeft || 0;
     timerState.running = false;
