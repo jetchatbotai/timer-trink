@@ -1029,7 +1029,7 @@ async function ensureNotificationChannels() {
             importance: 5,
             visibility: 1,
             vibration: true,
-            sound: sound.rawName
+        sound: sound.rawName.replace(".mp3", "")
           });
         } catch {}
       }
