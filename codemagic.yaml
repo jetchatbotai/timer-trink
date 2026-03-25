@@ -9,10 +9,28 @@ workflows:
 
     scripts:
       - name: Install dependencies
-        script: npm install
+        script: |
+          npm install
+
+      - name: Create Android platform
+        script: |
+          npx cap add android
+
+      - name: Sync Capacitor
+        script: |
+          npx cap sync android
 
       - name: Build Android
-        script: cd android && ./gradlew assembleDebug
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
     artifacts:
       - android/app/build/outputs/**/*.apk
+
+    cache:
+      cache_paths:
+        - ~/.npm
+        - ~/.gradle/caches
+        - ~/.gradle/wrapper
