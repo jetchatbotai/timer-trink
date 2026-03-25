@@ -1,96 +1,18 @@
 workflows:
-  android-debug:
+  android-workflow:
     name: Android Debug APK
     max_build_duration: 60
 
     environment:
       node: 20
-      java: 17
-
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
-          source: true
+      java: 21
 
     scripts:
-      - name: Show project root
-        script: |
-          pwd
-          ls -la
-
       - name: Install dependencies
-        script: |
-          npm install
+        script: npm install
 
-      - name: Check required web files
-        script: |
-          ls -la
-          ls -la www
-          test -f package.json
-          test -f capacitor.config.json
-          test -f www/index.html
-          test -f www/app.js
-          test -f www/styles.css
-
-      - name: Backup raw sounds if present
-        script: |
-          mkdir -p /tmp/timer_raw_backup
-          if [ -d android/app/src/main/res/raw ]; then
-            cp -R android/app/src/main/res/raw/. /tmp/timer_raw_backup/ || true
-          fi
-
-      - name: Recreate Android platform clean
-        script: |
-          rm -rf android
-          npx cap add android
-          npx cap sync android
-
-      - name: Restore raw sounds after android recreation
-        script: |
-          mkdir -p android/app/src/main/res/raw
-          if [ -d /tmp/timer_raw_backup ]; then
-            cp -R /tmp/timer_raw_backup/. android/app/src/main/res/raw/ || true
-          fi
-          ls -la android/app/src/main/res/raw || true
-
-      - name: Verify Android files
-        script: |
-          test -f android/gradlew
-          test -f android/app/build.gradle
-          test -f android/app/src/main/AndroidManifest.xml
-
-      - name: Force Java 17 in Gradle files
-        script: |
-          sed -i.bak 's/VERSION_21/VERSION_17/g' android/app/build.gradle || true
-          sed -i.bak 's/VERSION_21/VERSION_17/g' android/build.gradle || true
-          sed -i.bak 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' android/app/build.gradle || true
-          sed -i.bak 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' android/app/build.gradle || true
-          sed -i.bak 's/sourceCompatibility JavaVersion.VERSION_21/sourceCompatibility JavaVersion.VERSION_17/g' android/app/build.gradle || true
-          sed -i.bak 's/targetCompatibility JavaVersion.VERSION_21/targetCompatibility JavaVersion.VERSION_17/g' android/app/build.gradle || true
-          sed -i.bak 's/jvmTarget = "21"/jvmTarget = "17"/g' android/app/build.gradle || true
-          sed -i.bak 's/jvmTarget = "21"/jvmTarget = "17"/g' android/build.gradle || true
-
-      - name: Print Gradle config
-        script: |
-          echo "----- android/app/build.gradle -----"
-          cat android/app/build.gradle || true
-          echo "----- android/build.gradle -----"
-          cat android/build.gradle || true
-
-      - name: Build Android debug APK
-        script: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+      - name: Build Android
+        script: cd android && ./gradlew assembleDebug
 
     artifacts:
       - android/app/build/outputs/**/*.apk
-
-    cache:
-      cache_paths:
-        - ~/.npm
-        - ~/.gradle/caches
-        - ~/.gradle/wrapper
