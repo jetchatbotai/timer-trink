@@ -474,24 +474,28 @@ async function syncNotificationWithAppState() {
   }
 }
 
+async function finishTimerInForeground() {
+  timerState.timeLeft = 0;
+  timerState.running = false;
+  timerState.paused = false;
+  timerState.endAt = 0;
+
+  clearInterval(timerState.timerId);
+  timerState.timerId = null;
+
+  updateTimerDisplay();
+  setText("timerStatus", "done");
+  updateTimerStartButton();
+
+  await onTimerFinished();
+}
+
 async function handleAppForeground() {
   visibilityState.isForeground = true;
   await cancelTimerNotification();
 
   if (timerState.running && isTimerExpired()) {
-    timerState.timeLeft = 0;
-    timerState.running = false;
-    timerState.paused = false;
-    timerState.endAt = 0;
-
-    clearInterval(timerState.timerId);
-    timerState.timerId = null;
-
-    updateTimerDisplay();
-    setText("timerStatus", "done");
-    updateTimerStartButton();
-
-    await onTimerFinished();
+    await finishTimerInForeground();
   }
 }
 
@@ -1213,23 +1217,64 @@ async function setupNotificationListeners() {
 
   try {
     await CapacitorLocalNotifications.addListener(
+      "localNotificationReceived",
+      async (event) => {
+        const id = event?.id ?? event?.notification?.id;
+        if (id !== notificationState.scheduledTimerNotificationId) return;
+
+        if (isAppForeground()) {
+          await cancelTimerNotification();
+
+          if (timerState.running || timerState.timeLeft > 0) {
+            timerState.timeLeft = 0;
+            timerState.running = false;
+            timerState.paused = false;
+            timerState.endAt = 0;
+
+            clearInterval(timerState.timerId);
+            timerState.timerId = null;
+
+            updateTimerDisplay();
+            setText("timerStatus", "done");
+            updateTimerStartButton();
+
+            showAlarmOverlay();
+            await startAlarmLoop();
+            saveTimerState();
+          }
+        }
+      }
+    );
+
+    await CapacitorLocalNotifications.addListener(
       "localNotificationActionPerformed",
       async (event) => {
         const notificationId = event?.notification?.id;
+        const actionId = event?.actionId;
 
-        hardResetTimerState();
+        if (actionId === "dismiss_timer") {
+          hardResetTimerState();
 
-        try {
-          if (notificationId) {
-            await CapacitorLocalNotifications.removeDeliveredNotifications({
-              notifications: [{ id: notificationId }]
-            });
-          } else {
-            await CapacitorLocalNotifications.removeAllDeliveredNotifications();
+          try {
+            if (notificationId) {
+              await CapacitorLocalNotifications.removeDeliveredNotifications({
+                notifications: [{ id: notificationId }]
+              });
+            } else {
+              await CapacitorLocalNotifications.removeAllDeliveredNotifications();
+            }
+          } catch {}
+
+          await cancelTimerNotification();
+          return;
+        }
+
+        if (notificationId === notificationState.scheduledTimerNotificationId) {
+          if (isAppForeground()) {
+            showAlarmOverlay();
+            await startAlarmLoop();
           }
-        } catch {}
-
-        await cancelTimerNotification();
+        }
       }
     );
 
@@ -1823,14 +1868,21 @@ function loadTimerState() {
   timerState.endAt = data.endAt || 0;
   timerState.mode = data.mode || "timer";
 
+  clearInterval(timerState.timerId);
+  timerState.timerId = null;
+
   if (data.running && data.endAt) {
     const remaining = Math.max(0, Math.ceil((data.endAt - nowMs()) / 1000));
     timerState.timeLeft = remaining;
-    timerState.running = remaining > 0;
-    timerState.paused = false;
 
     if (remaining > 0) {
+      timerState.running = true;
+      timerState.paused = false;
       timerState.timerId = setInterval(timerTick, 250);
+    } else {
+      timerState.running = false;
+      timerState.paused = false;
+      timerState.endAt = 0;
     }
   } else {
     timerState.timeLeft = data.timeLeft || 0;
