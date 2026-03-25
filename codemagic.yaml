@@ -12,6 +12,15 @@ workflows:
         script: |
           npm install
 
+      - name: Verify required project files
+        script: |
+          test -f package.json
+          test -f capacitor.config.json
+          test -f www/index.html
+          test -f www/app.js
+          test -f www/styles.css
+          ls -la www || true
+
       - name: Add Android platform
         script: |
           npx cap add android
@@ -47,9 +56,12 @@ workflows:
         script: |
           mkdir -p android/app/src/main/res/raw
 
+          found_any=false
+
           for i in $(seq 1 20); do
             if [ -f "www/sound${i}.mp3" ]; then
               cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
+              found_any=true
             fi
           done
 
@@ -57,13 +69,24 @@ workflows:
             cp "www/beep.mp3" "android/app/src/main/res/raw/beep.mp3"
           fi
 
+          echo "RAW FILES:"
+          ls -la android/app/src/main/res/raw || true
+
+          if [ "$found_any" = false ]; then
+            echo "WARNING: No sound1.mp3 ... sound20.mp3 files found in www/"
+          fi
+
+      - name: Verify Android files
+        script: |
+          test -f android/gradlew
+          test -f android/app/src/main/AndroidManifest.xml
           ls -la android/app/src/main/res/raw || true
 
       - name: Build Android debug APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
     artifacts:
       - android/app/build/outputs/**/*.apk
