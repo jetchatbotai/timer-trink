@@ -1,1 +1,26 @@
+apply plugin: 'com.android.application'
 
+android {
+    compileSdkVersion 34
+
+    defaultConfig {
+        applicationId "com.timertrink.app"
+        minSdkVersion 23
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
