@@ -22,8 +22,6 @@ workflows:
 
       - name: Patch AndroidManifest permissions
         script: |
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-
           python3 - << 'PY'
           from pathlib import Path
 
@@ -45,9 +43,21 @@ workflows:
           print("AndroidManifest patched.")
           PY
 
-      - name: Ensure raw sounds exist
+      - name: Copy notification sounds to Android raw
         script: |
-          ls -la www || true
+          mkdir -p android/app/src/main/res/raw
+
+          for i in $(seq 1 20); do
+            if [ -f "www/sound${i}.mp3" ]; then
+              cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
+            fi
+          done
+
+          if [ -f "www/beep.mp3" ]; then
+            cp "www/beep.mp3" "android/app/src/main/res/raw/beep.mp3"
+          fi
+
+          ls -la android/app/src/main/res/raw || true
 
       - name: Build Android debug APK
         script: |
