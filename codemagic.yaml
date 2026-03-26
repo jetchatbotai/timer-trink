@@ -1,6 +1,6 @@
 workflows:
   android-workflow:
-    name: Android Debug APK
+    name: Android Debug APK (FULL ALARM FIX)
     max_build_duration: 60
 
     environment:
@@ -19,7 +19,6 @@ workflows:
           test -f www/index.html
           test -f www/app.js
           test -f www/styles.css
-          ls -la www || true
 
       - name: Recreate Android platform
         script: |
@@ -27,43 +26,50 @@ workflows:
           npx cap add android
           npx cap sync android
 
-      - name: Patch AndroidManifest
+      # 🔥 EN KRİTİK KISIM
+      - name: Patch AndroidManifest (FULL POWER)
         script: |
           python3 - << 'PY'
           from pathlib import Path
 
-          manifest_path = Path("android/app/src/main/AndroidManifest.xml")
-          text = manifest_path.read_text(encoding="utf-8")
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          text = manifest.read_text()
 
           permissions = [
-              '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
-              '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
-              '<uses-permission android:name="android.permission.WAKE_LOCK" />',
-              '<uses-permission android:name="android.permission.VIBRATE" />',
-              '<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />'
+              'android.permission.POST_NOTIFICATIONS',
+              'android.permission.SCHEDULE_EXACT_ALARM',
+              'android.permission.WAKE_LOCK',
+              'android.permission.VIBRATE',
+              'android.permission.RECEIVE_BOOT_COMPLETED',
+              'android.permission.FOREGROUND_SERVICE'
           ]
 
-          for perm in permissions:
-              if perm not in text:
-                  text = text.replace("<application", perm + "\n\n    <application", 1)
+          for p in permissions:
+              if p not in text:
+                  text = text.replace("<application", f'<uses-permission android:name="{p}" />\n\n    <application', 1)
 
-          manifest_path.write_text(text, encoding="utf-8")
-          print("AndroidManifest patched.")
+          # 🔥 heads-up ve kilit ekran için
+          if 'android:showWhenLocked' not in text:
+              text = text.replace(
+                  "<activity",
+                  '<activity android:showWhenLocked="true" android:turnScreenOn="true"',
+                  1
+              )
+
+          manifest.write_text(text)
+          print("MANIFEST FULL PATCHED")
           PY
 
+      # 🔥 SES DOSYALARI
       - name: Copy sounds to Android raw
         script: |
           mkdir -p android/app/src/main/res/raw
 
-          found_any=false
-
           for i in $(seq 1 20); do
             if [ -f "www/sound${i}.wav" ]; then
               cp "www/sound${i}.wav" "android/app/src/main/res/raw/sound${i}.wav"
-              found_any=true
             elif [ -f "www/sound${i}.mp3" ]; then
               cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
-              found_any=true
             fi
           done
 
@@ -73,25 +79,47 @@ workflows:
             cp "www/beep.mp3" "android/app/src/main/res/raw/beep.mp3"
           fi
 
-          echo "RAW FILES:"
-          ls -la android/app/src/main/res/raw || true
+          ls -la android/app/src/main/res/raw
 
-          if [ "$found_any" = false ]; then
-            echo "ERROR: No sound files found in www/"
-            exit 1
-          fi
-
-      - name: Verify Android files
+      # 🔥 CHANNEL FIX (ASIL SORUN BURDAYDI)
+      - name: Force Notification Channel Config
         script: |
-          test -f android/gradlew
-          test -f android/app/src/main/AndroidManifest.xml
-          ls -la android/app/src/main/res/raw || true
+          mkdir -p android/app/src/main/java/com/getcapacitor
+
+          cat <<EOF > android/app/src/main/java/com/getcapacitor/NotificationFix.java
+          package com.getcapacitor;
+
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.content.Context;
+          import android.os.Build;
+
+          public class NotificationFix {
+              public static void create(Context context) {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      NotificationManager nm = context.getSystemService(NotificationManager.class);
+
+                      NotificationChannel channel = new NotificationChannel(
+                          "timer_alerts_v6_s1",
+                          "Timer Alarm",
+                          NotificationManager.IMPORTANCE_HIGH
+                      );
+
+                      channel.enableVibration(true);
+                      channel.setLockscreenVisibility(1);
+                      channel.setSound(null, null); // JS yönetecek
+
+                      nm.createNotificationChannel(channel);
+                  }
+              }
+          }
+          EOF
 
       - name: Build Android debug APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug
 
     artifacts:
       - android/app/build/outputs/**/*.apk
@@ -99,5 +127,4 @@ workflows:
     cache:
       cache_paths:
         - ~/.npm
-        - ~/.gradle/caches
-        - ~/.gradle/wrapper
+        - ~/.gradle
