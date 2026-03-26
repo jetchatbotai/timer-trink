@@ -1012,7 +1012,7 @@ function initSoundSystem() {
 // NOTIFICATION CHANNEL HELPERS
 // ===============================
 function getSoundChannelId(soundId) {
-  return `timer_alerts_${soundId}`;
+  return `timer_alerts_v2_${soundId}`;
 }
 
 async function ensureNotificationChannels() {
@@ -1029,7 +1029,7 @@ async function ensureNotificationChannels() {
             importance: 5,
             visibility: 1,
             vibration: true,
-        sound: sound.rawName.replace(".mp3", "")
+            sound: sound.rawName
           });
         } catch {}
       }
@@ -1138,7 +1138,6 @@ function getNotificationChannelForCurrentSound() {
 async function scheduleTimerNotification(secondsFromNow) {
   if (!CapacitorLocalNotifications) return;
   if (!secondsFromNow || secondsFromNow <= 0) return;
-  if (isAppForeground()) return;
 
   try {
     await cancelTimerNotification();
@@ -1149,7 +1148,6 @@ async function scheduleTimerNotification(secondsFromNow) {
           id: notificationState.scheduledTimerNotificationId,
           title: t("notifTimerTitle"),
           body: t("notifTimerBody"),
-          largeBody: t("notifTimerBody"),
           channelId: getNotificationChannelForCurrentSound(),
           actionTypeId: "TIMER_DONE",
           extra: {
