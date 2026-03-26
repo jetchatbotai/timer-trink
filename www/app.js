@@ -113,7 +113,7 @@ const alarmState = {
 };
 
 // ===============================
-// LANG / TRANSLATIONS
+// TRANSLATIONS
 // ===============================
 const baseTranslations = {
   start: { tr: "Başlat", en: "Start", de: "Start", fr: "Démarrer", es: "Iniciar", ru: "Старт", ar: "ابدأ", it: "Avvia", pt: "Iniciar", zh: "开始" },
@@ -123,7 +123,6 @@ const baseTranslations = {
   running: { tr: "Çalışıyor", en: "Running", de: "Läuft", fr: "En cours", es: "En marcha", ru: "Работает", ar: "قيد التشغيل", it: "In esecuzione", pt: "Em andamento", zh: "运行中" },
   paused: { tr: "Duraklatıldı", en: "Paused", de: "Pausiert", fr: "En pause", es: "Pausado", ru: "На паузе", ar: "متوقف مؤقتًا", it: "In pausa", pt: "Pausado", zh: "已暂停" },
   done: { tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！" },
-  dismissAlarm: { tr: "Kapat", en: "Dismiss", de: "Schließen", fr: "Fermer", es: "Cerrar", ru: "Закрыть", ar: "إغلاق", it: "Chiudi", pt: "Fechar", zh: "关闭" },
   sounds: { tr: "ses", en: "sounds", de: "Töne", fr: "sons", es: "sonidos", ru: "звуков", ar: "أصوات", it: "suoni", pt: "sons", zh: "种声音" },
   hours: { tr: "Saat", en: "Hours", de: "Stunden", fr: "Heures", es: "Horas", ru: "Часы", ar: "الساعات", it: "Ore", pt: "Horas", zh: "小时" },
   minutes: { tr: "Dakika", en: "Minutes", de: "Minuten", fr: "Minutes", es: "Minutos", ru: "Минуты", ar: "الدقائق", it: "Minuti", pt: "Minutos", zh: "分钟" },
@@ -149,7 +148,7 @@ const baseTranslations = {
   clearLaps: { tr: "Turları temizle", en: "Clear Laps", de: "Runden löschen", fr: "Effacer les tours", es: "Borrar vueltas", ru: "Очистить круги", ar: "مسح اللفات", it: "Cancella giri", pt: "Limpar voltas", zh: "清除圈数" },
   workLabel: { tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作" },
   breakLabel: { tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso", ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息" },
-  resetPomodoro: { tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro", ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟" },
+  resetPomodoro: { tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro", ru: "Сбросить Помодоро", ar: "إعادة ضبط بومодورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟" },
   resetCycle: { tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo", ru: "Сбросить цикл", ar: "إعادة ضبط الدورة", it: "Reimposta ciclo", pt: "Redefinir ciclo", zh: "重置周期" }
 };
 
@@ -258,6 +257,7 @@ function applyLanguage() {
 
   if (timerState.running) setText("timerStatus", "running");
   else if (timerState.paused) setText("timerStatus", "paused");
+  else if (timerState.timeLeft <= 0 && timerState.totalTime > 0) setText("timerStatus", "done");
   else setText("timerStatus", "ready");
 
   if (stopwatchState.running) setText("stopwatchStatus", "running");
@@ -426,12 +426,12 @@ async function previewSound(sound) {
 // NOTIFICATION CHANNELS
 // ===============================
 function getSoundChannelId(soundId) {
-  return `timer_alerts_v5_${soundId}`;
+  return `timer_alerts_v6_${soundId}`;
 }
 
 function getNotificationChannelForCurrentSound() {
   const sound = getSelectedSound();
-  if (!sound?.rawName) return "timer_alerts_fallback_v5";
+  if (!sound?.rawName) return "timer_alerts_fallback_v6";
   return getSoundChannelId(sound.id);
 }
 
@@ -444,9 +444,11 @@ async function ensureNotificationChannels() {
       : { channels: [] };
 
     const existingIds = new Set((existing?.channels || []).map((c) => c.id));
+    const vibrationEnabled = $("vibrationToggle")?.checked !== false;
 
     for (const sound of SOUND_LIBRARY) {
       const channelId = getSoundChannelId(sound.id);
+
       if (!existingIds.has(channelId)) {
         try {
           await CapacitorLocalNotifications.createChannel({
@@ -455,7 +457,7 @@ async function ensureNotificationChannels() {
             description: `Timer alerts - ${sound.rawName}`,
             importance: 5,
             visibility: 1,
-            vibration: true,
+            vibration: vibrationEnabled,
             sound: fileNameWithoutExt(sound.assetPath)
           });
         } catch (e) {
@@ -464,15 +466,15 @@ async function ensureNotificationChannels() {
       }
     }
 
-    if (!existingIds.has("timer_alerts_fallback_v5")) {
+    if (!existingIds.has("timer_alerts_fallback_v6")) {
       try {
         await CapacitorLocalNotifications.createChannel({
-          id: "timer_alerts_fallback_v5",
+          id: "timer_alerts_fallback_v6",
           name: "Timer fallback",
           description: "Fallback timer alerts",
           importance: 5,
           visibility: 1,
-          vibration: true,
+          vibration: vibrationEnabled,
           sound: "beep"
         });
       } catch (e) {
@@ -514,14 +516,19 @@ async function scheduleTimerNotification(secondsFromNow) {
   try {
     await cancelTimerNotification();
 
+    const soundEnabled = $("soundToggle")?.checked !== false;
+
     await CapacitorLocalNotifications.schedule({
       notifications: [
         {
           id: notificationState.scheduledTimerNotificationId,
           title: t("notifTimerTitle"),
           body: t("notifTimerBody"),
+          largeBody: t("notifTimerBody"),
           channelId: getNotificationChannelForCurrentSound(),
           actionTypeId: "TIMER_DONE",
+          ongoing: true,
+          autoCancel: false,
           extra: {
             source: "timer",
             autoResetTimer: true,
@@ -530,7 +537,8 @@ async function scheduleTimerNotification(secondsFromNow) {
           schedule: {
             at: new Date(nowMs() + secondsFromNow * 1000),
             allowWhileIdle: true
-          }
+          },
+          sound: soundEnabled ? fileNameWithoutExt(getSelectedSound().assetPath) : undefined
         }
       ]
     });
@@ -545,14 +553,19 @@ async function showImmediateFinishedNotification() {
   try {
     await cancelTimerNotification();
 
+    const soundEnabled = $("soundToggle")?.checked !== false;
+
     await CapacitorLocalNotifications.schedule({
       notifications: [
         {
           id: notificationState.scheduledTimerNotificationId,
           title: t("notifTimerTitle"),
           body: t("notifTimerBody"),
+          largeBody: t("notifTimerBody"),
           channelId: getNotificationChannelForCurrentSound(),
           actionTypeId: "TIMER_DONE",
+          ongoing: true,
+          autoCancel: false,
           extra: {
             source: "timer",
             autoResetTimer: true,
@@ -561,7 +574,8 @@ async function showImmediateFinishedNotification() {
           schedule: {
             at: new Date(nowMs() + 300),
             allowWhileIdle: true
-          }
+          },
+          sound: soundEnabled ? fileNameWithoutExt(getSelectedSound().assetPath) : undefined
         }
       ]
     });
@@ -580,7 +594,7 @@ async function cancelTimerNotification() {
   } catch {}
 }
 
-function hardResetTimerState() {
+function hardResetTimerState(clearInputs = true) {
   clearInterval(timerState.timerId);
   timerState.timerId = null;
 
@@ -594,9 +608,11 @@ function hardResetTimerState() {
   alarmState.pendingPomodoroAdvance = false;
   pomodoroState.enabled = false;
 
-  if ($("hours")) $("hours").value = 0;
-  if ($("minutes")) $("minutes").value = 0;
-  if ($("seconds")) $("seconds").value = 0;
+  if (clearInputs) {
+    if ($("hours")) $("hours").value = 0;
+    if ($("minutes")) $("minutes").value = 0;
+    if ($("seconds")) $("seconds").value = 0;
+  }
 
   updateTimerDisplay();
   setText("timerStatus", "ready");
@@ -641,32 +657,30 @@ async function setupNotificationListeners() {
 
         if (notificationId !== notificationState.scheduledTimerNotificationId) return;
 
-        if (actionId === "dismiss_timer" || !actionId) {
-          try {
-            if (notificationId) {
-              await CapacitorLocalNotifications.removeDeliveredNotifications({
-                notifications: [{ id: notificationId }]
-              });
-            }
-          } catch {}
-
-          await cancelTimerNotification();
-
-          const shouldAdvancePomodoro =
-            timerState.mode === "pomodoro" &&
-            pomodoroState.enabled === true &&
-            pomodoroState.autoAdvance === true &&
-            alarmState.pendingPomodoroAdvance === true;
-
-          alarmState.pendingPomodoroAdvance = false;
-
-          if (shouldAdvancePomodoro) {
-            handlePomodoroSwitch();
-          } else {
-            timerState.mode = "timer";
-            saveTimerState();
-            savePomodoroState();
+        try {
+          if (notificationId) {
+            await CapacitorLocalNotifications.removeDeliveredNotifications({
+              notifications: [{ id: notificationId }]
+            });
           }
+        } catch {}
+
+        await cancelTimerNotification();
+
+        const shouldAdvancePomodoro =
+          timerState.mode === "pomodoro" &&
+          pomodoroState.enabled === true &&
+          pomodoroState.autoAdvance === true &&
+          alarmState.pendingPomodoroAdvance === true;
+
+        alarmState.pendingPomodoroAdvance = false;
+
+        if (shouldAdvancePomodoro) {
+          handlePomodoroSwitch();
+        } else {
+          timerState.mode = "timer";
+          saveTimerState();
+          savePomodoroState();
         }
       }
     );
@@ -1339,6 +1353,9 @@ function renderSounds() {
       selectedSoundId = sound.id;
       saveSoundState();
 
+      // yeni kanal/ses için uygulamayı yeniden kurmak bazen daha sağlıklı
+      await ensureNotificationChannels();
+
       if (!isAppForeground() && timerState.running && timerState.timeLeft > 0) {
         await scheduleTimerNotification(timerState.timeLeft);
       }
@@ -1386,6 +1403,20 @@ function initEvents() {
   });
 
   bind("themeToggle", "click", async () => toggleTheme());
+
+  bind("soundToggle", "change", async () => {
+    await ensureNotificationChannels();
+    if (!isAppForeground() && timerState.running && timerState.timeLeft > 0) {
+      await scheduleTimerNotification(timerState.timeLeft);
+    }
+  });
+
+  bind("vibrationToggle", "change", async () => {
+    await ensureNotificationChannels();
+    if (!isAppForeground() && timerState.running && timerState.timeLeft > 0) {
+      await scheduleTimerNotification(timerState.timeLeft);
+    }
+  });
 }
 
 // ===============================
@@ -1443,12 +1474,12 @@ async function initApp() {
     setupQuickButtons();
     renderSounds();
 
+    await requestNotificationPermission();
+    await ensureExactAlarmPermission();
     await ensureNotificationChannels();
     await registerNotificationActions();
     await setupNotificationListeners();
     await setupVisibilityListeners();
-    await requestNotificationPermission();
-    await ensureExactAlarmPermission();
 
     applyLanguage();
     updateTimerDisplay();
