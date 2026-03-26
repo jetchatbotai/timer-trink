@@ -33,10 +33,19 @@ function fileNameWithoutExt(name) {
   return String(name || "").replace(/\.(wav|mp3)$/i, "");
 }
 
+function getExistingSoundExtension(baseName) {
+  const wav = `${baseName}.wav`;
+  const mp3 = `${baseName}.mp3`;
+  const all = window.__availableSoundFiles || [];
+
+  if (all.includes(wav)) return wav;
+  if (all.includes(mp3)) return mp3;
+
+  return mp3;
+}
+
 function hideAlarmOverlay() {
-  const overlay = $("alarmOverlay");
-  if (overlay) overlay.classList.add("hidden");
-  document.body.classList.remove("alarm-active");
+  // overlay artık kullanılmıyor
 }
 
 // ===============================
@@ -106,10 +115,6 @@ const alarmState = {
 // ===============================
 // LANG / TRANSLATIONS
 // ===============================
-const supportedLanguages = [
-  "tr", "en", "de", "fr", "es", "ru", "ar", "it", "pt", "zh"
-];
-
 const baseTranslations = {
   start: { tr: "Başlat", en: "Start", de: "Start", fr: "Démarrer", es: "Iniciar", ru: "Старт", ar: "ابدأ", it: "Avvia", pt: "Iniciar", zh: "开始" },
   pause: { tr: "Duraklat", en: "Pause", de: "Pause", fr: "Pause", es: "Pausar", ru: "Пауза", ar: "إيقاف مؤقت", it: "Pausa", pt: "Pausar", zh: "暂停" },
@@ -129,8 +134,6 @@ const baseTranslations = {
   pomodoro: { tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro", ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟" },
   soundOn: { tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado", ru: "Звук açık", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启" },
   vibrationOn: { tr: "Titreşim açık", en: "Vibration on", de: "Vibration an", fr: "Vibration activée", es: "Vibración activada", ru: "Вибрация включена", ar: "الاهتزاز مفعل", it: "Vibrazione attiva", pt: "Vibração ligada", zh: "振动开启" },
-  alarmTitle: { tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！" },
-  alarmMsg: { tr: "Alarm çalıyor", en: "Alarm ringing", de: "Alarm klingelt", fr: "Alarme en cours", es: "La alarma está sonando", ru: "Будильник звонит", ar: "المنبه يرن", it: "La sveglia sta suonando", pt: "Alarme tocando", zh: "闹铃响起" },
   notifTimerTitle: { tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！" },
   notifTimerBody: { tr: "Bildirime dokunarak alarmı kapat", en: "Tap the notification to stop the alarm", de: "Tippe auf die Benachrichtigung, um den Alarm zu stoppen", fr: "Touchez la notification pour arrêter l'alarme", es: "Toca la notificación para detener la alarma", ru: "Нажмите уведомление, чтобы остановить сигнал", ar: "اضغط على الإشعار لإيقاف المنبه", it: "Tocca la notifica per fermare l'allarme", pt: "Toque na notificação para parar o alarme", zh: "点击通知以停止闹铃" },
   work: { tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作" },
@@ -187,6 +190,10 @@ const SOUND_LIBRARY = Array.from({ length: 20 }, (_, i) => {
 
 let selectedSoundId = "s1";
 
+function getSelectedSound() {
+  return SOUND_LIBRARY.find((s) => s.id === selectedSoundId) || SOUND_LIBRARY[0];
+}
+
 // ===============================
 // UI TEXT UPDATES
 // ===============================
@@ -232,7 +239,6 @@ function applyLanguage() {
   setText("swResetBtn", "reset");
   setText("swClearLapsBtn", "clearLaps");
 
-  setText("dismissAlarmBtn", "dismissAlarm");
   setText("hoursLabel", "hours");
   setText("minutesLabel", "minutes");
   setText("secondsLabel", "seconds");
@@ -420,17 +426,13 @@ async function previewSound(sound) {
 // NOTIFICATION CHANNELS
 // ===============================
 function getSoundChannelId(soundId) {
-  return `timer_alerts_v4_${soundId}`;
+  return `timer_alerts_v5_${soundId}`;
 }
 
 function getNotificationChannelForCurrentSound() {
   const sound = getSelectedSound();
-  if (!sound?.rawName) return "timer_alerts_fallback_v4";
+  if (!sound?.rawName) return "timer_alerts_fallback_v5";
   return getSoundChannelId(sound.id);
-}
-
-function getSelectedSound() {
-  return SOUND_LIBRARY.find((s) => s.id === selectedSoundId) || SOUND_LIBRARY[0];
 }
 
 async function ensureNotificationChannels() {
@@ -462,10 +464,10 @@ async function ensureNotificationChannels() {
       }
     }
 
-    if (!existingIds.has("timer_alerts_fallback_v4")) {
+    if (!existingIds.has("timer_alerts_fallback_v5")) {
       try {
         await CapacitorLocalNotifications.createChannel({
-          id: "timer_alerts_fallback_v4",
+          id: "timer_alerts_fallback_v5",
           name: "Timer fallback",
           description: "Fallback timer alerts",
           importance: 5,
@@ -592,8 +594,6 @@ function hardResetTimerState() {
   alarmState.pendingPomodoroAdvance = false;
   pomodoroState.enabled = false;
 
-  hideAlarmOverlay();
-
   if ($("hours")) $("hours").value = 0;
   if ($("minutes")) $("minutes").value = 0;
   if ($("seconds")) $("seconds").value = 0;
@@ -659,7 +659,6 @@ async function setupNotificationListeners() {
             alarmState.pendingPomodoroAdvance === true;
 
           alarmState.pendingPomodoroAdvance = false;
-          hideAlarmOverlay();
 
           if (shouldAdvancePomodoro) {
             handlePomodoroSwitch();
@@ -778,8 +777,6 @@ async function startTimer(fromPomodoro = false) {
   const exactGranted = await ensureExactAlarmPermission();
   if (!exactGranted) return;
 
-  hideAlarmOverlay();
-
   timerState.totalTime = total;
   timerState.timeLeft = total;
   timerState.running = true;
@@ -853,7 +850,6 @@ async function resetTimer() {
 
   updateTimerDisplay();
   await cancelTimerNotification();
-  hideAlarmOverlay();
 
   setText("timerStatus", "ready");
   updateTimerStartButton();
@@ -988,7 +984,6 @@ async function resetPomodoro() {
 
   updateTimerDisplay();
   await cancelTimerNotification();
-  hideAlarmOverlay();
 
   setText("timerStatus", "ready");
   updateTimerStartButton();
@@ -1323,6 +1318,44 @@ function setupPomodoroPresets() {
   });
 }
 
+function renderSounds() {
+  const list = $("soundList");
+  if (!list) return;
+
+  list.innerHTML = "";
+  const fragment = document.createDocumentFragment();
+
+  SOUND_LIBRARY.forEach((sound) => {
+    const item = document.createElement("label");
+    item.className = "sound-item";
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "alarmSound";
+    radio.value = sound.id;
+    radio.checked = sound.id === selectedSoundId;
+
+    radio.addEventListener("change", async () => {
+      selectedSoundId = sound.id;
+      saveSoundState();
+
+      if (!isAppForeground() && timerState.running && timerState.timeLeft > 0) {
+        await scheduleTimerNotification(timerState.timeLeft);
+      }
+    });
+
+    const name = document.createElement("span");
+    name.textContent = getSoundDisplayName(sound);
+
+    item.appendChild(radio);
+    item.appendChild(name);
+    fragment.appendChild(item);
+  });
+
+  list.appendChild(fragment);
+  updateSoundCount();
+}
+
 function initEvents() {
   bind("timerStartBtn", "click", async () => {
     await startTimer(false);
@@ -1342,10 +1375,6 @@ function initEvents() {
   bind("swLapBtn", "click", async () => addLap());
   bind("swResetBtn", "click", async () => resetStopwatch());
   bind("swClearLapsBtn", "click", async () => clearLaps());
-
-  bind("dismissAlarmBtn", "click", async () => {
-    hideAlarmOverlay();
-  });
 
   bind("previewSoundBtn", "click", async () => {
     await previewSound(getSelectedSound());
@@ -1427,7 +1456,6 @@ async function initApp() {
     updateTimerStartButton();
     updateStopwatchStartButton();
     updatePomodoroUI();
-    hideAlarmOverlay();
 
     switchTab(appState.lastTab || "timerPanel");
     startUIRenderLoop();
