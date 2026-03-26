@@ -39,8 +39,7 @@ function getExistingSoundExtension(baseName) {
   if (all.includes(wav)) return wav;
   if (all.includes(mp3)) return mp3;
 
-  // varsayılan olarak wav dene
-  return wav;
+  return mp3;
 }
 
 function fileNameWithoutExt(name) {
@@ -157,7 +156,7 @@ const baseTranslations = {
   clearLaps: { tr: "Turları temizle", en: "Clear Laps", de: "Runden löschen", fr: "Effacer les tours", es: "Borrar vueltas", ru: "Очистить круги", ar: "مسح اللفات", it: "Cancella giri", pt: "Limpar voltas", zh: "清除圈数" },
   workLabel: { tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作" },
   breakLabel: { tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso", ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息" },
-  resetPomodoro: { tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro", ru: "Сбросить Помодоро", ar: "إعادة ضبط بومодورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟" },
+  resetPomodoro: { tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro", ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟" },
   resetCycle: { tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo", ru: "Сбросить цикл", ar: "إعادة ضبط الدورة", it: "Reimposta ciclo", pt: "Redefinir ciclo", zh: "重置周期" }
 };
 
@@ -470,6 +469,8 @@ function stopAllVibration() {
 }
 
 async function startAlarmLoop() {
+  if (alarmState.active) return;
+
   await ensureHtmlAudioUnlocked();
 
   stopAlarmLoop();
@@ -777,8 +778,11 @@ async function setupNotificationListeners() {
             setText("timerStatus", "done");
             updateTimerStartButton();
 
-            showAlarmOverlay();
-            await startAlarmLoop();
+            if (!alarmState.active) {
+              showAlarmOverlay();
+              await startAlarmLoop();
+            }
+
             saveTimerState();
           }
         }
@@ -809,7 +813,7 @@ async function setupNotificationListeners() {
         }
 
         if (notificationId === notificationState.scheduledTimerNotificationId) {
-          if (isAppForeground()) {
+          if (isAppForeground() && !alarmState.active) {
             showAlarmOverlay();
             await startAlarmLoop();
           }
@@ -1008,11 +1012,13 @@ async function onTimerFinished() {
     timerState.mode === "pomodoro" &&
     pomodoroState.enabled === true &&
     pomodoroState.autoAdvance === true;
-await scheduleTimerNotification(1);
 
-if (isAppForeground()) {
-  showAlarmOverlay();
-}
+  if (isAppForeground()) {
+    if (!alarmState.active) {
+      showAlarmOverlay();
+      await startAlarmLoop();
+    }
+  }
 
   updateTimerStartButton();
   saveTimerState();
@@ -1121,6 +1127,7 @@ async function resetPomodoro() {
   pomodoroState.phase = "work";
   pomodoroState.workMinutes = 25;
   pomodoroState.breakMinutes = 5;
+  pomodoroState.cycleCount = 0;
   alarmState.pendingPomodoroAdvance = false;
 
   if ($("pomodoroWork")) $("pomodoroWork").value = 25;
