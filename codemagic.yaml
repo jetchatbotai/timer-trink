@@ -12,7 +12,7 @@ workflows:
         script: |
           npm install
 
-      - name: Verify required project files
+      - name: Verify project files
         script: |
           test -f package.json
           test -f capacitor.config.json
@@ -23,13 +23,14 @@ workflows:
 
       - name: Add Android platform
         script: |
+          rm -rf android
           npx cap add android
 
-      - name: Sync Capacitor
+      - name: Sync Capacitor Android
         script: |
           npx cap sync android
 
-      - name: Patch AndroidManifest permissions
+      - name: Patch AndroidManifest
         script: |
           python3 - << 'PY'
           from pathlib import Path
@@ -41,12 +42,24 @@ workflows:
               '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
               '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
               '<uses-permission android:name="android.permission.WAKE_LOCK" />',
-              '<uses-permission android:name="android.permission.VIBRATE" />'
+              '<uses-permission android:name="android.permission.VIBRATE" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
+              '<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />'
           ]
 
           for perm in permissions:
               if perm not in text:
                   text = text.replace("<application", perm + "\n\n    <application", 1)
+
+          service_block = '''
+              <service
+                  android:name="com.capacitorjs.plugins.localnotifications.LocalNotificationService"
+                  android:exported="false"
+                  android:foregroundServiceType="mediaPlayback" />
+          '''
+
+          if 'com.capacitorjs.plugins.localnotifications.LocalNotificationService' not in text:
+              text = text.replace("</application>", service_block + "\n\n    </application>", 1)
 
           manifest_path.write_text(text, encoding="utf-8")
           print("AndroidManifest patched.")
