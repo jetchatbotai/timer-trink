@@ -21,13 +21,10 @@ workflows:
           test -f www/styles.css
           ls -la www || true
 
-      - name: Add Android platform
+      - name: Recreate Android platform
         script: |
           rm -rf android
           npx cap add android
-
-      - name: Sync Capacitor Android
-        script: |
           npx cap sync android
 
       - name: Patch AndroidManifest
@@ -40,10 +37,9 @@ workflows:
 
           permissions = [
               '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
-              '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+              '<uses-permission android:name="android.permission.USE_EXACT_ALARM" />',
               '<uses-permission android:name="android.permission.WAKE_LOCK" />',
               '<uses-permission android:name="android.permission.VIBRATE" />',
-              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
               '<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />'
           ]
 
@@ -51,34 +47,29 @@ workflows:
               if perm not in text:
                   text = text.replace("<application", perm + "\n\n    <application", 1)
 
-          service_block = '''
-              <service
-                  android:name="com.capacitorjs.plugins.localnotifications.LocalNotificationService"
-                  android:exported="false"
-                  android:foregroundServiceType="mediaPlayback" />
-          '''
-
-          if 'com.capacitorjs.plugins.localnotifications.LocalNotificationService' not in text:
-              text = text.replace("</application>", service_block + "\n\n    </application>", 1)
-
           manifest_path.write_text(text, encoding="utf-8")
           print("AndroidManifest patched.")
           PY
 
-      - name: Copy notification sounds to Android raw
+      - name: Copy sounds to Android raw
         script: |
           mkdir -p android/app/src/main/res/raw
 
           found_any=false
 
           for i in $(seq 1 20); do
-            if [ -f "www/sound${i}.mp3" ]; then
+            if [ -f "www/sound${i}.wav" ]; then
+              cp "www/sound${i}.wav" "android/app/src/main/res/raw/sound${i}.wav"
+              found_any=true
+            elif [ -f "www/sound${i}.mp3" ]; then
               cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
               found_any=true
             fi
           done
 
-          if [ -f "www/beep.mp3" ]; then
+          if [ -f "www/beep.wav" ]; then
+            cp "www/beep.wav" "android/app/src/main/res/raw/beep.wav"
+          elif [ -f "www/beep.mp3" ]; then
             cp "www/beep.mp3" "android/app/src/main/res/raw/beep.mp3"
           fi
 
@@ -86,7 +77,8 @@ workflows:
           ls -la android/app/src/main/res/raw || true
 
           if [ "$found_any" = false ]; then
-            echo "WARNING: No sound1.mp3 ... sound20.mp3 files found in www/"
+            echo "ERROR: No sound files found in www/"
+            exit 1
           fi
 
       - name: Verify Android files
