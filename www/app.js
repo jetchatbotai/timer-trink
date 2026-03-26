@@ -1008,11 +1008,11 @@ async function onTimerFinished() {
     timerState.mode === "pomodoro" &&
     pomodoroState.enabled === true &&
     pomodoroState.autoAdvance === true;
+await scheduleTimerNotification(1);
 
-  if (isAppForeground()) {
-    showAlarmOverlay();
-    await startAlarmLoop();
-  }
+if (isAppForeground()) {
+  showAlarmOverlay();
+}
 
   updateTimerStartButton();
   saveTimerState();
