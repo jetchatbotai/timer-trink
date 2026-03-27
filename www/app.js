@@ -62,10 +62,6 @@ function getRemainingSecondsFromEndAt(endAt) {
   return Math.max(0, Math.ceil((endAt - nowMs()) / 1000));
 }
 
-function isCapacitorNative() {
-  return !!window.Capacitor;
-}
-
 function hideAlarmOverlay() {
   const overlay = $("alarmOverlay");
   if (overlay) overlay.classList.add("hidden");
@@ -77,8 +73,8 @@ function showAlarmOverlay() {
   const title = $("alarmTitle");
   const msg = $("alarmMessage");
 
-  if (title) title.textContent = t("done");
-  if (msg) msg.textContent = t("alarmRinging");
+  if (title) title.textContent = "Süre doldu!";
+  if (msg) msg.textContent = "Alarm çalıyor";
 
   if (overlay) overlay.classList.remove("hidden");
   document.body.classList.add("alarm-active");
@@ -102,9 +98,7 @@ const notificationState = {
   permissionGranted: false,
   exactAlarmGranted: false,
   listenersReady: false,
-  scheduledTimerNotificationId: 1001,
-  ongoingTimerNotificationId: 1002,
-  lastOngoingUpdateSec: -1
+  scheduledTimerNotificationId: 1001
 };
 
 const visibilityState = {
@@ -178,7 +172,7 @@ const baseTranslations = {
   soundOn: { tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado", ru: "Звук açık", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启" },
   vibrationOn: { tr: "Titreşim açık", en: "Vibration on", de: "Vibration an", fr: "Vibration activée", es: "Vibración activada", ru: "Вибрация включена", ar: "الاهتزاز مفعل", it: "Vibrazione attiva", pt: "Vibração ligada", zh: "振动开启" },
   notifTimerTitle: { tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！" },
-  notifTimerBody: { tr: "Bildirime dokunarak alarmı kapat", en: "Tap the notification to stop the alarm", de: "Tippe auf die Benachrichtigung, um den Alarm zu stoppen", fr: "Touchez la notification pour arrêter l'alarme", es: "Toca la notificación para detener la alarma", ru: "Нажмите уведомление, чтобы остановить сигнал", ar: "اضغط على الإشعار لإيقاف المنبه", it: "Tocca la notifica per fermare l'allarme", pt: "Toque na notificação para parar o alarme", zh: "点击通知以停止闹铃" },
+  notifTimerBody: { tr: "Bildirime dokunarak alarmı kapat", en: "Tap the notification to stop the alarm", de: "Tippe auf die Benachrichtigung, um den Alarm zu stoppen", fr: "Touchez la notification pour arrêter l'alarme", es: "Toca la notificación para detener la alarma", ru: "Нажмите уведомление, чтобы остановить сигнал", ar: "اضغط على الإشعار لإيقاف المنبه", it: "Tocca la notifica per fermare l'alarme", pt: "Toque na notificação para parar o alarme", zh: "点击通知以停止闹铃" },
   work: { tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作" },
   break: { tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso", ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息" },
   cycle: { tr: "Döngü", en: "Cycle", de: "Zyklus", fr: "Cycle", es: "Ciclo", ru: "Цикл", ar: "دورة", it: "Ciclo", pt: "Ciclo", zh: "周期" },
@@ -186,7 +180,7 @@ const baseTranslations = {
   soundsTitle: { tr: "Alarm sesleri", en: "Alarm sounds", de: "Alarmtöne", fr: "Sons d'alarme", es: "Sonidos de alarma", ru: "Звуки будильника", ar: "أصوات المنبه", it: "Suoni della sveglia", pt: "Sons de alarme", zh: "闹铃声音" },
   soundsDesc: { tr: "Bir ses seç ve önizlemesini dinle.", en: "Select a sound and preview it.", de: "Wähle einen Ton und höre ihn an.", fr: "Sélectionnez un son et écoutez un aperçu.", es: "Selecciona un sonido y escúchalo.", ru: "Выберите звук и прослушайте его.", ar: "اختر صوتًا واستمع إلى المعاينة.", it: "Seleziona un suono e ascolta l'anteprima.", pt: "Selecione um som e ouça a prévia.", zh: "选择一个声音并试听。" },
   previewSound: { tr: "Sesi dinle", en: "Preview sound", de: "Ton anhören", fr: "Écouter le son", es: "Escuchar sonido", ru: "Прослушать звук", ar: "معاينة الصوت", it: "Ascolta il suono", pt: "Ouvir som", zh: "试听声音" },
-  pomodoroDesc: { tr: "Bir odak süresi seç ve zamanlayıcıya uygula.", en: "Choose a focus preset and load it into timer.", de: "Wähle eine Fokus-Voreinstellung und lade sie in den Timer.", fr: "Choisissez un préréglage de concentration et appliquez-le au minuteur.", es: "Elige una configuración de enfoque y cárgala en el temporizador.", ru: "Выберите пресет для фокуса и загрузите его в таймер.", ar: "اختر إعداد تركيز وطبقه على المؤقت.", it: "Scegli una modalità di concentrazione e applicala al timer.", pt: "Escolha uma predefinição de foco e aplique ao timer.", zh: "选择一个专注预设并应用到计时器。" },
+  pomodoroDesc: { tr: "Bir odak süresi seç ve zamanlayıcıya uygula.", en: "Choose a focus preset and load it into timer.", de: "Wähle eine Fokus-Voreinstellung und lade sie in den Timer.", fr: "Choisissez un préréglage de concentration et appliquez-le au minuteur.", es: "Elige una configuración de enfoque y cárgala en el temporizador.", ru: "Выберите пресет для фокуса и загрузите его в таймер.", ar: "اختر إعداد تركيز وطبقه على المؤقت.", it: "Scegli una modalità di concentrazione e applicala al timer.", pt: "Escolha uma predefinição de foco e aplique ao temporizador.", zh: "选择一个专注预设并应用到计时器。" },
   applyPomodoro: { tr: "Pomodoro uygula", en: "Apply Pomodoro", de: "Pomodoro anwenden", fr: "Appliquer Pomodoro", es: "Aplicar Pomodoro", ru: "Применить Помодоро", ar: "تطبيق بومودورو", it: "Applica Pomodoro", pt: "Aplicar Pomodoro", zh: "应用番茄钟" },
   lapsTitle: { tr: "Turlar", en: "Laps", de: "Runden", fr: "Tours", es: "Vueltas", ru: "Круги", ar: "اللفات", it: "Giri", pt: "Voltas", zh: "圈数" },
   clearLaps: { tr: "Turları temizle", en: "Clear Laps", de: "Runden löschen", fr: "Effacer les tours", es: "Borrar vueltas", ru: "Очистить круги", ar: "مسح اللفات", it: "Cancella giri", pt: "Limpar voltas", zh: "清除圈数" },
@@ -328,14 +322,7 @@ async function startPersistentAlarm() {
 function updateTimerStartButton() {
   const btn = $("timerStartBtn");
   if (!btn) return;
-
-  if (timerState.running) {
-    btn.textContent = t("running");
-  } else if (timerState.paused && timerState.timeLeft > 0) {
-    btn.textContent = t("start");
-  } else {
-    btn.textContent = t("start");
-  }
+  btn.textContent = timerState.running ? t("running") : t("start");
 }
 
 function updateStopwatchStartButton() {
@@ -417,15 +404,6 @@ function isTimerExpired() {
   return timerState.endAt > 0 && nowMs() >= timerState.endAt;
 }
 
-async function syncNotificationWithAppState() {
-  if (!timerState.running || timerState.timeLeft <= 0) {
-    await cancelOngoingTimerNotification();
-    return;
-  }
-
-  await updateOngoingTimerNotification(true);
-}
-
 async function finishTimerInForeground() {
   timerState.timeLeft = 0;
   timerState.running = false;
@@ -447,10 +425,9 @@ async function handleAppForeground() {
 
   if (timerState.running && isTimerExpired()) {
     await finishTimerInForeground();
-  } else if (timerState.running && timerState.timeLeft > 0) {
+  } else if (timerState.running && timerState.endAt > 0) {
     timerState.timeLeft = getRemainingSecondsFromEndAt(timerState.endAt);
     updateTimerDisplay();
-    await updateOngoingTimerNotification(true);
   }
 
   if (alarmState.isActive) {
@@ -461,11 +438,6 @@ async function handleAppForeground() {
 
 async function handleAppBackground() {
   visibilityState.isForeground = false;
-
-  if (timerState.running && timerState.timeLeft > 0) {
-    timerState.timeLeft = getRemainingSecondsFromEndAt(timerState.endAt);
-    await updateOngoingTimerNotification(true);
-  }
 }
 
 async function setupVisibilityListeners() {
@@ -492,9 +464,7 @@ async function setupVisibilityListeners() {
 
     try {
       await CapacitorApp.addListener("backButton", ({ canGoBack }) => {
-        if (alarmState.isActive) {
-          return;
-        }
+        if (alarmState.isActive) return;
 
         if (canGoBack && window.history.length > 1) {
           window.history.back();
@@ -584,16 +554,12 @@ async function previewSound(sound) {
 // NOTIFICATION CHANNELS
 // ===============================
 function getSoundChannelId(soundId) {
-  return `timer_alerts_v9_${soundId}`;
-}
-
-function getOngoingChannelId() {
-  return "timer_ongoing_v9";
+  return `timer_alerts_v10_${soundId}`;
 }
 
 function getNotificationChannelForCurrentSound() {
   const sound = getSelectedSound();
-  if (!sound?.rawName) return "timer_alerts_fallback_v9";
+  if (!sound?.rawName) return "timer_alerts_fallback_v10";
   return getSoundChannelId(sound.id);
 }
 
@@ -628,10 +594,10 @@ async function ensureNotificationChannels() {
       }
     }
 
-    if (!existingIds.has("timer_alerts_fallback_v9")) {
+    if (!existingIds.has("timer_alerts_fallback_v10")) {
       try {
         await CapacitorLocalNotifications.createChannel({
-          id: "timer_alerts_fallback_v9",
+          id: "timer_alerts_fallback_v10",
           name: "Timer fallback",
           description: "Fallback timer alerts",
           importance: 5,
@@ -641,21 +607,6 @@ async function ensureNotificationChannels() {
         });
       } catch (e) {
         console.warn("fallback channel failed", e);
-      }
-    }
-
-    if (!existingIds.has(getOngoingChannelId())) {
-      try {
-        await CapacitorLocalNotifications.createChannel({
-          id: getOngoingChannelId(),
-          name: "Timer ongoing",
-          description: "Ongoing timer countdown",
-          importance: 2,
-          visibility: 1,
-          vibration: false
-        });
-      } catch (e) {
-        console.warn("ongoing channel failed", e);
       }
     }
   } catch (e) {
@@ -696,70 +647,6 @@ async function cancelAlarmNotification() {
   } catch {}
 }
 
-async function cancelOngoingTimerNotification() {
-  if (!CapacitorLocalNotifications) return;
-
-  try {
-    await CapacitorLocalNotifications.cancel({
-      notifications: [{ id: notificationState.ongoingTimerNotificationId }]
-    });
-  } catch {}
-}
-
-async function cancelAllTimerNotifications() {
-  await cancelAlarmNotification();
-  await cancelOngoingTimerNotification();
-  notificationState.lastOngoingUpdateSec = -1;
-}
-
-function buildOngoingNotificationText() {
-  const remaining = timerState.running
-    ? getRemainingSecondsFromEndAt(timerState.endAt)
-    : timerState.timeLeft;
-
-  return `Kalan süre: ${formatTime(remaining)}`;
-}
-
-async function updateOngoingTimerNotification(force = false) {
-  if (!CapacitorLocalNotifications) return;
-  if (!timerState.running || timerState.timeLeft <= 0 || timerState.endAt <= 0) return;
-
-  const remaining = getRemainingSecondsFromEndAt(timerState.endAt);
-
-  if (!force && notificationState.lastOngoingUpdateSec === remaining) {
-    return;
-  }
-
-  notificationState.lastOngoingUpdateSec = remaining;
-
-  try {
-    await CapacitorLocalNotifications.schedule({
-      notifications: [
-        {
-          id: notificationState.ongoingTimerNotificationId,
-          title: "⏳ Timer çalışıyor",
-          body: buildOngoingNotificationText(),
-          largeBody: buildOngoingNotificationText(),
-          ongoing: true,
-          autoCancel: false,
-          channelId: getOngoingChannelId(),
-          extra: {
-            type: "ongoing_timer",
-            endAt: timerState.endAt,
-            mode: timerState.mode
-          },
-          schedule: {
-            at: new Date(Date.now() + 100),
-            allowWhileIdle: true
-          }
-        }
-      ]
-    });
-  } catch (e) {
-    console.warn("ongoing notif error:", e);
-  }
-}
-
 async function scheduleEndAlarmNotification() {
   if (!CapacitorLocalNotifications) return;
   if (!timerState.endAt || timerState.endAt <= nowMs()) return;
@@ -773,9 +660,9 @@ async function scheduleEndAlarmNotification() {
       notifications: [
         {
           id: notificationState.scheduledTimerNotificationId,
-          title: "⏰ SÜRE DOLDU!",
-          body: "DURDURMAK İÇİN BAS",
-          largeBody: "ALARM ÇALIYOR - BİLDİRİME BASARAK KAPAT",
+          title: "SÜRE DOLDU!",
+          body: "Alarm çalıyor",
+          largeBody: "Alarm çalıyor - bildirime dokunarak kapat",
           channelId: getNotificationChannelForCurrentSound(),
           actionTypeId: "TIMER_DONE",
           ongoing: true,
@@ -783,9 +670,7 @@ async function scheduleEndAlarmNotification() {
           sound: soundEnabled ? fileNameWithoutExt(getSelectedSound().assetPath) : undefined,
           extra: {
             source: "timer",
-            autoResetTimer: true,
-            mode: timerState.mode,
-            forceSound: true
+            mode: timerState.mode
           },
           schedule: {
             at: new Date(timerState.endAt),
@@ -811,9 +696,9 @@ async function showImmediateFinishedNotification() {
       notifications: [
         {
           id: notificationState.scheduledTimerNotificationId,
-          title: "⏰ SÜRE DOLDU!",
-          body: "DURDURMAK İÇİN BAS",
-          largeBody: "ALARM ÇALIYOR - BİLDİRİME BASARAK KAPAT",
+          title: "SÜRE DOLDU!",
+          body: "Alarm çalıyor",
+          largeBody: "Alarm çalıyor - bildirime dokunarak kapat",
           channelId: getNotificationChannelForCurrentSound(),
           actionTypeId: "TIMER_DONE",
           ongoing: true,
@@ -821,9 +706,7 @@ async function showImmediateFinishedNotification() {
           sound: soundEnabled ? fileNameWithoutExt(getSelectedSound().assetPath) : undefined,
           extra: {
             source: "timer",
-            autoResetTimer: true,
-            mode: timerState.mode,
-            forceSound: true
+            mode: timerState.mode
           },
           schedule: {
             at: new Date(Date.now() + 200),
@@ -868,37 +751,6 @@ async function dismissAlarmFlow() {
     saveTimerState();
     savePomodoroState();
   }
-}
-
-function hardResetTimerState(clearInputs = true) {
-  clearInterval(timerState.timerId);
-  timerState.timerId = null;
-
-  timerState.running = false;
-  timerState.paused = false;
-  timerState.timeLeft = 0;
-  timerState.totalTime = 0;
-  timerState.endAt = 0;
-  timerState.mode = "timer";
-
-  alarmState.pendingPomodoroAdvance = false;
-  pomodoroState.enabled = false;
-
-  stopPersistentAlarm();
-  hideAlarmOverlay();
-
-  if (clearInputs) {
-    if ($("hours")) $("hours").value = 0;
-    if ($("minutes")) $("minutes").value = 0;
-    if ($("seconds")) $("seconds").value = 0;
-  }
-
-  updateTimerDisplay();
-  setText("timerStatus", "ready");
-  updateTimerStartButton();
-
-  saveTimerState();
-  savePomodoroState();
 }
 
 async function setupNotificationListeners() {
@@ -985,7 +837,8 @@ function updateTimerDisplay() {
 async function timerTick() {
   if (!timerState.running) return;
 
-  timerState.timeLeft = getRemainingSecondsFromEndAt(timerState.endAt);
+  const now = nowMs();
+  timerState.timeLeft = Math.max(0, Math.ceil((timerState.endAt - now) / 1000));
 
   if (timerState.timeLeft <= 0) {
     timerState.timeLeft = 0;
@@ -1005,7 +858,6 @@ async function timerTick() {
   }
 
   updateTimerDisplay();
-  await updateOngoingTimerNotification(false);
 }
 
 async function startTimer(fromPomodoro = false) {
@@ -1054,13 +906,12 @@ async function startTimer(fromPomodoro = false) {
   updateTimerDisplay();
   timerState.timerId = setInterval(() => {
     timerTick();
-  }, 1000);
+  }, 250);
 
   setText("timerStatus", "running");
   updateTimerStartButton();
   saveTimerState();
 
-  await updateOngoingTimerNotification(true);
   await scheduleEndAlarmNotification();
 }
 
@@ -1075,7 +926,6 @@ async function pauseTimer() {
   timerState.paused = true;
   timerState.endAt = 0;
 
-  await cancelOngoingTimerNotification();
   await cancelAlarmNotification();
 
   updateTimerDisplay();
@@ -1098,13 +948,12 @@ async function resumeTimer() {
   timerState.endAt = nowMs() + timerState.timeLeft * 1000;
   timerState.timerId = setInterval(() => {
     timerTick();
-  }, 1000);
+  }, 250);
 
   setText("timerStatus", "running");
   updateTimerStartButton();
   updateTimerDisplay();
 
-  await updateOngoingTimerNotification(true);
   await scheduleEndAlarmNotification();
   saveTimerState();
 }
@@ -1132,7 +981,7 @@ async function resetTimer() {
   if ($("seconds")) $("seconds").value = 0;
 
   updateTimerDisplay();
-  await cancelAllTimerNotifications();
+  await cancelAlarmNotification();
 
   setText("timerStatus", "ready");
   updateTimerStartButton();
@@ -1147,7 +996,6 @@ async function onTimerFinished() {
     pomodoroState.enabled === true &&
     pomodoroState.autoAdvance === true;
 
-  await cancelOngoingTimerNotification();
   await showImmediateFinishedNotification();
 
   updateTimerStartButton();
@@ -1271,7 +1119,7 @@ async function resetPomodoro() {
   if ($("seconds")) $("seconds").value = 0;
 
   updateTimerDisplay();
-  await cancelAllTimerNotifications();
+  await cancelAlarmNotification();
 
   setText("timerStatus", "ready");
   updateTimerStartButton();
@@ -1505,7 +1353,7 @@ function loadTimerState() {
   timerState.timerId = null;
 
   if (data.running && data.endAt) {
-    const remaining = getRemainingSecondsFromEndAt(data.endAt);
+    const remaining = Math.max(0, Math.ceil((data.endAt - nowMs()) / 1000));
     timerState.timeLeft = remaining;
 
     if (remaining > 0) {
@@ -1513,12 +1361,12 @@ function loadTimerState() {
       timerState.paused = false;
       timerState.timerId = setInterval(() => {
         timerTick();
-      }, 1000);
+      }, 250);
     } else {
       timerState.running = false;
       timerState.paused = false;
-      timerState.timeLeft = 0;
       timerState.endAt = 0;
+      timerState.timeLeft = 0;
     }
   } else {
     timerState.timeLeft = data.timeLeft || 0;
@@ -1630,11 +1478,9 @@ function renderSounds() {
     radio.addEventListener("change", async () => {
       selectedSoundId = sound.id;
       saveSoundState();
-
       await ensureNotificationChannels();
 
       if (timerState.running && timerState.timeLeft > 0) {
-        await updateOngoingTimerNotification(true);
         await scheduleEndAlarmNotification();
       }
     });
@@ -1697,7 +1543,6 @@ function initEvents() {
     }
 
     if (timerState.running && timerState.timeLeft > 0) {
-      await updateOngoingTimerNotification(true);
       await scheduleEndAlarmNotification();
     }
   });
@@ -1706,7 +1551,6 @@ function initEvents() {
     await ensureNotificationChannels();
 
     if (timerState.running && timerState.timeLeft > 0) {
-      await updateOngoingTimerNotification(true);
       await scheduleEndAlarmNotification();
     }
   });
@@ -1787,7 +1631,6 @@ async function initApp() {
 
     switchTab(appState.lastTab || "timerPanel");
     startUIRenderLoop();
-    await syncNotificationWithAppState();
 
     if (timerState.running && timerState.endAt > 0) {
       await scheduleEndAlarmNotification();
