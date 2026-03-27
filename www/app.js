@@ -5,6 +5,8 @@ const CapacitorLocalNotifications =
   window.Capacitor?.Plugins?.LocalNotifications || null;
 const CapacitorApp =
   window.Capacitor?.Plugins?.App || null;
+const AlarmBridge =
+  window.Capacitor?.Plugins?.AlarmBridge || null;
 
 // ===============================
 // HELPERS
@@ -80,6 +82,35 @@ function showAlarmOverlay() {
 
   if (overlay) overlay.classList.remove("hidden");
   document.body.classList.add("alarm-active");
+}
+
+async function scheduleNativeAlarmAtEnd() {
+  if (!AlarmBridge) return false;
+  if (!timerState.endAt || timerState.endAt <= nowMs()) return false;
+
+  try {
+    await AlarmBridge.scheduleAlarm({
+      triggerAtMillis: timerState.endAt,
+      title: "Süre doldu!",
+      message: "Alarm çalıyor"
+    });
+    return true;
+  } catch (e) {
+    console.warn("Native alarm schedule failed:", e);
+    return false;
+  }
+}
+
+async function cancelNativeAlarm() {
+  if (!AlarmBridge) return false;
+
+  try {
+    await AlarmBridge.cancelAlarm();
+    return true;
+  } catch (e) {
+    console.warn("Native alarm cancel failed:", e);
+    return false;
+  }
 }
 
 // ===============================
@@ -310,7 +341,6 @@ async function startPersistentAlarm() {
       await alarmState.htmlAudio.play();
     } catch {}
 
-    // watchdog: bazı cihazlarda audio loop durursa tekrar başlat
     alarmState.repeatIntervalId = setInterval(async () => {
       if (!alarmState.isActive || !alarmState.htmlAudio) return;
       if (alarmState.htmlAudio.paused) {
@@ -641,9 +671,11 @@ async function registerNotificationActions() {
 }
 
 // ===============================
-// NOTIFICATIONS
+// NOTIFICATIONS / NATIVE ALARM
 // ===============================
 async function cancelAlarmNotification() {
+  await cancelNativeAlarm();
+
   if (!CapacitorLocalNotifications) return;
 
   try {
@@ -660,86 +692,20 @@ async function cancelAlarmNotification() {
 }
 
 async function scheduleEndAlarmNotification() {
-  if (!CapacitorLocalNotifications) return;
-  if (!timerState.endAt || timerState.endAt <= nowMs()) return;
-
-  try {
-    await cancelAlarmNotification();
-
-    const soundEnabled = $("soundToggle")?.checked !== false;
-
-    await CapacitorLocalNotifications.schedule({
-      notifications: [
-        {
-          id: notificationState.scheduledTimerNotificationId,
-          title: "SÜRE DOLDU!",
-          body: "Alarm çalıyor",
-          largeBody: "Alarm çalıyor - bildirime dokunarak kapat",
-          channelId: getNotificationChannelForCurrentSound(),
-          actionTypeId: "TIMER_DONE",
-          ongoing: true,
-          autoCancel: false,
-          sound: soundEnabled ? getSelectedSound().assetPath : undefined,
-          extra: {
-            source: "timer",
-            mode: timerState.mode
-          },
-          schedule: {
-            at: new Date(timerState.endAt),
-            allowWhileIdle: true
-          }
-        }
-      ]
-    });
-  } catch (e) {
-    console.warn("schedule end alarm failed:", e);
-  }
+  await scheduleNativeAlarmAtEnd();
 }
 
 async function showImmediateFinishedNotification() {
-  if (!CapacitorLocalNotifications) return;
+  alarmState.isActive = true;
 
-  try {
-    await cancelAlarmNotification();
-
-    const soundEnabled = $("soundToggle")?.checked !== false;
-
-    await CapacitorLocalNotifications.schedule({
-      notifications: [
-        {
-          id: notificationState.scheduledTimerNotificationId,
-          title: "SÜRE DOLDU!",
-          body: "Alarm çalıyor",
-          largeBody: "Alarm çalıyor - bildirime dokunarak kapat",
-          channelId: getNotificationChannelForCurrentSound(),
-          actionTypeId: "TIMER_DONE",
-          ongoing: true,
-          autoCancel: false,
-          sound: soundEnabled ? getSelectedSound().assetPath : undefined,
-          extra: {
-            source: "timer",
-            mode: timerState.mode
-          },
-          schedule: {
-            at: new Date(Date.now() + 100),
-            allowWhileIdle: true
-          }
-        }
-      ]
-    });
-
-    alarmState.isActive = true;
-
-    if (isAppForeground()) {
-      showAlarmOverlay();
-      await startPersistentAlarm();
-    }
-  } catch (e) {
-    console.warn("alarm notif error:", e);
+  if (isAppForeground()) {
+    showAlarmOverlay();
+    await startPersistentAlarm();
   }
 }
 
 async function dismissAlarmFlow() {
+  await cancelNativeAlarm();
   stopPersistentAlarm();
   alarmState.isActive = false;
   hideAlarmOverlay();
@@ -766,55 +732,7 @@ async function dismissAlarmFlow() {
 }
 
 async function setupNotificationListeners() {
-  if (!CapacitorLocalNotifications || notificationState.listenersReady) return;
-
-  try {
-    await CapacitorLocalNotifications.addListener(
-      "localNotificationReceived",
-      async (event) => {
-        const id = event?.id ?? event?.notification?.id;
-
-        if (id === notificationState.scheduledTimerNotificationId) {
-          if (timerState.running || timerState.timeLeft > 0) {
-            timerState.timeLeft = 0;
-            timerState.running = false;
-            timerState.paused = false;
-            timerState.endAt = 0;
-
-            clearInterval(timerState.timerId);
-            timerState.timerId = null;
-
-            updateTimerDisplay();
-            setText("timerStatus", "done");
-            updateTimerStartButton();
-            saveTimerState();
-          }
-
-          alarmState.isActive = true;
-
-          if (isAppForeground()) {
-            showAlarmOverlay();
-            await startPersistentAlarm();
-          }
-        }
-      }
-    );
-
-    await CapacitorLocalNotifications.addListener(
-      "localNotificationActionPerformed",
-      async (event) => {
-        const notificationId = event?.notification?.id;
-
-        if (notificationId !== notificationState.scheduledTimerNotificationId) return;
-
-        await dismissAlarmFlow();
-      }
-    );
-
-    notificationState.listenersReady = true;
-  } catch (e) {
-    console.warn("Notification listeners failed:", e);
-  }
+  notificationState.listenersReady = true;
 }
 
 // ===============================
@@ -1490,6 +1408,7 @@ function renderSounds() {
     radio.addEventListener("change", async () => {
       selectedSoundId = sound.id;
       saveSoundState();
+
       await ensureNotificationChannels();
 
       if (timerState.running && timerState.timeLeft > 0) {
