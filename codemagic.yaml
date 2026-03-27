@@ -19,12 +19,44 @@ workflows:
           test -f www/index.html
           test -f www/app.js
           test -f www/styles.css
+          test -f native-android/java/com/timertrink/app/AlarmReceiver.java
+          test -f native-android/java/com/timertrink/app/AlarmStopReceiver.java
+          test -f native-android/java/com/timertrink/app/AlarmSoundService.java
+          test -f native-android/java/com/timertrink/app/AlarmBridgePlugin.java
+          test -f www/beep.mp3
 
       - name: Recreate Android platform
         script: |
           rm -rf android
           npx cap add android
           npx cap sync android
+
+      - name: Copy native alarm files
+        script: |
+          mkdir -p android/app/src/main/java/com/timertrink/app
+
+          cp native-android/java/com/timertrink/app/AlarmReceiver.java android/app/src/main/java/com/timertrink/app/AlarmReceiver.java
+          cp native-android/java/com/timertrink/app/AlarmStopReceiver.java android/app/src/main/java/com/timertrink/app/AlarmStopReceiver.java
+          cp native-android/java/com/timertrink/app/AlarmSoundService.java android/app/src/main/java/com/timertrink/app/AlarmSoundService.java
+          cp native-android/java/com/timertrink/app/AlarmBridgePlugin.java android/app/src/main/java/com/timertrink/app/AlarmBridgePlugin.java
+
+      - name: Patch MainActivity
+        script: |
+          python3 - << 'PY'
+          from pathlib import Path
+
+          main_activity = Path("android/app/src/main/java/com/timertrink/app/MainActivity.java")
+          text = main_activity.read_text(encoding="utf-8")
+
+          if "registerPlugin(AlarmBridgePlugin.class);" not in text:
+              text = text.replace(
+                  "super.onCreate(savedInstanceState);",
+                  "registerPlugin(AlarmBridgePlugin.class);\n        super.onCreate(savedInstanceState);"
+              )
+
+          main_activity.write_text(text, encoding="utf-8")
+          print("patched MainActivity")
+          PY
 
       - name: Patch AndroidManifest
         script: |
@@ -38,6 +70,8 @@ workflows:
               '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
               '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
               '<uses-permission android:name="android.permission.USE_EXACT_ALARM" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />',
               '<uses-permission android:name="android.permission.WAKE_LOCK" />',
               '<uses-permission android:name="android.permission.VIBRATE" />'
           ]
@@ -46,8 +80,37 @@ workflows:
               if perm not in text:
                   text = text.replace("<application", perm + "\n\n    <application", 1)
 
+          receiver_1 = '''
+                  <receiver
+                      android:name=".AlarmReceiver"
+                      android:exported="false" />
+          '''
+
+          receiver_2 = '''
+                  <receiver
+                      android:name=".AlarmStopReceiver"
+                      android:exported="false" />
+          '''
+
+          service_block = '''
+                  <service
+                      android:name=".AlarmSoundService"
+                      android:enabled="true"
+                      android:exported="false"
+                      android:foregroundServiceType="mediaPlayback" />
+          '''
+
+          if 'android:name=".AlarmReceiver"' not in text:
+              text = text.replace("</application>", receiver_1 + "\n    </application>", 1)
+
+          if 'android:name=".AlarmStopReceiver"' not in text:
+              text = text.replace("</application>", receiver_2 + "\n    </application>", 1)
+
+          if 'android:name=".AlarmSoundService"' not in text:
+              text = text.replace("</application>", service_block + "\n    </application>", 1)
+
           manifest.write_text(text, encoding="utf-8")
-          print("patched manifest")
+          print("patched AndroidManifest")
           PY
 
       - name: Copy sounds to raw
@@ -55,20 +118,14 @@ workflows:
           mkdir -p android/app/src/main/res/raw
 
           for i in $(seq 1 20); do
-            if [ -f "www/sound${i}.wav" ]; then
-              cp "www/sound${i}.wav" "android/app/src/main/res/raw/sound${i}.wav"
-            fi
             if [ -f "www/sound${i}.mp3" ]; then
               cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
             fi
           done
 
-          if [ -f "www/beep.wav" ]; then
-            cp "www/beep.wav" "android/app/src/main/res/raw/beep.wav"
-          fi
-
           if [ -f "www/beep.mp3" ]; then
             cp "www/beep.mp3" "android/app/src/main/res/raw/beep.mp3"
+            cp "www/beep.mp3" "android/app/src/main/res/raw/alarm.mp3"
           fi
 
       - name: Build APK
