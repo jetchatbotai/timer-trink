@@ -5,8 +5,8 @@ const CapacitorLocalNotifications =
   window.Capacitor?.Plugins?.LocalNotifications || null;
 const CapacitorApp =
   window.Capacitor?.Plugins?.App || null;
-const AlarmBridge =
-  window.Capacitor?.Plugins?.AlarmBridge || null;
+const { registerPlugin } = window.Capacitor;
+const AlarmBridge = registerPlugin('AlarmBridge');
 
 // ===============================
 // HELPERS
