@@ -293,29 +293,32 @@ async function startPersistentAlarm() {
   try {
     await unlockAudioOnce();
 
-    const playLoop = async () => {
-      if (!alarmState.isActive) return;
+    const src = getSelectedSound().assetPath;
 
-      try {
-        if (!alarmState.htmlAudio) {
-          alarmState.htmlAudio = new Audio(getSelectedSound().assetPath);
-        } else {
-          alarmState.htmlAudio.pause();
-          alarmState.htmlAudio.src = getSelectedSound().assetPath;
-        }
+    if (!alarmState.htmlAudio) {
+      alarmState.htmlAudio = new Audio(src);
+    } else {
+      alarmState.htmlAudio.pause();
+      alarmState.htmlAudio.src = src;
+    }
 
-        alarmState.htmlAudio.loop = false;
-        alarmState.htmlAudio.volume = 1;
-        alarmState.htmlAudio.currentTime = 0;
-        await alarmState.htmlAudio.play();
-      } catch {}
-    };
+    alarmState.htmlAudio.loop = true;
+    alarmState.htmlAudio.volume = 1;
+    alarmState.htmlAudio.currentTime = 0;
 
-    await playLoop();
+    try {
+      await alarmState.htmlAudio.play();
+    } catch {}
 
-    alarmState.repeatIntervalId = setInterval(() => {
-      playLoop();
-    }, 2500);
+    // watchdog: bazı cihazlarda audio loop durursa tekrar başlat
+    alarmState.repeatIntervalId = setInterval(async () => {
+      if (!alarmState.isActive || !alarmState.htmlAudio) return;
+      if (alarmState.htmlAudio.paused) {
+        try {
+          await alarmState.htmlAudio.play();
+        } catch {}
+      }
+    }, 1200);
   } catch {}
 }
 
@@ -557,12 +560,12 @@ async function previewSound(sound) {
 // NOTIFICATION CHANNELS
 // ===============================
 function getSoundChannelId(soundId) {
-  return `timer_alerts_v10_${soundId}`;
+  return `timer_alerts_v11_${soundId}`;
 }
 
 function getNotificationChannelForCurrentSound() {
   const sound = getSelectedSound();
-  if (!sound?.rawName) return "timer_alerts_fallback_v10";
+  if (!sound?.rawName) return "timer_alerts_fallback_v11";
   return getSoundChannelId(sound.id);
 }
 
@@ -597,10 +600,10 @@ async function ensureNotificationChannels() {
       }
     }
 
-    if (!existingIds.has("timer_alerts_fallback_v10")) {
+    if (!existingIds.has("timer_alerts_fallback_v11")) {
       try {
         await CapacitorLocalNotifications.createChannel({
-          id: "timer_alerts_fallback_v10",
+          id: "timer_alerts_fallback_v11",
           name: "Timer fallback",
           description: "Fallback timer alerts",
           importance: 5,
@@ -648,6 +651,12 @@ async function cancelAlarmNotification() {
       notifications: [{ id: notificationState.scheduledTimerNotificationId }]
     });
   } catch {}
+
+  try {
+    if (CapacitorLocalNotifications.removeAllDeliveredNotifications) {
+      await CapacitorLocalNotifications.removeAllDeliveredNotifications();
+    }
+  } catch {}
 }
 
 async function scheduleEndAlarmNotification() {
@@ -670,7 +679,7 @@ async function scheduleEndAlarmNotification() {
           actionTypeId: "TIMER_DONE",
           ongoing: true,
           autoCancel: false,
-          sound: soundEnabled ? fileNameWithoutExt(getSelectedSound().assetPath) : undefined,
+          sound: soundEnabled ? getSelectedSound().assetPath : undefined,
           extra: {
             source: "timer",
             mode: timerState.mode
@@ -706,13 +715,13 @@ async function showImmediateFinishedNotification() {
           actionTypeId: "TIMER_DONE",
           ongoing: true,
           autoCancel: false,
-          sound: soundEnabled ? fileNameWithoutExt(getSelectedSound().assetPath) : undefined,
+          sound: soundEnabled ? getSelectedSound().assetPath : undefined,
           extra: {
             source: "timer",
             mode: timerState.mode
           },
           schedule: {
-            at: new Date(Date.now() + 200),
+            at: new Date(Date.now() + 100),
             allowWhileIdle: true
           }
         }
