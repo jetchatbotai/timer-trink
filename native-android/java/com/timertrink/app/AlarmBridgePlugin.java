@@ -42,6 +42,7 @@ public class AlarmBridgePlugin extends Plugin {
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra("title", title);
         intent.putExtra("message", message);
+        intent.putExtra("soundName", "beep");
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
