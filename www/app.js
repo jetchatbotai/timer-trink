@@ -113,6 +113,43 @@ async function cancelNativeAlarm() {
   }
 }
 
+async function scheduleLocalAlarmNotification(triggerDate) {
+  if (!CapacitorLocalNotifications) return false;
+
+  try {
+    const soundEnabled = $("soundToggle")?.checked !== false;
+
+    await CapacitorLocalNotifications.schedule({
+      notifications: [
+        {
+          id: notificationState.scheduledTimerNotificationId,
+          title: "SÜRE DOLDU!",
+          body: "Alarm çalıyor",
+          largeBody: "Alarm çalıyor - bildirime dokunarak kapat",
+          channelId: getNotificationChannelForCurrentSound(),
+          actionTypeId: "TIMER_DONE",
+          ongoing: true,
+          autoCancel: false,
+          sound: soundEnabled ? getSelectedSound().assetPath : undefined,
+          extra: {
+            source: "timer",
+            mode: timerState.mode
+          },
+          schedule: {
+            at: triggerDate,
+            allowWhileIdle: true
+          }
+        }
+      ]
+    });
+
+    return true;
+  } catch (e) {
+    console.warn("Local notification schedule failed:", e);
+    return false;
+  }
+}
+
 // ===============================
 // STORAGE KEYS
 // ===============================
@@ -590,12 +627,12 @@ async function previewSound(sound) {
 // NOTIFICATION CHANNELS
 // ===============================
 function getSoundChannelId(soundId) {
-  return `timer_alerts_v11_${soundId}`;
+  return `timer_alerts_v12_${soundId}`;
 }
 
 function getNotificationChannelForCurrentSound() {
   const sound = getSelectedSound();
-  if (!sound?.rawName) return "timer_alerts_fallback_v11";
+  if (!sound?.rawName) return "timer_alerts_fallback_v12";
   return getSoundChannelId(sound.id);
 }
 
@@ -630,10 +667,10 @@ async function ensureNotificationChannels() {
       }
     }
 
-    if (!existingIds.has("timer_alerts_fallback_v11")) {
+    if (!existingIds.has("timer_alerts_fallback_v12")) {
       try {
         await CapacitorLocalNotifications.createChannel({
-          id: "timer_alerts_fallback_v11",
+          id: "timer_alerts_fallback_v12",
           name: "Timer fallback",
           description: "Fallback timer alerts",
           importance: 5,
@@ -692,7 +729,17 @@ async function cancelAlarmNotification() {
 }
 
 async function scheduleEndAlarmNotification() {
+  if (!timerState.endAt || timerState.endAt <= nowMs()) return;
+
+  try {
+    await cancelAlarmNotification();
+  } catch {}
+
   await scheduleNativeAlarmAtEnd();
+
+  if (!CapacitorLocalNotifications) return;
+
+  await scheduleLocalAlarmNotification(new Date(timerState.endAt));
 }
 
 async function showImmediateFinishedNotification() {
@@ -702,6 +749,16 @@ async function showImmediateFinishedNotification() {
     showAlarmOverlay();
     await startPersistentAlarm();
   }
+
+  if (!CapacitorLocalNotifications) return;
+
+  try {
+    await CapacitorLocalNotifications.cancel({
+      notifications: [{ id: notificationState.scheduledTimerNotificationId }]
+    });
+  } catch {}
+
+  await scheduleLocalAlarmNotification(new Date(Date.now() + 100));
 }
 
 async function dismissAlarmFlow() {
@@ -732,7 +789,54 @@ async function dismissAlarmFlow() {
 }
 
 async function setupNotificationListeners() {
-  notificationState.listenersReady = true;
+  if (!CapacitorLocalNotifications || notificationState.listenersReady) return;
+
+  try {
+    await CapacitorLocalNotifications.addListener(
+      "localNotificationReceived",
+      async (event) => {
+        const id = event?.id ?? event?.notification?.id;
+
+        if (id === notificationState.scheduledTimerNotificationId) {
+          alarmState.isActive = true;
+
+          if (timerState.running || timerState.timeLeft > 0) {
+            timerState.timeLeft = 0;
+            timerState.running = false;
+            timerState.paused = false;
+            timerState.endAt = 0;
+
+            clearInterval(timerState.timerId);
+            timerState.timerId = null;
+
+            updateTimerDisplay();
+            setText("timerStatus", "done");
+            updateTimerStartButton();
+            saveTimerState();
+          }
+
+          if (isAppForeground()) {
+            showAlarmOverlay();
+            await startPersistentAlarm();
+          }
+        }
+      }
+    );
+
+    await CapacitorLocalNotifications.addListener(
+      "localNotificationActionPerformed",
+      async (event) => {
+        const notificationId = event?.notification?.id;
+        if (notificationId !== notificationState.scheduledTimerNotificationId) return;
+
+        await dismissAlarmFlow();
+      }
+    );
+
+    notificationState.listenersReady = true;
+  } catch (e) {
+    console.warn("Notification listeners failed:", e);
+  }
 }
 
 // ===============================
