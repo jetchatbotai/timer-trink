@@ -29,22 +29,23 @@ public class AlarmSoundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         String title = "Süre doldu!";
         String message = "Alarm çalıyor";
+        String soundName = "beep"; // default
 
         if (intent != null) {
-            String incomingTitle = intent.getStringExtra("title");
-            String incomingMessage = intent.getStringExtra("message");
+            if (intent.getStringExtra("title") != null)
+                title = intent.getStringExtra("title");
 
-            if (incomingTitle != null && !incomingTitle.isEmpty()) {
-                title = incomingTitle;
-            }
+            if (intent.getStringExtra("message") != null)
+                message = intent.getStringExtra("message");
 
-            if (incomingMessage != null && !incomingMessage.isEmpty()) {
-                message = incomingMessage;
-            }
+            if (intent.getStringExtra("soundName") != null)
+                soundName = intent.getStringExtra("soundName");
         }
 
+        // 🔥 STOP ACTION
         Intent stopIntent = new Intent(this, AlarmStopReceiver.class);
         PendingIntent stopPendingIntent = PendingIntent.getBroadcast(
                 this,
@@ -53,6 +54,7 @@ public class AlarmSoundService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        // 🔥 NOTIFICATION
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)
                 .setContentText(message)
@@ -64,34 +66,44 @@ public class AlarmSoundService extends Service {
                 .build();
 
         startForeground(NOTIFICATION_ID, notification);
-        startAlarmLoop();
+
+        // 🔥 SES BAŞLAT
+        startAlarmLoop(soundName);
 
         return START_STICKY;
     }
 
-    private void startAlarmLoop() {
+    private void startAlarmLoop(String soundName) {
         stopAlarmLoop();
 
-        mediaPlayer = MediaPlayer.create(this, R.raw.alarm);
-        if (mediaPlayer == null) {
-            return;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mediaPlayer.setAudioAttributes(
-                    new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_ALARM)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                            .build()
-            );
-        }
-
-        mediaPlayer.setLooping(true);
-        mediaPlayer.setVolume(1.0f, 1.0f);
-
         try {
+            int soundId = getResources().getIdentifier(soundName, "raw", getPackageName());
+
+            if (soundId == 0) {
+                soundId = getResources().getIdentifier("beep", "raw", getPackageName());
+            }
+
+            mediaPlayer = new MediaPlayer();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mediaPlayer.setAudioAttributes(
+                        new AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_ALARM)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                                .build()
+                );
+            }
+
+            mediaPlayer.setDataSource(this,
+                    android.net.Uri.parse("android.resource://" + getPackageName() + "/" + soundId));
+
+            mediaPlayer.setLooping(true);
+            mediaPlayer.setVolume(1f, 1f);
+            mediaPlayer.prepare();
             mediaPlayer.start();
-        } catch (Exception ignored) {
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -111,18 +123,15 @@ public class AlarmSoundService extends Service {
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager == null) {
-                return;
-            }
+            if (manager == null) return;
 
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Alarm Service",
                     NotificationManager.IMPORTANCE_HIGH
             );
-            channel.setDescription("Timer alarm service");
-            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             manager.createNotificationChannel(channel);
         }
     }
