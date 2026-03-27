@@ -72,9 +72,11 @@ function showAlarmOverlay() {
   const overlay = $("alarmOverlay");
   const title = $("alarmTitle");
   const msg = $("alarmMessage");
+  const btn = $("dismissAlarmBtn");
 
   if (title) title.textContent = "Süre doldu!";
   if (msg) msg.textContent = "Alarm çalıyor";
+  if (btn) btn.textContent = t("close");
 
   if (overlay) overlay.classList.remove("hidden");
   document.body.classList.add("alarm-active");
@@ -160,6 +162,7 @@ const baseTranslations = {
   running: { tr: "Çalışıyor", en: "Running", de: "Läuft", fr: "En cours", es: "En marcha", ru: "Работает", ar: "قيد التشغيل", it: "In esecuzione", pt: "Em andamento", zh: "运行中" },
   paused: { tr: "Duraklatıldı", en: "Paused", de: "Pausiert", fr: "En pause", es: "Pausado", ru: "На паузе", ar: "متوقف مؤقتًا", it: "In pausa", pt: "Pausado", zh: "已暂停" },
   done: { tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！" },
+  close: { tr: "Kapat", en: "Close", de: "Schließen", fr: "Fermer", es: "Cerrar", ru: "Закрыть", ar: "إغلاق", it: "Chiudi", pt: "Fechar", zh: "关闭" },
   alarmRinging: { tr: "Alarm çalıyor", en: "Alarm is ringing", de: "Alarm klingelt", fr: "L’alarme sonne", es: "La alarma está sonando", ru: "Будильник звонит", ar: "المنبه يرن", it: "La sveglia sta suonando", pt: "O alarme está tocando", zh: "闹铃正在响" },
   sounds: { tr: "ses", en: "sounds", de: "Töne", fr: "sons", es: "sonidos", ru: "звуков", ar: "أصوات", it: "suoni", pt: "sons", zh: "种声音" },
   hours: { tr: "Saat", en: "Hours", de: "Stunden", fr: "Heures", es: "Horas", ru: "Часы", ar: "الساعات", it: "Ore", pt: "Horas", zh: "小时" },
@@ -361,7 +364,7 @@ function applyLanguage() {
   setText("swResetBtn", "reset");
   setText("swClearLapsBtn", "clearLaps");
 
-  setText("dismissAlarmBtn", "done");
+  setText("dismissAlarmBtn", "close");
   setText("hoursLabel", "hours");
   setText("minutesLabel", "minutes");
   setText("secondsLabel", "seconds");
