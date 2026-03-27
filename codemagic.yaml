@@ -26,100 +26,83 @@ workflows:
           npx cap add android
           npx cap sync android
 
-      # 🔥 EN KRİTİK KISIM
-      - name: Patch AndroidManifest (FULL POWER)
+      - name: Copy AlarmActivity into Android project
+        script: |
+          mkdir -p android/app/src/main/java/com/timertrink/app
+          cp native-android/java/com/timertrink/app/AlarmActivity.java android/app/src/main/java/com/timertrink/app/AlarmActivity.java
+          ls -la android/app/src/main/java/com/timertrink/app
+
+      - name: Patch AndroidManifest
         script: |
           python3 - << 'PY'
           from pathlib import Path
 
           manifest = Path("android/app/src/main/AndroidManifest.xml")
-          text = manifest.read_text()
+          text = manifest.read_text(encoding="utf-8")
 
           permissions = [
-              'android.permission.POST_NOTIFICATIONS',
-              'android.permission.SCHEDULE_EXACT_ALARM',
-              'android.permission.WAKE_LOCK',
-              'android.permission.VIBRATE',
-              'android.permission.RECEIVE_BOOT_COMPLETED',
-              'android.permission.FOREGROUND_SERVICE'
+              '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+              '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+              '<uses-permission android:name="android.permission.WAKE_LOCK" />',
+              '<uses-permission android:name="android.permission.VIBRATE" />',
+              '<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />'
           ]
 
-          for p in permissions:
-              if p not in text:
-                  text = text.replace("<application", f'<uses-permission android:name="{p}" />\n\n    <application', 1)
+          for perm in permissions:
+              if perm not in text:
+                  text = text.replace("<application", perm + "\n\n    <application", 1)
 
-          # 🔥 heads-up ve kilit ekran için
-          if 'android:showWhenLocked' not in text:
-              text = text.replace(
-                  "<activity",
-                  '<activity android:showWhenLocked="true" android:turnScreenOn="true"',
-                  1
-              )
+          activity_block = '''
+                  <activity
+                      android:name=".AlarmActivity"
+                      android:exported="true"
+                      android:showWhenLocked="true"
+                      android:turnScreenOn="true"
+                      android:excludeFromRecents="true"
+                      android:launchMode="singleTop" />
+          '''
 
-          manifest.write_text(text)
-          print("MANIFEST FULL PATCHED")
+          if 'android:name=".AlarmActivity"' not in text:
+              text = text.replace("</application>", activity_block + "\n    </application>", 1)
+
+          manifest.write_text(text, encoding="utf-8")
+          print("AndroidManifest patched successfully.")
           PY
 
-      # 🔥 SES DOSYALARI
       - name: Copy sounds to Android raw
         script: |
           mkdir -p android/app/src/main/res/raw
 
           for i in $(seq 1 20); do
-            if [ -f "www/sound${i}.wav" ]; then
-              cp "www/sound${i}.wav" "android/app/src/main/res/raw/sound${i}.wav"
-            elif [ -f "www/sound${i}.mp3" ]; then
+            if [ -f "www/sound${i}.mp3" ]; then
               cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
+            elif [ -f "www/sound${i}.wav" ]; then
+              cp "www/sound${i}.wav" "android/app/src/main/res/raw/sound${i}.wav"
             fi
           done
 
-          if [ -f "www/beep.wav" ]; then
-            cp "www/beep.wav" "android/app/src/main/res/raw/beep.wav"
-          elif [ -f "www/beep.mp3" ]; then
+          if [ -f "www/beep.mp3" ]; then
             cp "www/beep.mp3" "android/app/src/main/res/raw/beep.mp3"
+          elif [ -f "www/beep.wav" ]; then
+            cp "www/beep.wav" "android/app/src/main/res/raw/beep.wav"
           fi
 
-          ls -la android/app/src/main/res/raw
+          echo "RAW FILES:"
+          ls -la android/app/src/main/res/raw || true
 
-      # 🔥 CHANNEL FIX (ASIL SORUN BURDAYDI)
-      - name: Force Notification Channel Config
+      - name: Print key Android files
         script: |
-          mkdir -p android/app/src/main/java/com/getcapacitor
-
-          cat <<EOF > android/app/src/main/java/com/getcapacitor/NotificationFix.java
-          package com.getcapacitor;
-
-          import android.app.NotificationChannel;
-          import android.app.NotificationManager;
-          import android.content.Context;
-          import android.os.Build;
-
-          public class NotificationFix {
-              public static void create(Context context) {
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                      NotificationManager nm = context.getSystemService(NotificationManager.class);
-
-                      NotificationChannel channel = new NotificationChannel(
-                          "timer_alerts_v6_s1",
-                          "Timer Alarm",
-                          NotificationManager.IMPORTANCE_HIGH
-                      );
-
-                      channel.enableVibration(true);
-                      channel.setLockscreenVisibility(1);
-                      channel.setSound(null, null); // JS yönetecek
-
-                      nm.createNotificationChannel(channel);
-                  }
-              }
-          }
-          EOF
+          echo "----- AndroidManifest.xml -----"
+          sed -n '1,220p' android/app/src/main/AndroidManifest.xml || true
+          echo "----- AlarmActivity.java -----"
+          sed -n '1,260p' android/app/src/main/java/com/timertrink/app/AlarmActivity.java || true
 
       - name: Build Android debug APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
     artifacts:
       - android/app/build/outputs/**/*.apk
@@ -127,4 +110,5 @@ workflows:
     cache:
       cache_paths:
         - ~/.npm
-        - ~/.gradle
+        - ~/.gradle/caches
+        - ~/.gradle/wrapper
