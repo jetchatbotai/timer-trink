@@ -11,9 +11,8 @@
   },
   "plugins": {
     "LocalNotifications": {
-      "smallIcon": "ic_stat_icon_config_sample",
       "iconColor": "#ffffff",
-      "sound": "beep"
+      "sound": "beep.mp3"
     },
     "SplashScreen": {
       "launchShowDuration": 2000,
