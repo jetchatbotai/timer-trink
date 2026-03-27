@@ -12,16 +12,19 @@ workflows:
         script: |
           npm install
 
+      - name: Verify project files
+        script: |
+          test -f package.json
+          test -f capacitor.config.json
+          test -f www/index.html
+          test -f www/app.js
+          test -f www/styles.css
+
       - name: Recreate Android platform
         script: |
           rm -rf android
           npx cap add android
           npx cap sync android
-
-      - name: Copy AlarmActivity
-        script: |
-          mkdir -p android/app/src/main/java/com/timertrink/app
-          cp native-android/java/com/timertrink/app/AlarmActivity.java android/app/src/main/java/com/timertrink/app/AlarmActivity.java
 
       - name: Patch AndroidManifest
         script: |
@@ -34,6 +37,7 @@ workflows:
           permissions = [
               '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
               '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+              '<uses-permission android:name="android.permission.USE_EXACT_ALARM" />',
               '<uses-permission android:name="android.permission.WAKE_LOCK" />',
               '<uses-permission android:name="android.permission.VIBRATE" />'
           ]
@@ -42,21 +46,8 @@ workflows:
               if perm not in text:
                   text = text.replace("<application", perm + "\n\n    <application", 1)
 
-          activity_block = '''
-                  <activity
-                      android:name=".AlarmActivity"
-                      android:exported="true"
-                      android:showWhenLocked="true"
-                      android:turnScreenOn="true"
-                      android:excludeFromRecents="true"
-                      android:launchMode="singleTop" />
-          '''
-
-          if 'android:name=".AlarmActivity"' not in text:
-              text = text.replace("</application>", activity_block + "\n    </application>", 1)
-
           manifest.write_text(text, encoding="utf-8")
-          print("patched")
+          print("patched manifest")
           PY
 
       - name: Copy sounds to raw
@@ -64,10 +55,17 @@ workflows:
           mkdir -p android/app/src/main/res/raw
 
           for i in $(seq 1 20); do
+            if [ -f "www/sound${i}.wav" ]; then
+              cp "www/sound${i}.wav" "android/app/src/main/res/raw/sound${i}.wav"
+            fi
             if [ -f "www/sound${i}.mp3" ]; then
               cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
             fi
           done
+
+          if [ -f "www/beep.wav" ]; then
+            cp "www/beep.wav" "android/app/src/main/res/raw/beep.wav"
+          fi
 
           if [ -f "www/beep.mp3" ]; then
             cp "www/beep.mp3" "android/app/src/main/res/raw/beep.mp3"
