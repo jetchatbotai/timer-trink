@@ -301,8 +301,48 @@ select:focus {
   font-size: 1.05rem;
 }
 
+/* POMODORO PRESET ROW */
+.preset-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0 22px;
+}
+
+.preset-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 88px;
+  border: 1px solid var(--border);
+  background: rgba(43, 62, 103, 0.96);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.preset-btn span {
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.preset-btn small {
+  font-size: 0.88rem;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1;
+}
+
 .preset-btn.active {
-  box-shadow: inset 0 0 0 2px rgba(51, 184, 234, 0.5);
+  background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
+  color: #fff;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.16), var(--shadow);
+}
+
+.preset-btn.active small {
+  color: rgba(255, 255, 255, 0.92);
 }
 
 /* INPUTS */
@@ -504,6 +544,10 @@ select:focus {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .preset-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .hero-card {
     min-height: auto;
   }
@@ -525,7 +569,8 @@ select:focus {
   .quick-grid,
   .preset-grid,
   .half-buttons,
-  .stopwatch-buttons {
+  .stopwatch-buttons,
+  .preset-row {
     grid-template-columns: 1fr;
   }
 
