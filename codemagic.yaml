@@ -12,14 +12,23 @@ workflows:
         script: |
           npm install
 
-      - name: Recreate Android platform if wrapper missing
+      - name: Verify required project files
         script: |
-          if [ ! -f "android/gradlew" ]; then
-            rm -rf android
-            npx cap add android
-          fi
+          test -f package.json
+          test -f capacitor.config.json
+          test -f www/index.html
+          test -f www/app.js
+          test -f native-android/java/com/timertrink/app/AlarmBridgePlugin.java
+          test -f native-android/java/com/timertrink/app/AlarmReceiver.java
+          test -f native-android/java/com/timertrink/app/AlarmSoundService.java
+          test -f native-android/java/com/timertrink/app/AlarmStopReceiver.java
 
-      - name: Capacitor sync
+      - name: Recreate Android platform
+        script: |
+          rm -rf android
+          npx cap add android
+
+      - name: Sync Capacitor
         script: |
           npx cap sync android
 
@@ -52,11 +61,12 @@ workflows:
           }
           EOF
 
-      - name: Create AndroidManifest
+      - name: Write AndroidManifest
         script: |
           cat > android/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.timertrink.app">
 
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
               <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -100,7 +110,6 @@ workflows:
                       android:enabled="true"
                       android:exported="false"
                       android:foregroundServiceType="mediaPlayback" />
-
               </application>
 
           </manifest>
@@ -109,19 +118,29 @@ workflows:
       - name: Copy raw sounds
         script: |
           cp www/beep.mp3 android/app/src/main/res/raw/beep.mp3 || true
+          cp www/beep.wav android/app/src/main/res/raw/beep.wav || true
 
           for i in $(seq 1 20); do
             if [ -f "www/sound${i}.mp3" ]; then
               cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
             fi
+            if [ -f "www/sound${i}.wav" ]; then
+              cp "www/sound${i}.wav" "android/app/src/main/res/raw/sound${i}.wav"
+            fi
           done
+
+      - name: Fix Gradle Java compatibility
+        script: |
+          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' android/app/build.gradle || true
+          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' android/app/build.gradle || true
+          sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' android/app/build.gradle || true
 
       - name: Build APK
         script: |
           cd android
-          ls
           chmod +x gradlew
-          ./gradlew clean assembleDebug
+          ./gradlew clean
+          ./gradlew assembleDebug --stacktrace
 
     artifacts:
       - android/app/build/outputs/**/*.apk
