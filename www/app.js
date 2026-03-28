@@ -624,6 +624,25 @@ function isTimerExpired() {
   return timerState.endAt > 0 && nowMs() >= timerState.endAt;
 }
 
+function advancePomodoroAfterAlarm() {
+  const shouldAdvance =
+    timerState.mode === "pomodoro" &&
+    pomodoroState.enabled === true &&
+    pomodoroState.autoAdvance === true;
+
+  alarmState.pendingPomodoroAdvance = false;
+  resetFinishLocks();
+
+  if (!shouldAdvance) {
+    timerState.mode = "timer";
+    saveTimerState();
+    savePomodoroState();
+    return;
+  }
+
+  handlePomodoroSwitch();
+}
+
 async function finalizeExpiredTimerFromBackgroundReturn() {
   if (isFinishLocked()) return;
 
@@ -641,25 +660,12 @@ async function finalizeExpiredTimerFromBackgroundReturn() {
   setText("timerStatus", "done");
   updateTimerStartButton();
 
-  alarmState.pendingPomodoroAdvance =
-    timerState.mode === "pomodoro" &&
-    pomodoroState.enabled === true &&
-    pomodoroState.autoAdvance === true;
-
   await cancelNativeAlarm();
 
   saveTimerState();
   savePomodoroState();
 
-  const shouldAdvancePomodoro = alarmState.pendingPomodoroAdvance === true;
-  alarmState.pendingPomodoroAdvance = false;
-
-  if (shouldAdvancePomodoro) {
-    handlePomodoroSwitch();
-  } else {
-    timerState.mode = "timer";
-    saveTimerState();
-  }
+  advancePomodoroAfterAlarm();
 }
 
 async function finishTimerInForeground() {
@@ -1036,23 +1042,7 @@ async function dismissAlarmFlow() {
     await cancelAlarmNotification();
   } catch {}
 
-  const shouldAdvancePomodoro =
-    timerState.mode === "pomodoro" &&
-    pomodoroState.enabled === true &&
-    pomodoroState.autoAdvance === true &&
-    alarmState.pendingPomodoroAdvance === true;
-
-  alarmState.pendingPomodoroAdvance = false;
-  resetFinishLocks();
-
-  if (shouldAdvancePomodoro) {
-    handlePomodoroSwitch();
-    return;
-  }
-
-  timerState.mode = "timer";
-  saveTimerState();
-  savePomodoroState();
+  advancePomodoroAfterAlarm();
 }
 
 async function setupNotificationListeners() {
