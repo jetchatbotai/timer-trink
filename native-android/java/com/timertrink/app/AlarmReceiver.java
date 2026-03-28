@@ -9,10 +9,12 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Intent serviceIntent = new Intent(context, AlarmSoundService.class);
+        serviceIntent.setAction("com.timertrink.app.ACTION_START_ALARM");
 
         if (intent != null) {
             serviceIntent.putExtra("title", intent.getStringExtra("title"));
             serviceIntent.putExtra("message", intent.getStringExtra("message"));
+            serviceIntent.putExtra("soundName", intent.getStringExtra("soundName"));
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
