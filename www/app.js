@@ -430,7 +430,16 @@ async function finishTimerInForeground() {
   setText("timerStatus", "done");
   updateTimerStartButton();
 
-  await onTimerFinished();
+alarmState.pendingPomodoroAdvance =
+  timerState.mode === "pomodoro" &&
+  pomodoroState.enabled === true &&
+  pomodoroState.autoAdvance === true;
+
+alarmState.isActive = true;
+showAlarmOverlay();
+await startPersistentAlarm();
+
+saveTimerState();
 }
 
 async function handleAppForeground() {
