@@ -15,7 +15,9 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "AlarmBridge")
 public class AlarmBridgePlugin extends Plugin {
 
-    private static final int ALARM_REQUEST_CODE = 8001;
+    public static final int ALARM_REQUEST_CODE = 8001;
+    public static final String ACTION_ALARM = "com.timertrink.app.ACTION_ALARM";
+    public static final String ACTION_STOP_ALARM = "com.timertrink.app.ACTION_STOP_ALARM";
 
     @PluginMethod
     public void scheduleAlarm(PluginCall call) {
@@ -30,7 +32,6 @@ public class AlarmBridgePlugin extends Plugin {
         }
 
         long triggerAtMillis = triggerAtMillisObj;
-
         Context context = getContext();
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -41,7 +42,7 @@ public class AlarmBridgePlugin extends Plugin {
         }
 
         Intent intent = new Intent(context, AlarmReceiver.class);
-        intent.setAction("com.timertrink.app.ACTION_ALARM");
+        intent.setAction(ACTION_ALARM);
         intent.putExtra("title", title);
         intent.putExtra("message", message);
         intent.putExtra("soundName", soundName);
@@ -54,6 +55,8 @@ public class AlarmBridgePlugin extends Plugin {
         );
 
         try {
+            alarmManager.cancel(pendingIntent);
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(
                         AlarmManager.RTC_WAKEUP,
@@ -79,32 +82,39 @@ public class AlarmBridgePlugin extends Plugin {
     @PluginMethod
     public void cancelAlarm(PluginCall call) {
         Context context = getContext();
-        AlarmManager alarmManager =
-                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        cancelEverything(context);
 
-        Intent intent = new Intent(context, AlarmReceiver.class);
-        intent.setAction("com.timertrink.app.ACTION_ALARM");
+        JSObject ret = new JSObject();
+        ret.put("success", true);
+        call.resolve(ret);
+    }
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
-                ALARM_REQUEST_CODE,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
+    public static void cancelEverything(Context context) {
         try {
+            AlarmManager alarmManager =
+                    (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+            Intent intent = new Intent(context, AlarmReceiver.class);
+            intent.setAction(ACTION_ALARM);
+
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    ALARM_REQUEST_CODE,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
             if (alarmManager != null) {
                 alarmManager.cancel(pendingIntent);
             }
+            pendingIntent.cancel();
+        } catch (Exception ignored) {
+        }
 
+        try {
             Intent stopIntent = new Intent(context, AlarmSoundService.class);
             context.stopService(stopIntent);
-
-            JSObject ret = new JSObject();
-            ret.put("success", true);
-            call.resolve(ret);
-        } catch (Exception e) {
-            call.reject("Alarm iptal edilemedi: " + e.getMessage());
+        } catch (Exception ignored) {
         }
     }
 }
