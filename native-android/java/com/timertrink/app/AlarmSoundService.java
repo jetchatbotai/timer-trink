@@ -62,20 +62,28 @@ public class AlarmSoundService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        PendingIntent contentPendingIntent = PendingIntent.getBroadcast(
+                this,
+                9002,
+                stopIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setOngoing(true)
-                .setAutoCancel(false)
+                .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setContentIntent(contentPendingIntent)
                 .addAction(0, "Kapat", stopPendingIntent)
                 .build();
 
         startForeground(NOTIFICATION_ID, notification);
         startAlarmLoop(soundName);
 
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     private void startAlarmLoop(String soundName) {
@@ -139,13 +147,21 @@ public class AlarmSoundService extends Service {
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager == null) return;
 
+            NotificationChannel existing = manager.getNotificationChannel(CHANNEL_ID);
+            if (existing != null) {
+                manager.deleteNotificationChannel(CHANNEL_ID);
+            }
+
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Alarm Service",
                     NotificationManager.IMPORTANCE_HIGH
             );
+
             channel.setDescription("Timer alarm service");
             channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            channel.setSound(null, null);
+            channel.enableVibration(false);
 
             manager.createNotificationChannel(channel);
         }
