@@ -1,6 +1,8 @@
 package com.timertrink.app;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -13,7 +15,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.content.Context;
 
 public class AlarmActivity extends Activity {
 
@@ -25,58 +26,90 @@ public class AlarmActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-        } else {
-            getWindow().addFlags(
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-            );
-        }
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        setContentView(createLayout());
-        startAlarm();
-    }
-
-    private void startAlarm() {
         try {
-            String soundName = getIntent() != null
-                    ? getIntent().getStringExtra("soundName")
-                    : null;
-
-            if (soundName == null || soundName.trim().isEmpty()) {
-                soundName = "beep";
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                setShowWhenLocked(true);
+                setTurnScreenOn(true);
+            } else {
+                getWindow().addFlags(
+                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                );
             }
 
+            getWindow().addFlags(
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        setContentView(createLayout());
+        startAlarmSafely();
+    }
+
+    private void startAlarmSafely() {
+        stopMediaOnly();
+
+        String soundName = "beep";
+        try {
+            if (getIntent() != null) {
+                String incoming = getIntent().getStringExtra("soundName");
+                if (incoming != null && !incoming.trim().isEmpty()) {
+                    soundName = incoming.trim();
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        tryStartPlayer(soundName);
+        startVibrationSafely();
+    }
+
+    private void tryStartPlayer(String soundName) {
+        try {
             int soundId = getResources().getIdentifier(soundName, "raw", getPackageName());
             if (soundId == 0) {
                 soundId = getResources().getIdentifier("beep", "raw", getPackageName());
             }
 
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioAttributes(
-                    new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_ALARM)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                            .build()
-            );
+            if (soundId == 0) {
+                return;
+            }
 
-            mediaPlayer.setDataSource(this,
-                    android.net.Uri.parse("android.resource://" + getPackageName() + "/" + soundId));
+            mediaPlayer = MediaPlayer.create(this, soundId);
+
+            if (mediaPlayer == null) {
+                return;
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mediaPlayer.setAudioAttributes(
+                        new AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_ALARM)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                                .build()
+                );
+            }
+
             mediaPlayer.setLooping(true);
-            mediaPlayer.prepare();
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                stopMediaOnly();
+                return true;
+            });
+
             mediaPlayer.start();
 
         } catch (Exception e) {
             e.printStackTrace();
-            tryFallbackBeep();
+            stopMediaOnly();
         }
+    }
 
+    private void startVibrationSafely() {
         try {
             vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -94,15 +127,36 @@ public class AlarmActivity extends Activity {
         }
     }
 
-    private void tryFallbackBeep() {
+    private void stopMediaOnly() {
         try {
-            int soundId = getResources().getIdentifier("beep", "raw", getPackageName());
-            if (soundId == 0) return;
-
-            mediaPlayer = MediaPlayer.create(this, soundId);
             if (mediaPlayer != null) {
-                mediaPlayer.setLooping(true);
-                mediaPlayer.start();
+                try {
+                    if (mediaPlayer.isPlaying()) {
+                        mediaPlayer.stop();
+                    }
+                } catch (Exception ignored) {
+                }
+
+                try {
+                    mediaPlayer.reset();
+                } catch (Exception ignored) {
+                }
+
+                try {
+                    mediaPlayer.release();
+                } catch (Exception ignored) {
+                }
+
+                mediaPlayer = null;
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void stopVibrationOnly() {
+        try {
+            if (vibrator != null) {
+                vibrator.cancel();
             }
         } catch (Exception ignored) {
         }
@@ -112,27 +166,23 @@ public class AlarmActivity extends Activity {
         if (isStopping) return;
         isStopping = true;
 
+        stopMediaOnly();
+        stopVibrationOnly();
+
         try {
-            if (mediaPlayer != null) {
-                if (mediaPlayer.isPlaying()) {
-                    mediaPlayer.stop();
-                }
-                mediaPlayer.release();
-                mediaPlayer = null;
-            }
+            Intent stopIntent = new Intent(this, AlarmStopReceiver.class);
+            stopIntent.setAction("com.timertrink.app.ACTION_STOP_ALARM");
+            sendBroadcast(stopIntent);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
-            if (vibrator != null) {
-                vibrator.cancel();
-            }
+            finishAndRemoveTask();
         } catch (Exception e) {
             e.printStackTrace();
+            finish();
         }
-
-        finish();
     }
 
     private View createLayout() {
@@ -172,26 +222,15 @@ public class AlarmActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() {
-        if (!isStopping) {
-            try {
-                if (mediaPlayer != null) {
-                    if (mediaPlayer.isPlaying()) {
-                        mediaPlayer.stop();
-                    }
-                    mediaPlayer.release();
-                    mediaPlayer = null;
-                }
-            } catch (Exception ignored) {
-            }
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
 
-            try {
-                if (vibrator != null) {
-                    vibrator.cancel();
-                }
-            } catch (Exception ignored) {
-            }
-        }
+    @Override
+    protected void onDestroy() {
+        stopMediaOnly();
+        stopVibrationOnly();
         super.onDestroy();
     }
 }
