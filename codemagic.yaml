@@ -133,7 +133,10 @@ workflows:
         script: |
           sed -i 's/sourceCompatibility = JavaVersion.VERSION_17/sourceCompatibility = JavaVersion.VERSION_21/g' android/app/build.gradle || true
           sed -i 's/targetCompatibility = JavaVersion.VERSION_17/targetCompatibility = JavaVersion.VERSION_21/g' android/app/build.gradle || true
+          sed -i 's/sourceCompatibility = JavaVersion.VERSION_11/sourceCompatibility = JavaVersion.VERSION_21/g' android/app/build.gradle || true
+          sed -i 's/targetCompatibility = JavaVersion.VERSION_11/targetCompatibility = JavaVersion.VERSION_21/g' android/app/build.gradle || true
           sed -i 's/JavaVersion.VERSION_17/JavaVersion.VERSION_21/g' android/app/build.gradle || true
+          sed -i 's/JavaVersion.VERSION_11/JavaVersion.VERSION_21/g' android/app/build.gradle || true
 
       - name: Show Java and Gradle info
         script: |
