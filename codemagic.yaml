@@ -129,11 +129,17 @@ workflows:
             fi
           done
 
-      - name: Fix Gradle Java compatibility
+      - name: Force Gradle Java 21 compatibility
         script: |
-          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' android/app/build.gradle || true
-          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' android/app/build.gradle || true
-          sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' android/app/build.gradle || true
+          sed -i 's/sourceCompatibility = JavaVersion.VERSION_17/sourceCompatibility = JavaVersion.VERSION_21/g' android/app/build.gradle || true
+          sed -i 's/targetCompatibility = JavaVersion.VERSION_17/targetCompatibility = JavaVersion.VERSION_21/g' android/app/build.gradle || true
+          sed -i 's/JavaVersion.VERSION_17/JavaVersion.VERSION_21/g' android/app/build.gradle || true
+
+      - name: Show Java and Gradle info
+        script: |
+          java -version
+          cd android
+          ./gradlew -version
 
       - name: Build APK
         script: |
