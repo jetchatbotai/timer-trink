@@ -42,15 +42,19 @@ public class AlarmSoundService extends Service {
             if (incomingTitle != null && !incomingTitle.isEmpty()) {
                 title = incomingTitle;
             }
+
             if (incomingMessage != null && !incomingMessage.isEmpty()) {
                 message = incomingMessage;
             }
+
             if (incomingSoundName != null && !incomingSoundName.isEmpty()) {
                 soundName = incomingSoundName;
             }
         }
 
         Intent stopIntent = new Intent(this, AlarmStopReceiver.class);
+        stopIntent.setAction("com.timertrink.app.ACTION_STOP_ALARM");
+
         PendingIntent stopPendingIntent = PendingIntent.getBroadcast(
                 this,
                 9001,
@@ -104,20 +108,8 @@ public class AlarmSoundService extends Service {
 
             mediaPlayer.setLooping(true);
             mediaPlayer.setVolume(1.0f, 1.0f);
-
-            mediaPlayer.setOnPreparedListener(mp -> {
-                try {
-                    mp.start();
-                } catch (Exception ignored) {
-                }
-            });
-
-            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                stopAlarmLoop();
-                return true;
-            });
-
-            mediaPlayer.prepareAsync();
+            mediaPlayer.prepare();
+            mediaPlayer.start();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -134,7 +126,7 @@ public class AlarmSoundService extends Service {
                     }
                 } catch (Exception ignored) {
                 }
-                mediaPlayer.reset();
+
                 mediaPlayer.release();
                 mediaPlayer = null;
             }
