@@ -12,10 +12,14 @@ workflows:
         script: |
           npm install
 
-      - name: Recreate Android platform
+      - name: Ensure Android platform exists
         script: |
-          rm -rf android
-          npx cap add android
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
+      - name: Capacitor sync
+        script: |
           npx cap sync android
 
       - name: Create native folders
@@ -115,7 +119,7 @@ workflows:
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew clean assembleDebug
 
     artifacts:
       - android/app/build/outputs/**/*.apk
