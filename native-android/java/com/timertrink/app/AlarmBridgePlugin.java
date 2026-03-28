@@ -22,6 +22,7 @@ public class AlarmBridgePlugin extends Plugin {
         Long triggerAtMillisObj = call.getLong("triggerAtMillis");
         String title = call.getString("title", "Süre doldu!");
         String message = call.getString("message", "Alarm çalıyor");
+        String soundName = call.getString("soundName", "beep");
 
         if (triggerAtMillisObj == null || triggerAtMillisObj <= 0) {
             call.reject("Geçersiz triggerAtMillis");
@@ -40,9 +41,10 @@ public class AlarmBridgePlugin extends Plugin {
         }
 
         Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.setAction("com.timertrink.app.ACTION_ALARM");
         intent.putExtra("title", title);
         intent.putExtra("message", message);
-        intent.putExtra("soundName", "beep");
+        intent.putExtra("soundName", soundName);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -81,6 +83,7 @@ public class AlarmBridgePlugin extends Plugin {
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.setAction("com.timertrink.app.ACTION_ALARM");
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
