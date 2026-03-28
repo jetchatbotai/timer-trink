@@ -9,17 +9,16 @@ public class AlarmStopReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
         try {
-            // 🔥 Alarmı durdur
+            // Mevcut alarm/sesi durdur
             AlarmBridgePlugin.cancelEverything(context);
 
-            SharedPreferences prefs =
-                    AlarmBridgePlugin.getPomodoroPrefs(context);
+            SharedPreferences prefs = AlarmBridgePlugin.getPomodoroPrefs(context);
 
             boolean enabled = prefs.getBoolean("enabled", false);
-
-            if (!enabled) return;
+            if (!enabled) {
+                return;
+            }
 
             String phase = prefs.getString("phase", "work");
             int work = prefs.getInt("work", 25);
@@ -29,7 +28,7 @@ public class AlarmStopReceiver extends BroadcastReceiver {
             String nextPhase;
             int nextMinutes;
 
-            if (phase.equals("work")) {
+            if ("work".equals(phase)) {
                 nextPhase = "break";
                 nextMinutes = brk;
             } else {
@@ -38,9 +37,9 @@ public class AlarmStopReceiver extends BroadcastReceiver {
                 cycle++;
             }
 
-            long nextEnd = System.currentTimeMillis() + (nextMinutes * 60 * 1000);
+            long nextEnd = System.currentTimeMillis() + (nextMinutes * 60L * 1000L);
 
-            // 🔥 STATE SAVE
+            // Yeni pomodoro state kaydet
             AlarmBridgePlugin.savePomodoroState(
                     context,
                     true,
@@ -51,7 +50,15 @@ public class AlarmStopReceiver extends BroadcastReceiver {
                     nextEnd
             );
 
-            // 🔥 YENİ ALARM KUR
+            // JS tarafı isterse bilsin diye flag bırak
+            try {
+                SharedPreferences uiPrefs =
+                        context.getSharedPreferences("timer_trink_prefs", Context.MODE_PRIVATE);
+                uiPrefs.edit().putBoolean("alarm_stopped_from_notification", true).apply();
+            } catch (Exception ignored) {
+            }
+
+            // Yeni alarmı native tarafta zincirleme kur
             AlarmBridgePlugin plugin = new AlarmBridgePlugin();
             plugin.load();
 
