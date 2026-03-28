@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 
 import com.getcapacitor.JSObject;
@@ -87,6 +88,27 @@ public class AlarmBridgePlugin extends Plugin {
         JSObject ret = new JSObject();
         ret.put("success", true);
         call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void consumeAlarmStoppedFromNotification(PluginCall call) {
+        try {
+            Context context = getContext();
+            SharedPreferences prefs =
+                    context.getSharedPreferences("timer_trink_prefs", Context.MODE_PRIVATE);
+
+            boolean stopped = prefs.getBoolean("alarm_stopped_from_notification", false);
+
+            if (stopped) {
+                prefs.edit().putBoolean("alarm_stopped_from_notification", false).apply();
+            }
+
+            JSObject ret = new JSObject();
+            ret.put("stopped", stopped);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("Flag okunamadı: " + e.getMessage());
+        }
     }
 
     public static void cancelEverything(Context context) {
