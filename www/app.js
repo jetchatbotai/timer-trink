@@ -328,7 +328,7 @@ const baseTranslations = {
     ko: "소리를 선택하고 미리 들어보세요.",
     nl: "Kies een geluid en luister naar het voorbeeld.",
     pl: "Wybierz dźwięk i odsłuchaj podgląd.",
-    uk: "Виберіть звук і прослухайте його.",
+    uk: "Виберіть звук і прослухайте его.",
     id: "Pilih suara dan dengarkan pratinjaunya.",
     ms: "Pilih bunyi dan dengar pratontonnya."
   },
@@ -352,7 +352,7 @@ const baseTranslations = {
     ko: "집중 프리셋을 선택해 타이머에 적용하세요.",
     nl: "Kies een focuspreset en laad deze in de timer.",
     pl: "Wybierz preset skupienia i załaduj go do timera.",
-    uk: "Виберіть пресет фокусування та завантажте його в таймер.",
+    uk: "Виберіть пресет фокусування та завантажте его в таймер.",
     id: "Pilih preset fokus dan terapkan ke timer.",
     ms: "Pilih pratetap fokus dan gunakan pada pemasa."
   },
@@ -624,6 +624,27 @@ function isTimerExpired() {
   return timerState.endAt > 0 && nowMs() >= timerState.endAt;
 }
 
+async function savePomodoroNativeState(enabledOverride = null, endAtOverride = null) {
+  if (!AlarmBridge?.savePomodoroNativeState) return;
+
+  try {
+    const enabled = enabledOverride === null ? pomodoroState.enabled : enabledOverride;
+    const endAt = endAtOverride === null ? timerState.endAt : endAtOverride;
+
+    await AlarmBridge.savePomodoroNativeState({
+      enabled,
+      phase: pomodoroState.phase,
+      work: pomodoroState.workMinutes,
+      break: pomodoroState.breakMinutes,
+      cycle: pomodoroState.cycleCount,
+      autoAdvance: pomodoroState.autoAdvance,
+      endAt
+    });
+  } catch (e) {
+    console.error("savePomodoroNativeState error:", e);
+  }
+}
+
 function advancePomodoroAfterAlarm() {
   const shouldAdvance =
     timerState.mode === "pomodoro" &&
@@ -637,6 +658,7 @@ function advancePomodoroAfterAlarm() {
     timerState.mode = "timer";
     saveTimerState();
     savePomodoroState();
+    savePomodoroNativeState(false, 0);
     return;
   }
 
@@ -657,6 +679,7 @@ async function syncPomodoroStateFromNative() {
     pomodoroState.workMinutes = safeNumber(data.work, 25);
     pomodoroState.breakMinutes = safeNumber(data.break, 5);
     pomodoroState.cycleCount = safeNumber(data.cycle, 0);
+    pomodoroState.autoAdvance = data.autoAdvance !== false;
 
     timerState.mode = "pomodoro";
     timerState.running = true;
@@ -1236,6 +1259,7 @@ async function startTimer(fromPomodoro = false) {
     pomodoroState.enabled = false;
     alarmState.pendingPomodoroAdvance = false;
     savePomodoroState();
+    await savePomodoroNativeState(false, 0);
   }
 
   const notifGranted = await requestNotificationPermission();
@@ -1249,6 +1273,10 @@ async function startTimer(fromPomodoro = false) {
   timerState.running = true;
   timerState.paused = false;
   timerState.endAt = nowMs() + total * 1000;
+
+  if (timerState.mode === "pomodoro") {
+    await savePomodoroNativeState(true, timerState.endAt);
+  }
 
   updateTimerDisplay();
   timerState.timerId = setInterval(() => {
@@ -1275,6 +1303,10 @@ async function pauseTimer() {
 
   await cancelAlarmNotification();
 
+  if (timerState.mode === "pomodoro" && pomodoroState.enabled) {
+    await savePomodoroNativeState(true, 0);
+  }
+
   updateTimerDisplay();
   setText("timerStatus", "paused");
   updateTimerStartButton();
@@ -1299,6 +1331,10 @@ async function resumeTimer() {
   timerState.timerId = setInterval(() => {
     timerTick();
   }, 250);
+
+  if (timerState.mode === "pomodoro" && pomodoroState.enabled) {
+    await savePomodoroNativeState(true, timerState.endAt);
+  }
 
   setText("timerStatus", "running");
   updateTimerStartButton();
@@ -1334,6 +1370,7 @@ async function resetTimer() {
 
   updateTimerDisplay();
   await cancelAlarmNotification();
+  await savePomodoroNativeState(false, 0);
 
   setText("timerStatus", "ready");
   updateTimerStartButton();
@@ -1388,6 +1425,7 @@ function setupQuickButtons() {
 
       savePomodoroState();
       saveTimerState();
+      savePomodoroNativeState(false, 0);
       updatePomodoroUI();
     });
   });
@@ -1451,9 +1489,10 @@ function handlePomodoroSwitch() {
   updatePomodoroUI();
   savePomodoroState();
 
-  setTimeout(() => {
+  setTimeout(async () => {
     if (pomodoroState.enabled) {
-      startTimer(true);
+      await savePomodoroNativeState(true, 0);
+      await startTimer(true);
     }
   }, 300);
 }
@@ -1491,6 +1530,7 @@ async function resetPomodoro() {
 
   updateTimerDisplay();
   await cancelAlarmNotification();
+  await savePomodoroNativeState(false, 0);
 
   setText("timerStatus", "ready");
   updateTimerStartButton();
@@ -1504,6 +1544,7 @@ function resetPomodoroCycle() {
   pomodoroState.cycleCount = 0;
   setPomodoroStatus();
   savePomodoroState();
+  savePomodoroNativeState(true, timerState.endAt || 0);
 }
 
 function updatePomodoroUI() {
@@ -1988,6 +2029,9 @@ async function initApp() {
     await registerNotificationActions();
     await setupNotificationListeners();
     await setupVisibilityListeners();
+
+    // Native taraf bildirimden pomodoro devam etmişse senkronla
+    await syncPomodoroStateFromNative();
 
     applyLanguage();
     updateTimerDisplay();
