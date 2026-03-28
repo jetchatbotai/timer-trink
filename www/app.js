@@ -137,7 +137,8 @@ const timerState = {
   timeLeft: 0,
   totalTime: 0,
   endAt: 0,
-  mode: "timer" // timer | pomodoro
+  mode: "timer", // timer | pomodoro
+  finishing: false
 };
 
 const stopwatchState = {
@@ -235,7 +236,7 @@ const baseTranslations = {
     hi: "टाइमर", ja: "タイマー", ko: "타이머", nl: "Timer", pl: "Timer", uk: "Таймер", id: "Timer", ms: "Pemasa"
   },
   pomodoro: {
-    tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro", ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟",
+    tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro", ru: "Помодоро", ar: "بومодورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟",
     hi: "पोमोडोरो", ja: "ポモドーロ", ko: "포모도로", nl: "Pomodoro", pl: "Pomodoro", uk: "Помодоро", id: "Pomodoro", ms: "Pomodoro"
   },
   soundOn: {
@@ -599,28 +600,41 @@ function isTimerExpired() {
 }
 
 async function finishTimerInForeground() {
-  timerState.timeLeft = 0;
-  timerState.running = false;
-  timerState.paused = false;
-  timerState.endAt = 0;
+  if (timerState.finishing) return;
+  timerState.finishing = true;
 
-  clearInterval(timerState.timerId);
-  timerState.timerId = null;
+  try {
+    timerState.timeLeft = 0;
+    timerState.running = false;
+    timerState.paused = false;
+    timerState.endAt = 0;
 
-  updateTimerDisplay();
-  setText("timerStatus", "done");
-  updateTimerStartButton();
+    clearInterval(timerState.timerId);
+    timerState.timerId = null;
 
-  alarmState.pendingPomodoroAdvance =
-    timerState.mode === "pomodoro" &&
-    pomodoroState.enabled === true &&
-    pomodoroState.autoAdvance === true;
+    updateTimerDisplay();
+    setText("timerStatus", "done");
+    updateTimerStartButton();
 
-  alarmState.isActive = true;
-  showAlarmOverlay();
-  await startPersistentAlarm();
+    alarmState.pendingPomodoroAdvance =
+      timerState.mode === "pomodoro" &&
+      pomodoroState.enabled === true &&
+      pomodoroState.autoAdvance === true;
 
-  saveTimerState();
+    await cancelNativeAlarm();
+
+    alarmState.isActive = true;
+    showAlarmOverlay();
+    await startPersistentAlarm();
+
+    saveTimerState();
+  } catch (err) {
+    console.error("finishTimerInForeground error:", err);
+  } finally {
+    setTimeout(() => {
+      timerState.finishing = false;
+    }, 300);
+  }
 }
 
 async function handleAppForeground() {
@@ -988,28 +1002,36 @@ function updateTimerDisplay() {
 
 async function timerTick() {
   if (!timerState.running) return;
+  if (timerState.finishing) return;
 
-  const now = nowMs();
-  timerState.timeLeft = Math.max(0, Math.ceil((timerState.endAt - now) / 1000));
+  try {
+    const now = nowMs();
+    timerState.timeLeft = Math.max(0, Math.ceil((timerState.endAt - now) / 1000));
 
-  if (timerState.timeLeft <= 0) {
-    timerState.timeLeft = 0;
-    timerState.running = false;
-    timerState.paused = false;
-    timerState.endAt = 0;
+    if (timerState.timeLeft <= 0) {
+      timerState.finishing = true;
 
-    clearInterval(timerState.timerId);
-    timerState.timerId = null;
+      timerState.timeLeft = 0;
+      timerState.running = false;
+      timerState.paused = false;
+      timerState.endAt = 0;
+
+      clearInterval(timerState.timerId);
+      timerState.timerId = null;
+
+      updateTimerDisplay();
+      setText("timerStatus", "done");
+      updateTimerStartButton();
+
+      await onTimerFinished();
+      return;
+    }
 
     updateTimerDisplay();
-    setText("timerStatus", "done");
-    updateTimerStartButton();
-
-    await onTimerFinished();
-    return;
+  } catch (err) {
+    console.error("timerTick error:", err);
+    timerState.finishing = false;
   }
-
-  updateTimerDisplay();
 }
 
 async function startTimer(fromPomodoro = false) {
@@ -1020,6 +1042,7 @@ async function startTimer(fromPomodoro = false) {
     return;
   }
 
+  timerState.finishing = false;
   stopPersistentAlarm();
   alarmState.isActive = false;
   hideAlarmOverlay();
@@ -1089,6 +1112,8 @@ async function pauseTimer() {
 async function resumeTimer() {
   if (!timerState.paused && timerState.timeLeft <= 0) return;
 
+  timerState.finishing = false;
+
   const exactGranted = await ensureExactAlarmPermission();
   if (!exactGranted) return;
 
@@ -1111,6 +1136,8 @@ async function resumeTimer() {
 }
 
 async function resetTimer() {
+  timerState.finishing = false;
+
   clearInterval(timerState.timerId);
   timerState.timerId = null;
 
@@ -1143,22 +1170,30 @@ async function resetTimer() {
 }
 
 async function onTimerFinished() {
-  alarmState.pendingPomodoroAdvance =
-    timerState.mode === "pomodoro" &&
-    pomodoroState.enabled === true &&
-    pomodoroState.autoAdvance === true;
+  try {
+    alarmState.pendingPomodoroAdvance =
+      timerState.mode === "pomodoro" &&
+      pomodoroState.enabled === true &&
+      pomodoroState.autoAdvance === true;
 
-  if (isAppForeground()) {
-    await cancelNativeAlarm();
-    alarmState.isActive = true;
-    showAlarmOverlay();
-    await startPersistentAlarm();
-  } else {
-    await scheduleNativeAlarmAtEndNow();
+    if (isAppForeground()) {
+      await cancelNativeAlarm();
+      alarmState.isActive = true;
+      showAlarmOverlay();
+      await startPersistentAlarm();
+    } else {
+      await scheduleNativeAlarmAtEndNow();
+    }
+
+    updateTimerStartButton();
+    saveTimerState();
+  } catch (err) {
+    console.error("onTimerFinished error:", err);
+  } finally {
+    setTimeout(() => {
+      timerState.finishing = false;
+    }, 300);
   }
-
-  updateTimerStartButton();
-  saveTimerState();
 }
 
 // ===============================
@@ -1249,6 +1284,8 @@ function handlePomodoroSwitch() {
 }
 
 async function resetPomodoro() {
+  timerState.finishing = false;
+
   clearInterval(timerState.timerId);
   timerState.timerId = null;
 
@@ -1509,6 +1546,7 @@ function loadTimerState() {
   timerState.totalTime = data.totalTime || 0;
   timerState.endAt = data.endAt || 0;
   timerState.mode = data.mode || "timer";
+  timerState.finishing = false;
 
   clearInterval(timerState.timerId);
   timerState.timerId = null;
