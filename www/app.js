@@ -81,6 +81,21 @@ function isFinishLocked() {
   return timerState.finishing || timerState.finishedHandled;
 }
 
+function resetFinishLocks() {
+  timerState.finishing = false;
+  timerState.finishedHandled = false;
+}
+
+function markFinishHandled() {
+  timerState.finishing = true;
+  timerState.finishedHandled = true;
+  timerState.lastFinishedAt = Date.now();
+}
+
+function recentlyFinished() {
+  return Date.now() - (timerState.lastFinishedAt || 0) < 2000;
+}
+
 function hideAlarmOverlay() {
   const overlay = $("alarmOverlay");
   if (overlay) overlay.classList.add("hidden");
@@ -143,7 +158,8 @@ const timerState = {
   endAt: 0,
   mode: "timer", // timer | pomodoro
   finishing: false,
-  finishedHandled: false
+  finishedHandled: false,
+  lastFinishedAt: 0
 };
 
 const stopwatchState = {
@@ -605,10 +621,9 @@ function isTimerExpired() {
 }
 
 async function finishTimerInForeground() {
-  if (isFinishLocked()) return;
+  if (isFinishLocked() || recentlyFinished()) return;
 
-  timerState.finishing = true;
-  timerState.finishedHandled = true;
+  markFinishHandled();
 
   try {
     timerState.timeLeft = 0;
@@ -631,23 +646,36 @@ async function finishTimerInForeground() {
     await cancelNativeAlarm();
 
     alarmState.isActive = true;
-    showAlarmOverlay();
-    await startPersistentAlarm();
+
+    setTimeout(async () => {
+      try {
+        showAlarmOverlay();
+        await startPersistentAlarm();
+      } catch (err) {
+        console.error("deferred foreground alarm error:", err);
+      }
+    }, 0);
 
     saveTimerState();
+    savePomodoroState();
   } catch (err) {
     console.error("finishTimerInForeground error:", err);
   } finally {
     setTimeout(() => {
       timerState.finishing = false;
-    }, 300);
+    }, 400);
   }
 }
 
 async function handleAppForeground() {
   visibilityState.isForeground = true;
 
-  if (timerState.running && !isFinishLocked() && isTimerExpired()) {
+  if (
+    timerState.running &&
+    !isFinishLocked() &&
+    !recentlyFinished() &&
+    isTimerExpired()
+  ) {
     await finishTimerInForeground();
     return;
   }
@@ -658,8 +686,14 @@ async function handleAppForeground() {
   }
 
   if (alarmState.isActive) {
-    showAlarmOverlay();
-    await startPersistentAlarm();
+    setTimeout(async () => {
+      try {
+        showAlarmOverlay();
+        await startPersistentAlarm();
+      } catch (err) {
+        console.error("resume alarm ui error:", err);
+      }
+    }, 0);
   }
 }
 
@@ -967,8 +1001,7 @@ async function dismissAlarmFlow() {
     alarmState.pendingPomodoroAdvance === true;
 
   alarmState.pendingPomodoroAdvance = false;
-  timerState.finishing = false;
-  timerState.finishedHandled = false;
+  resetFinishLocks();
 
   if (shouldAdvancePomodoro) {
     handlePomodoroSwitch();
@@ -1022,8 +1055,7 @@ async function timerTick() {
     timerState.timeLeft = Math.max(0, Math.ceil((timerState.endAt - now) / 1000));
 
     if (timerState.timeLeft <= 0) {
-      timerState.finishing = true;
-      timerState.finishedHandled = true;
+      markFinishHandled();
 
       timerState.timeLeft = 0;
       timerState.running = false;
@@ -1037,7 +1069,12 @@ async function timerTick() {
       setText("timerStatus", "done");
       updateTimerStartButton();
 
-      await onTimerFinished();
+      setTimeout(() => {
+        onTimerFinished().catch((err) => {
+          console.error("onTimerFinished deferred error:", err);
+        });
+      }, 0);
+
       return;
     }
 
@@ -1056,8 +1093,7 @@ async function startTimer(fromPomodoro = false) {
     return;
   }
 
-  timerState.finishing = false;
-  timerState.finishedHandled = false;
+  resetFinishLocks();
 
   stopPersistentAlarm();
   alarmState.isActive = false;
@@ -1128,8 +1164,7 @@ async function pauseTimer() {
 async function resumeTimer() {
   if (!timerState.paused && timerState.timeLeft <= 0) return;
 
-  timerState.finishing = false;
-  timerState.finishedHandled = false;
+  resetFinishLocks();
 
   const exactGranted = await ensureExactAlarmPermission();
   if (!exactGranted) return;
@@ -1153,8 +1188,7 @@ async function resumeTimer() {
 }
 
 async function resetTimer() {
-  timerState.finishing = false;
-  timerState.finishedHandled = false;
+  resetFinishLocks();
 
   clearInterval(timerState.timerId);
   timerState.timerId = null;
@@ -1196,9 +1230,17 @@ async function onTimerFinished() {
 
     if (isAppForeground()) {
       await cancelNativeAlarm();
+
       alarmState.isActive = true;
-      showAlarmOverlay();
-      await startPersistentAlarm();
+
+      setTimeout(async () => {
+        try {
+          showAlarmOverlay();
+          await startPersistentAlarm();
+        } catch (err) {
+          console.error("foreground finish ui error:", err);
+        }
+      }, 0);
     } else {
       await scheduleNativeAlarmAtEndNow();
     }
@@ -1211,7 +1253,7 @@ async function onTimerFinished() {
   } finally {
     setTimeout(() => {
       timerState.finishing = false;
-    }, 300);
+    }, 400);
   }
 }
 
@@ -1303,8 +1345,7 @@ function handlePomodoroSwitch() {
 }
 
 async function resetPomodoro() {
-  timerState.finishing = false;
-  timerState.finishedHandled = false;
+  resetFinishLocks();
 
   clearInterval(timerState.timerId);
   timerState.timerId = null;
@@ -1566,8 +1607,7 @@ function loadTimerState() {
   timerState.totalTime = data.totalTime || 0;
   timerState.endAt = data.endAt || 0;
   timerState.mode = data.mode || "timer";
-  timerState.finishing = false;
-  timerState.finishedHandled = false;
+  resetFinishLocks();
 
   clearInterval(timerState.timerId);
   timerState.timerId = null;
@@ -1846,7 +1886,7 @@ async function initApp() {
     switchTab(appState.lastTab || "timerPanel");
     startUIRenderLoop();
 
-    if (timerState.running && timerState.endAt > 0) {
+    if (timerState.running && timerState.endAt > nowMs()) {
       await scheduleEndAlarmNotification();
     }
 
