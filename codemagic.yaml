@@ -12,121 +12,104 @@ workflows:
         script: |
           npm install
 
-      - name: Verify project files
-        script: |
-          test -f package.json
-          test -f capacitor.config.json
-          test -f www/index.html
-          test -f www/app.js
-          test -f www/styles.css
-          test -f native-android/java/com/timertrink/app/AlarmReceiver.java
-          test -f native-android/java/com/timertrink/app/AlarmStopReceiver.java
-          test -f native-android/java/com/timertrink/app/AlarmSoundService.java
-          test -f native-android/java/com/timertrink/app/AlarmBridgePlugin.java
-          test -f www/beep.mp3
-
       - name: Recreate Android platform
         script: |
           rm -rf android
           npx cap add android
           npx cap sync android
 
-      - name: Copy native alarm files
+      - name: Create native folders
         script: |
           mkdir -p android/app/src/main/java/com/timertrink/app
+          mkdir -p android/app/src/main/res/raw
 
-          cp native-android/java/com/timertrink/app/AlarmReceiver.java android/app/src/main/java/com/timertrink/app/AlarmReceiver.java
-          cp native-android/java/com/timertrink/app/AlarmStopReceiver.java android/app/src/main/java/com/timertrink/app/AlarmStopReceiver.java
-          cp native-android/java/com/timertrink/app/AlarmSoundService.java android/app/src/main/java/com/timertrink/app/AlarmSoundService.java
+      - name: Copy native Java files
+        script: |
           cp native-android/java/com/timertrink/app/AlarmBridgePlugin.java android/app/src/main/java/com/timertrink/app/AlarmBridgePlugin.java
+          cp native-android/java/com/timertrink/app/AlarmReceiver.java android/app/src/main/java/com/timertrink/app/AlarmReceiver.java
+          cp native-android/java/com/timertrink/app/AlarmSoundService.java android/app/src/main/java/com/timertrink/app/AlarmSoundService.java
+          cp native-android/java/com/timertrink/app/AlarmStopReceiver.java android/app/src/main/java/com/timertrink/app/AlarmStopReceiver.java
 
-      - name: Patch MainActivity
+      - name: Create MainActivity
         script: |
-          python3 - << 'PY'
-          from pathlib import Path
+          cat > android/app/src/main/java/com/timertrink/app/MainActivity.java <<'EOF'
+          package com.timertrink.app;
 
-          main_activity = Path("android/app/src/main/java/com/timertrink/app/MainActivity.java")
-          text = main_activity.read_text(encoding="utf-8")
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
 
-          if "registerPlugin(AlarmBridgePlugin.class);" not in text:
-              text = text.replace(
-                  "super.onCreate(savedInstanceState);",
-                  "registerPlugin(AlarmBridgePlugin.class);\n        super.onCreate(savedInstanceState);"
-              )
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  registerPlugin(AlarmBridgePlugin.class);
+                  super.onCreate(savedInstanceState);
+              }
+          }
+          EOF
 
-          main_activity.write_text(text, encoding="utf-8")
-          print("patched MainActivity")
-          PY
-
-      - name: Patch AndroidManifest
+      - name: Create AndroidManifest
         script: |
-          python3 - << 'PY'
-          from pathlib import Path
+          cat > android/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-          manifest = Path("android/app/src/main/AndroidManifest.xml")
-          text = manifest.read_text(encoding="utf-8")
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+              <uses-permission android:name="android.permission.WAKE_LOCK" />
+              <uses-permission android:name="android.permission.VIBRATE" />
 
-          permissions = [
-              '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
-              '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
-              '<uses-permission android:name="android.permission.USE_EXACT_ALARM" />',
-              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
-              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />',
-              '<uses-permission android:name="android.permission.WAKE_LOCK" />',
-              '<uses-permission android:name="android.permission.VIBRATE" />'
-          ]
+              <application
+                  android:allowBackup="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:label="@string/app_name"
+                  android:roundIcon="@mipmap/ic_launcher_round"
+                  android:supportsRtl="true"
+                  android:theme="@style/AppTheme">
 
-          for perm in permissions:
-              if perm not in text:
-                  text = text.replace("<application", perm + "\n\n    <application", 1)
+                  <activity
+                      android:name="com.timertrink.app.MainActivity"
+                      android:exported="true"
+                      android:launchMode="singleTask"
+                      android:theme="@style/AppTheme.NoActionBarLaunch">
 
-          receiver_1 = '''
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+
                   <receiver
-                      android:name=".AlarmReceiver"
+                      android:name="com.timertrink.app.AlarmReceiver"
+                      android:enabled="true"
                       android:exported="false" />
-          '''
 
-          receiver_2 = '''
                   <receiver
-                      android:name=".AlarmStopReceiver"
+                      android:name="com.timertrink.app.AlarmStopReceiver"
+                      android:enabled="true"
                       android:exported="false" />
-          '''
 
-          service_block = '''
                   <service
-                      android:name=".AlarmSoundService"
+                      android:name="com.timertrink.app.AlarmSoundService"
                       android:enabled="true"
                       android:exported="false"
                       android:foregroundServiceType="mediaPlayback" />
-          '''
 
-          if 'android:name=".AlarmReceiver"' not in text:
-              text = text.replace("</application>", receiver_1 + "\n    </application>", 1)
+              </application>
 
-          if 'android:name=".AlarmStopReceiver"' not in text:
-              text = text.replace("</application>", receiver_2 + "\n    </application>", 1)
+          </manifest>
+          EOF
 
-          if 'android:name=".AlarmSoundService"' not in text:
-              text = text.replace("</application>", service_block + "\n    </application>", 1)
-
-          manifest.write_text(text, encoding="utf-8")
-          print("patched AndroidManifest")
-          PY
-
-      - name: Copy sounds to raw
+      - name: Copy raw sounds
         script: |
-          mkdir -p android/app/src/main/res/raw
+          cp www/beep.mp3 android/app/src/main/res/raw/beep.mp3 || true
 
           for i in $(seq 1 20); do
             if [ -f "www/sound${i}.mp3" ]; then
               cp "www/sound${i}.mp3" "android/app/src/main/res/raw/sound${i}.mp3"
             fi
           done
-
-          if [ -f "www/beep.mp3" ]; then
-            cp "www/beep.mp3" "android/app/src/main/res/raw/beep.mp3"
-            cp "www/beep.mp3" "android/app/src/main/res/raw/alarm.mp3"
-          fi
 
       - name: Build APK
         script: |
