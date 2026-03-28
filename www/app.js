@@ -616,8 +616,50 @@ function isAppForeground() {
   return visibilityState.isForeground;
 }
 
+function shouldUseNativeAlarm() {
+  return !isAppForeground();
+}
+
 function isTimerExpired() {
   return timerState.endAt > 0 && nowMs() >= timerState.endAt;
+}
+
+async function finalizeExpiredTimerFromBackgroundReturn() {
+  if (isFinishLocked()) return;
+
+  markFinishHandled();
+
+  timerState.timeLeft = 0;
+  timerState.running = false;
+  timerState.paused = false;
+  timerState.endAt = 0;
+
+  clearInterval(timerState.timerId);
+  timerState.timerId = null;
+
+  updateTimerDisplay();
+  setText("timerStatus", "done");
+  updateTimerStartButton();
+
+  alarmState.pendingPomodoroAdvance =
+    timerState.mode === "pomodoro" &&
+    pomodoroState.enabled === true &&
+    pomodoroState.autoAdvance === true;
+
+  await cancelNativeAlarm();
+
+  saveTimerState();
+  savePomodoroState();
+
+  const shouldAdvancePomodoro = alarmState.pendingPomodoroAdvance === true;
+  alarmState.pendingPomodoroAdvance = false;
+
+  if (shouldAdvancePomodoro) {
+    handlePomodoroSwitch();
+  } else {
+    timerState.mode = "timer";
+    saveTimerState();
+  }
 }
 
 async function finishTimerInForeground() {
@@ -646,15 +688,8 @@ async function finishTimerInForeground() {
     await cancelNativeAlarm();
 
     alarmState.isActive = true;
-
-    setTimeout(async () => {
-      try {
-        showAlarmOverlay();
-        await startPersistentAlarm();
-      } catch (err) {
-        console.error("deferred foreground alarm error:", err);
-      }
-    }, 0);
+    showAlarmOverlay();
+    await startPersistentAlarm();
 
     saveTimerState();
     savePomodoroState();
@@ -670,13 +705,14 @@ async function finishTimerInForeground() {
 async function handleAppForeground() {
   visibilityState.isForeground = true;
 
+  await cancelNativeAlarm();
+
   if (
     timerState.running &&
     !isFinishLocked() &&
-    !recentlyFinished() &&
     isTimerExpired()
   ) {
-    await finishTimerInForeground();
+    await finalizeExpiredTimerFromBackgroundReturn();
     return;
   }
 
@@ -686,19 +722,21 @@ async function handleAppForeground() {
   }
 
   if (alarmState.isActive) {
-    setTimeout(async () => {
-      try {
-        showAlarmOverlay();
-        await startPersistentAlarm();
-      } catch (err) {
-        console.error("resume alarm ui error:", err);
-      }
-    }, 0);
+    try {
+      showAlarmOverlay();
+      await startPersistentAlarm();
+    } catch (err) {
+      console.error("resume alarm ui error:", err);
+    }
   }
 }
 
 async function handleAppBackground() {
   visibilityState.isForeground = false;
+
+  if (timerState.running && timerState.endAt > nowMs()) {
+    await scheduleNativeAlarmAtEnd();
+  }
 }
 
 async function setupVisibilityListeners() {
@@ -970,8 +1008,12 @@ async function scheduleEndAlarmNotification() {
   if (!timerState.endAt || timerState.endAt <= nowMs()) return;
 
   try {
-    await cancelAlarmNotification();
+    await cancelNativeAlarm();
   } catch {}
+
+  if (!shouldUseNativeAlarm()) {
+    return;
+  }
 
   await scheduleNativeAlarmAtEnd();
 }
@@ -1094,6 +1136,7 @@ async function startTimer(fromPomodoro = false) {
   }
 
   resetFinishLocks();
+  await cancelNativeAlarm();
 
   stopPersistentAlarm();
   alarmState.isActive = false;
@@ -1165,6 +1208,7 @@ async function resumeTimer() {
   if (!timerState.paused && timerState.timeLeft <= 0) return;
 
   resetFinishLocks();
+  await cancelNativeAlarm();
 
   const exactGranted = await ensureExactAlarmPermission();
   if (!exactGranted) return;
@@ -1232,15 +1276,8 @@ async function onTimerFinished() {
       await cancelNativeAlarm();
 
       alarmState.isActive = true;
-
-      setTimeout(async () => {
-        try {
-          showAlarmOverlay();
-          await startPersistentAlarm();
-        } catch (err) {
-          console.error("foreground finish ui error:", err);
-        }
-      }, 0);
+      showAlarmOverlay();
+      await startPersistentAlarm();
     } else {
       await scheduleNativeAlarmAtEndNow();
     }
