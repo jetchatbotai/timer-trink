@@ -12,9 +12,10 @@ workflows:
         script: |
           npm install
 
-      - name: Ensure Android platform exists
+      - name: Recreate Android platform if wrapper missing
         script: |
-          if [ ! -d "android" ]; then
+          if [ ! -f "android/gradlew" ]; then
+            rm -rf android
             npx cap add android
           fi
 
@@ -118,6 +119,7 @@ workflows:
       - name: Build APK
         script: |
           cd android
+          ls
           chmod +x gradlew
           ./gradlew clean assembleDebug
 
