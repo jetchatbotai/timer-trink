@@ -1,142 +1,37 @@
-package com.timertrink.app;
+// SADECE EKLENEN KISIMLARI GÖSTERİYORUM (senin koduna EKLE)
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 
-import com.getcapacitor.JSObject;
-import com.getcapacitor.Plugin;
-import com.getcapacitor.PluginCall;
-import com.getcapacitor.PluginMethod;
-import com.getcapacitor.annotation.CapacitorPlugin;
+// üstte class içine ekle
+private static final String PREFS = "pomodoro_prefs";
 
-@CapacitorPlugin(name = "AlarmBridge")
-public class AlarmBridgePlugin extends Plugin {
+// ===============================
+// YENİ: POMODORO SAVE
+// ===============================
+public static void savePomodoroState(
+        Context context,
+        boolean enabled,
+        String phase,
+        int work,
+        int brk,
+        int cycle,
+        long nextEnd
+) {
+    SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 
-    public static final int ALARM_REQUEST_CODE = 8001;
-    public static final String ACTION_ALARM = "com.timertrink.app.ACTION_ALARM";
-    public static final String ACTION_STOP_ALARM = "com.timertrink.app.ACTION_STOP_ALARM";
+    prefs.edit()
+            .putBoolean("enabled", enabled)
+            .putString("phase", phase)
+            .putInt("work", work)
+            .putInt("break", brk)
+            .putInt("cycle", cycle)
+            .putLong("endAt", nextEnd)
+            .apply();
+}
 
-    @PluginMethod
-    public void scheduleAlarm(PluginCall call) {
-        Long triggerAtMillisObj = call.getLong("triggerAtMillis");
-        String title = call.getString("title", "Süre doldu!");
-        String message = call.getString("message", "Alarm çalıyor");
-        String soundName = call.getString("soundName", "beep");
-
-        if (triggerAtMillisObj == null || triggerAtMillisObj <= 0) {
-            call.reject("Geçersiz triggerAtMillis");
-            return;
-        }
-
-        long triggerAtMillis = triggerAtMillisObj;
-        Context context = getContext();
-        AlarmManager alarmManager =
-                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
-        if (alarmManager == null) {
-            call.reject("AlarmManager bulunamadı");
-            return;
-        }
-
-        Intent intent = new Intent(context, AlarmReceiver.class);
-        intent.setAction(ACTION_ALARM);
-        intent.putExtra("title", title);
-        intent.putExtra("message", message);
-        intent.putExtra("soundName", soundName);
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
-                ALARM_REQUEST_CODE,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        try {
-            alarmManager.cancel(pendingIntent);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        triggerAtMillis,
-                        pendingIntent
-                );
-            } else {
-                alarmManager.setExact(
-                        AlarmManager.RTC_WAKEUP,
-                        triggerAtMillis,
-                        pendingIntent
-                );
-            }
-
-            JSObject ret = new JSObject();
-            ret.put("success", true);
-            call.resolve(ret);
-        } catch (Exception e) {
-            call.reject("Alarm kurulamadı: " + e.getMessage());
-        }
-    }
-
-    @PluginMethod
-    public void cancelAlarm(PluginCall call) {
-        Context context = getContext();
-        cancelEverything(context);
-
-        JSObject ret = new JSObject();
-        ret.put("success", true);
-        call.resolve(ret);
-    }
-
-    @PluginMethod
-    public void consumeAlarmStoppedFromNotification(PluginCall call) {
-        try {
-            Context context = getContext();
-            SharedPreferences prefs =
-                    context.getSharedPreferences("timer_trink_prefs", Context.MODE_PRIVATE);
-
-            boolean stopped = prefs.getBoolean("alarm_stopped_from_notification", false);
-
-            if (stopped) {
-                prefs.edit().putBoolean("alarm_stopped_from_notification", false).apply();
-            }
-
-            JSObject ret = new JSObject();
-            ret.put("stopped", stopped);
-            call.resolve(ret);
-        } catch (Exception e) {
-            call.reject("Flag okunamadı: " + e.getMessage());
-        }
-    }
-
-    public static void cancelEverything(Context context) {
-        try {
-            AlarmManager alarmManager =
-                    (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
-            Intent intent = new Intent(context, AlarmReceiver.class);
-            intent.setAction(ACTION_ALARM);
-
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                    context,
-                    ALARM_REQUEST_CODE,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-            );
-
-            if (alarmManager != null) {
-                alarmManager.cancel(pendingIntent);
-            }
-            pendingIntent.cancel();
-        } catch (Exception ignored) {
-        }
-
-        try {
-            Intent stopIntent = new Intent(context, AlarmSoundService.class);
-            context.stopService(stopIntent);
-        } catch (Exception ignored) {
-        }
-    }
+// ===============================
+// YENİ: GET
+// ===============================
+public static SharedPreferences getPomodoroPrefs(Context context) {
+    return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 }
