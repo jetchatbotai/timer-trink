@@ -337,7 +337,7 @@ const baseTranslations = {
     ms: "Pilih pratetap fokus dan gunakan pada pemasa."
   },
   applyPomodoro: {
-    tr: "Pomodoro uygula", en: "Apply Pomodoro", de: "Pomodoro anwenden", fr: "Appliquer Pomodoro", es: "Aplicar Pomodoro", ru: "Применить Помодоро", ar: "تطبيق بومодورو", it: "Applica Pomodoro", pt: "Aplicar Pomodoro", zh: "应用番茄钟",
+    tr: "Pomodoro uygula", en: "Apply Pomodoro", de: "Pomodoro anwenden", fr: "Appliquer Pomodoro", es: "Aplicar Pomodoro", ru: "Применить Помодоро", ar: "تطبيق بومودورو", it: "Applica Pomodoro", pt: "Aplicar Pomodoro", zh: "应用番茄钟",
     hi: "पोमोडोरो लागू करें", ja: "ポモドーロを適用", ko: "포모도로 적용", nl: "Pomodoro toepassen", pl: "Zastosuj Pomodoro", uk: "Застосувати Помодоро", id: "Terapkan Pomodoro", ms: "Guna Pomodoro"
   },
   lapsTitle: {
@@ -367,8 +367,14 @@ const baseTranslations = {
   presetClassic: {
     tr: "Klasik", en: "Classic"
   },
+  presetQuick: {
+    tr: "Hızlı", en: "Quick"
+  },
   presetDeep: {
     tr: "Derin Odak", en: "Deep Focus"
+  },
+  presetIntense: {
+    tr: "Yoğun", en: "Intense"
   },
   presetLong: {
     tr: "Uzun", en: "Long"
@@ -593,8 +599,14 @@ function applyLanguage() {
   const presetClassicText = $("presetClassicText");
   if (presetClassicText) presetClassicText.textContent = t("presetClassic");
 
+  const presetQuickText = $("presetQuickText");
+  if (presetQuickText) presetQuickText.textContent = t("presetQuick");
+
   const presetDeepText = $("presetDeepText");
   if (presetDeepText) presetDeepText.textContent = t("presetDeep");
+
+  const presetIntenseText = $("presetIntenseText");
+  if (presetIntenseText) presetIntenseText.textContent = t("presetIntense");
 
   const presetLongText = $("presetLongText");
   if (presetLongText) presetLongText.textContent = t("presetLong");
@@ -1565,7 +1577,7 @@ function resetPomodoroCycle() {
 function updatePomodoroUI() {
   const title = $("pomodoroTitle");
   if (title) {
-    title.textContent = `${t("pomodoro")} - ${pomodoroState.phase === "work" ? t("work") : t("break")}`;
+    title.textContent = t("pomodoro");
   }
 
   if ($("pomodoroWork")) $("pomodoroWork").value = pomodoroState.workMinutes;
@@ -1589,7 +1601,7 @@ function setPomodoroStatus() {
     return;
   }
 
-  const phaseText = pomodoroState.phase === "work" ? t("work") : t("break");
+  const phaseText = pomodoroState.phase === "work" ? t("workLabel") : t("breakLabel");
   el.textContent = `${phaseText} • ${t("cycle")}: ${cycle} • ${currentMinutes} dk`;
 }
 
