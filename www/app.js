@@ -268,26 +268,6 @@ const baseTranslations = {
     tr: "Titreşim açık", en: "Vibration on", de: "Vibration an", fr: "Vibration activée", es: "Vibración activada", ru: "Вибрация включена", ar: "الاهتزاز مفعل", it: "Vibrazione attiva", pt: "Vibração ligada", zh: "振动开启",
     hi: "वाइब्रेशन चालू", ja: "バイブレーションオン", ko: "진동 켜짐", nl: "Trillen aan", pl: "Wibracja włączona", uk: "Вібрацію увімкнено", id: "Getar aktif", ms: "Getaran aktif"
   },
-  notifTimerTitle: {
-    tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！",
-    hi: "समय समाप्त!", ja: "時間切れ！", ko: "시간 종료!", nl: "Tijd is om!", pl: "Czas minął!", uk: "Час вийшов!", id: "Waktu habis!", ms: "Masa tamat!"
-  },
-  notifTimerBody: {
-    tr: "Bildirime dokunarak alarmı kapat", en: "Tap the notification to stop the alarm", de: "Tippe auf die Benachrichtigung, um den Alarm zu stoppen", fr: "Touchez la notification pour arrêter l'alarme", es: "Toca la notificación para detener la alarma", ru: "Нажмите уведомление, чтобы остановить сигнал", ar: "اضغط على الإشعار لإيقاف المنبه", it: "Tocca la notifica per fermare l'alarme", pt: "Toque na notificação para parar o alarme", zh: "点击通知以停止闹铃",
-    hi: "अलार्म बंद करने के लिए सूचना पर टैप करें", ja: "通知をタップしてアラームを停止", ko: "알람을 끄려면 알림을 누르세요", nl: "Tik op de melding om het alarm te stoppen", pl: "Dotknij powiadomienia, aby wyłączyć alarm", uk: "Натисніть сповіщення, щоб вимкнути сигнал", id: "Ketuk notifikasi untuk menghentikan alarm", ms: "Ketik pemberitahuan untuk menghentikan penggera"
-  },
-  work: {
-    tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作",
-    hi: "काम", ja: "作業", ko: "작업", nl: "Werk", pl: "Praca", uk: "Робота", id: "Kerja", ms: "Kerja"
-  },
-  break: {
-    tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso", ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息",
-    hi: "ब्रेक", ja: "休憩", ko: "휴식", nl: "Pauze", pl: "Przerwa", uk: "Перерва", id: "Istirahat", ms: "Rehat"
-  },
-  cycle: {
-    tr: "Döngü", en: "Cycle", de: "Zyklus", fr: "Cycle", es: "Ciclo", ru: "Цикл", ar: "دورة", it: "Ciclo", pt: "Ciclo", zh: "周期",
-    hi: "चक्र", ja: "サイクル", ko: "사이클", nl: "Cyclus", pl: "Cykl", uk: "Цикл", id: "Siklus", ms: "Kitaran"
-  },
   subtitle: {
     tr: "Odaklanma ve günlük kullanım için basit zamanlayıcı",
     en: "Simple timer for focus and daily use",
@@ -328,7 +308,7 @@ const baseTranslations = {
     ko: "소리를 선택하고 미리 들어보세요.",
     nl: "Kies een geluid en luister naar het voorbeeld.",
     pl: "Wybierz dźwięk i odsłuchaj podgląd.",
-    uk: "Виберіть звук і прослухайте его.",
+    uk: "Виберіть звук і прослухайте його.",
     id: "Pilih suara dan dengarkan pratinjaunya.",
     ms: "Pilih bunyi dan dengar pratontonnya."
   },
@@ -352,12 +332,12 @@ const baseTranslations = {
     ko: "집중 프리셋을 선택해 타이머에 적용하세요.",
     nl: "Kies een focuspreset en laad deze in de timer.",
     pl: "Wybierz preset skupienia i załaduj go do timera.",
-    uk: "Виберіть пресет фокусування та завантажте его в таймер.",
+    uk: "Виберіть пресет фокусування та завантажте його в таймер.",
     id: "Pilih preset fokus dan terapkan ke timer.",
     ms: "Pilih pratetap fokus dan gunakan pada pemasa."
   },
   applyPomodoro: {
-    tr: "Pomodoro uygula", en: "Apply Pomodoro", de: "Pomodoro anwenden", fr: "Appliquer Pomodoro", es: "Aplicar Pomodoro", ru: "Применить Помодоро", ar: "تطبيق بومودورو", it: "Applica Pomodoro", pt: "Aplicar Pomodoro", zh: "应用番茄钟",
+    tr: "Pomodoro uygula", en: "Apply Pomodoro", de: "Pomodoro anwenden", fr: "Appliquer Pomodoro", es: "Aplicar Pomodoro", ru: "Применить Помодоро", ar: "تطبيق بومодورو", it: "Applica Pomodoro", pt: "Aplicar Pomodoro", zh: "应用番茄钟",
     hi: "पोमोडोरो लागू करें", ja: "ポモドーロを適用", ko: "포모도로 적용", nl: "Pomodoro toepassen", pl: "Zastosuj Pomodoro", uk: "Застосувати Помодоро", id: "Terapkan Pomodoro", ms: "Guna Pomodoro"
   },
   lapsTitle: {
@@ -377,12 +357,21 @@ const baseTranslations = {
     hi: "ब्रेक", ja: "休憩", ko: "휴식", nl: "Pauze", pl: "Przerwa", uk: "Перерва", id: "Istirahat", ms: "Rehat"
   },
   resetPomodoro: {
-    tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro", ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟",
+    tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro", ru: "Сбросить Помодоро", ar: "إعادة ضبط بومодورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟",
     hi: "पोमोडोरो रीसेट", ja: "ポモドーロをリセット", ko: "포모도로 재설정", nl: "Pomodoro resetten", pl: "Resetuj Pomodoro", uk: "Скинути Помодоро", id: "Reset Pomodoro", ms: "Tetapkan semula Pomodoro"
   },
   resetCycle: {
     tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo", ru: "Сбросить цикл", ar: "إعادة ضبط الدورة", it: "Reimposta ciclo", pt: "Redefinir ciclo", zh: "重置周期",
     hi: "चक्र रीसेट", ja: "サイクルをリセット", ko: "사이클 재설정", nl: "Cyclus resetten", pl: "Resetuj cykl", uk: "Скинути цикл", id: "Reset siklus", ms: "Tetapkan semula kitaran"
+  },
+  presetClassic: {
+    tr: "Klasik", en: "Classic"
+  },
+  presetDeep: {
+    tr: "Derin Odak", en: "Deep Focus"
+  },
+  presetLong: {
+    tr: "Uzun", en: "Long"
   }
 };
 
@@ -568,6 +557,12 @@ function applyLanguage() {
   setText("tabStopwatch", "stopwatch");
   setText("tabSounds", "sounds");
 
+  const timerTitle = $("timerTitle");
+  if (timerTitle) timerTitle.textContent = t("timer");
+
+  const stopwatchTitle = $("stopwatchTitle");
+  if (stopwatchTitle) stopwatchTitle.textContent = t("stopwatch");
+
   updateTimerStartButton();
   setText("timerPauseBtn", "pause");
   setText("timerResetBtn", "reset");
@@ -594,6 +589,15 @@ function applyLanguage() {
   setText("lapsTitle", "lapsTitle");
   setText("pomodoroResetBtn", "resetPomodoro");
   setText("pomodoroCycleResetBtn", "resetCycle");
+
+  const presetClassicText = $("presetClassicText");
+  if (presetClassicText) presetClassicText.textContent = t("presetClassic");
+
+  const presetDeepText = $("presetDeepText");
+  if (presetDeepText) presetDeepText.textContent = t("presetDeep");
+
+  const presetLongText = $("presetLongText");
+  if (presetLongText) presetLongText.textContent = t("presetLong");
 
   if (timerState.running) setText("timerStatus", "running");
   else if (timerState.paused) setText("timerStatus", "paused");
@@ -705,6 +709,9 @@ async function syncPomodoroStateFromNative() {
           : pomodoroState.breakMinutes;
     }
     if ($("seconds")) $("seconds").value = 0;
+
+    if ($("pomodoroWork")) $("pomodoroWork").value = pomodoroState.workMinutes;
+    if ($("pomodoroBreak")) $("pomodoroBreak").value = pomodoroState.breakMinutes;
 
     clearInterval(timerState.timerId);
     timerState.timerId = null;
@@ -1468,10 +1475,17 @@ function loadPomodoroPhase() {
     ? pomodoroState.workMinutes
     : pomodoroState.breakMinutes;
 
+  if ($("pomodoroWork")) $("pomodoroWork").value = pomodoroState.workMinutes;
+  if ($("pomodoroBreak")) $("pomodoroBreak").value = pomodoroState.breakMinutes;
+
   if ($("hours")) $("hours").value = 0;
   if ($("minutes")) $("minutes").value = minutes;
   if ($("seconds")) $("seconds").value = 0;
 
+  timerState.totalTime = minutes * 60;
+  timerState.timeLeft = minutes * 60;
+
+  updateTimerDisplay();
   updatePomodoroUI();
 }
 
@@ -1505,16 +1519,17 @@ async function resetPomodoro() {
 
   timerState.running = false;
   timerState.paused = false;
-  timerState.timeLeft = 0;
-  timerState.totalTime = 0;
+  timerState.timeLeft = 25 * 60;
+  timerState.totalTime = 25 * 60;
   timerState.endAt = 0;
-  timerState.mode = "timer";
+  timerState.mode = "pomodoro";
 
   pomodoroState.enabled = false;
   pomodoroState.phase = "work";
   pomodoroState.workMinutes = 25;
   pomodoroState.breakMinutes = 5;
   pomodoroState.cycleCount = 0;
+  pomodoroState.autoAdvance = true;
   alarmState.pendingPomodoroAdvance = false;
 
   stopPersistentAlarm();
@@ -1525,7 +1540,7 @@ async function resetPomodoro() {
   if ($("pomodoroBreak")) $("pomodoroBreak").value = 5;
 
   if ($("hours")) $("hours").value = 0;
-  if ($("minutes")) $("minutes").value = 0;
+  if ($("minutes")) $("minutes").value = 25;
   if ($("seconds")) $("seconds").value = 0;
 
   updateTimerDisplay();
@@ -1549,9 +1564,13 @@ function resetPomodoroCycle() {
 
 function updatePomodoroUI() {
   const title = $("pomodoroTitle");
-  if (!title) return;
+  if (title) {
+    title.textContent = `${t("pomodoro")} - ${pomodoroState.phase === "work" ? t("work") : t("break")}`;
+  }
 
-  title.textContent = `${t("pomodoro")} - ${pomodoroState.phase === "work" ? t("work") : t("break")}`;
+  if ($("pomodoroWork")) $("pomodoroWork").value = pomodoroState.workMinutes;
+  if ($("pomodoroBreak")) $("pomodoroBreak").value = pomodoroState.breakMinutes;
+
   setPomodoroStatus();
 }
 
@@ -1560,14 +1579,18 @@ function setPomodoroStatus() {
   if (!el) return;
 
   const cycle = pomodoroState.cycleCount || 0;
+  const currentMinutes =
+    pomodoroState.phase === "work"
+      ? pomodoroState.workMinutes
+      : pomodoroState.breakMinutes;
 
   if (!pomodoroState.enabled) {
-    el.textContent = `${t("ready")} • ${t("cycle")}: ${cycle}`;
+    el.textContent = `${t("ready")} • ${t("cycle")}: ${cycle} • ${currentMinutes} dk`;
     return;
   }
 
   const phaseText = pomodoroState.phase === "work" ? t("work") : t("break");
-  el.textContent = `${phaseText} • ${t("cycle")}: ${cycle}`;
+  el.textContent = `${phaseText} • ${t("cycle")}: ${cycle} • ${currentMinutes} dk`;
 }
 
 // ===============================
@@ -2030,7 +2053,6 @@ async function initApp() {
     await setupNotificationListeners();
     await setupVisibilityListeners();
 
-    // Native taraf bildirimden pomodoro devam etmişse senkronla
     await syncPomodoroStateFromNative();
 
     applyLanguage();
