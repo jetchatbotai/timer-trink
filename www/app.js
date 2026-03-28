@@ -27,6 +27,19 @@ function safeParse(str) {
   }
 }
 
+function getSupportedInitialLanguage() {
+  const supported = [
+    "tr", "en", "de", "fr", "es", "ru", "ar", "it", "pt", "zh",
+    "hi", "ja", "ko", "nl", "pl", "uk", "id", "ms"
+  ];
+
+  const raw = (navigator.language || navigator.userLanguage || "en").toLowerCase();
+  const short = raw.slice(0, 2);
+
+  if (supported.includes(short)) return short;
+  return "en";
+}
+
 function nowMs() {
   return Date.now();
 }
@@ -76,8 +89,8 @@ function showAlarmOverlay() {
   const msg = $("alarmMessage");
   const btn = $("dismissAlarmBtn");
 
-  if (title) title.textContent = "Süre doldu!";
-  if (msg) msg.textContent = "Alarm çalıyor";
+  if (title) title.textContent = t("done");
+  if (msg) msg.textContent = t("alarmRinging");
   if (btn) btn.textContent = t("close");
 
   if (overlay) overlay.classList.remove("hidden");
@@ -112,7 +125,7 @@ const visibilityState = {
 
 const appState = {
   initialized: false,
-  language: "tr",
+  language: getSupportedInitialLanguage(),
   theme: "dark",
   lastTab: "timerPanel"
 };
@@ -157,46 +170,202 @@ const alarmState = {
 // TRANSLATIONS
 // ===============================
 const baseTranslations = {
-  start: { tr: "Başlat", en: "Start", de: "Start", fr: "Démarrer", es: "Iniciar", ru: "Старт", ar: "ابدأ", it: "Avvia", pt: "Iniciar", zh: "开始" },
-  pause: { tr: "Duraklat", en: "Pause", de: "Pause", fr: "Pause", es: "Pausar", ru: "Пауза", ar: "إيقاف مؤقت", it: "Pausa", pt: "Pausar", zh: "暂停" },
-  reset: { tr: "Sıfırla", en: "Reset", de: "Zurücksetzen", fr: "Réinitialiser", es: "Restablecer", ru: "Сброс", ar: "إعادة تعيين", it: "Reimposta", pt: "Redefinir", zh: "重置" },
-  ready: { tr: "Hazır", en: "Ready", de: "Bereit", fr: "Prêt", es: "Listo", ru: "Готово", ar: "جاهز", it: "Pronto", pt: "Pronto", zh: "就绪" },
-  running: { tr: "Çalışıyor", en: "Running", de: "Läuft", fr: "En cours", es: "En marcha", ru: "Работает", ar: "قيد التشغيل", it: "In esecuzione", pt: "Em andamento", zh: "运行中" },
-  paused: { tr: "Duraklatıldı", en: "Paused", de: "Pausiert", fr: "En pause", es: "Pausado", ru: "На паузе", ar: "متوقف مؤقتًا", it: "In pausa", pt: "Pausado", zh: "已暂停" },
-  done: { tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！" },
-  close: { tr: "Kapat", en: "Close", de: "Schließen", fr: "Fermer", es: "Cerrar", ru: "Закрыть", ar: "إغلاق", it: "Chiudi", pt: "Fechar", zh: "关闭" },
-  alarmRinging: { tr: "Alarm çalıyor", en: "Alarm is ringing", de: "Alarm klingelt", fr: "L’alarme sonne", es: "La alarma está sonando", ru: "Будильник звонит", ar: "المنبه يرن", it: "La sveglia sta suonando", pt: "O alarme está tocando", zh: "闹铃正在响" },
-  sounds: { tr: "ses", en: "sounds", de: "Töne", fr: "sons", es: "sonidos", ru: "звуков", ar: "أصوات", it: "suoni", pt: "sons", zh: "种声音" },
-  hours: { tr: "Saat", en: "Hours", de: "Stunden", fr: "Heures", es: "Horas", ru: "Часы", ar: "الساعات", it: "Ore", pt: "Horas", zh: "小时" },
-  minutes: { tr: "Dakika", en: "Minutes", de: "Minuten", fr: "Minutes", es: "Minutos", ru: "Минуты", ar: "الدقائق", it: "Minuti", pt: "Minutos", zh: "分钟" },
-  seconds: { tr: "Saniye", en: "Seconds", de: "Sekunden", fr: "Secondes", es: "Segundos", ru: "Секунды", ar: "الثواني", it: "Secondi", pt: "Segundos", zh: "秒" },
-  lap: { tr: "Tur", en: "Lap", de: "Runde", fr: "Tour", es: "Vuelta", ru: "Круг", ar: "لفة", it: "Giro", pt: "Volta", zh: "圈" },
-  stopwatch: { tr: "Kronometre", en: "Stopwatch", de: "Stoppuhr", fr: "Chronomètre", es: "Cronómetro", ru: "Секундомер", ar: "ساعة إيقاف", it: "Cronometro", pt: "Cronômetro", zh: "秒表" },
-  timer: { tr: "Zamanlayıcı", en: "Timer", de: "Timer", fr: "Minuteur", es: "Temporizador", ru: "Таймер", ar: "المؤقت", it: "Timer", pt: "Temporizador", zh: "计时器" },
-  pomodoro: { tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro", ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟" },
-  soundOn: { tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado", ru: "Звук açık", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启" },
-  vibrationOn: { tr: "Titreşim açık", en: "Vibration on", de: "Vibration an", fr: "Vibration activée", es: "Vibración activada", ru: "Вибрация включена", ar: "الاهتزاز مفعل", it: "Vibrazione attiva", pt: "Vibração ligada", zh: "振动开启" },
-  notifTimerTitle: { tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！" },
-  notifTimerBody: { tr: "Bildirime dokunarak alarmı kapat", en: "Tap the notification to stop the alarm", de: "Tippe auf die Benachrichtigung, um den Alarm zu stoppen", fr: "Touchez la notification pour arrêter l'alarme", es: "Toca la notificación para detener la alarma", ru: "Нажмите уведомление, чтобы остановить сигнал", ar: "اضغط على الإشعار لإيقاف المنبه", it: "Tocca la notifica per fermare l'alarme", pt: "Toque na notificação para parar o alarme", zh: "点击通知以停止闹铃" },
-  work: { tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作" },
-  break: { tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso", ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息" },
-  cycle: { tr: "Döngü", en: "Cycle", de: "Zyklus", fr: "Cycle", es: "Ciclo", ru: "Цикл", ar: "دورة", it: "Ciclo", pt: "Ciclo", zh: "周期" },
-  subtitle: { tr: "Odaklanma ve günlük kullanım için basit zamanlayıcı", en: "Simple timer for focus and daily use", de: "Einfacher Timer für Fokus und den Alltag", fr: "Minuteur simple pour la concentration et l'usage quotidien", es: "Temporizador simple para concentración y uso diario", ru: "Простой таймер для концентрации и повседневного использования", ar: "مؤقت بسيط للتركيز والاستخدام اليومي", it: "Timer semplice per concentrazione e uso quotidiano", pt: "Temporizador simples para foco e uso diário", zh: "适合专注和日常使用的简易计时器" },
-  soundsTitle: { tr: "Alarm sesleri", en: "Alarm sounds", de: "Alarmtöne", fr: "Sons d'alarme", es: "Sonidos de alarma", ru: "Звуки будильника", ar: "أصوات المنبه", it: "Suoni della sveglia", pt: "Sons de alarme", zh: "闹铃声音" },
-  soundsDesc: { tr: "Bir ses seç ve önizlemesini dinle.", en: "Select a sound and preview it.", de: "Wähle einen Ton und höre ihn an.", fr: "Sélectionnez un son et écoutez un aperçu.", es: "Selecciona un sonido y escúchalo.", ru: "Выберите звук и прослушайте его.", ar: "اختر صوتًا واستمع إلى المعاينة.", it: "Seleziona un suono e ascolta l'anteprima.", pt: "Selecione um som e ouça a prévia.", zh: "选择一个声音并试听。" },
-  previewSound: { tr: "Sesi dinle", en: "Preview sound", de: "Ton anhören", fr: "Écouter le son", es: "Escuchar sonido", ru: "Прослушать звук", ar: "معاينة الصوت", it: "Ascolta il suono", pt: "Ouvir som", zh: "试听声音" },
-  pomodoroDesc: { tr: "Bir odak süresi seç ve zamanlayıcıya uygula.", en: "Choose a focus preset and load it into timer.", de: "Wähle eine Fokus-Voreinstellung und lade sie in den Timer.", fr: "Choisissez un préréglage de concentration et appliquez-le au minuteur.", es: "Elige una configuración de enfoque y cárgala en el temporizador.", ru: "Выберите пресет для фокуса и загрузите его в таймер.", ar: "اختر إعداد تركيز وطبقه على المؤقت.", it: "Scegli una modalità di concentrazione e applicala al timer.", pt: "Escolha uma predefinição de foco e aplique ao temporizador.", zh: "选择一个专注预设并应用到计时器。" },
-  applyPomodoro: { tr: "Pomodoro uygula", en: "Apply Pomodoro", de: "Pomodoro anwenden", fr: "Appliquer Pomodoro", es: "Aplicar Pomodoro", ru: "Применить Помодоро", ar: "تطبيق بومودورو", it: "Applica Pomodoro", pt: "Aplicar Pomodoro", zh: "应用番茄钟" },
-  lapsTitle: { tr: "Turlar", en: "Laps", de: "Runden", fr: "Tours", es: "Vueltas", ru: "Круги", ar: "اللفات", it: "Giri", pt: "Voltas", zh: "圈数" },
-  clearLaps: { tr: "Turları temizle", en: "Clear Laps", de: "Runden löschen", fr: "Effacer les tours", es: "Borrar vueltas", ru: "Очистить круги", ar: "مسح اللفات", it: "Cancella giri", pt: "Limpar voltas", zh: "清除圈数" },
-  workLabel: { tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作" },
-  breakLabel: { tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso", ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息" },
-  resetPomodoro: { tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro", ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟" },
-  resetCycle: { tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo", ru: "Сбросить цикл", ar: "إعادة ضبط الدورة", it: "Reimposta ciclo", pt: "Redefinir ciclo", zh: "重置周期" }
+  start: {
+    tr: "Başlat", en: "Start", de: "Start", fr: "Démarrer", es: "Iniciar", ru: "Старт", ar: "ابدأ", it: "Avvia", pt: "Iniciar", zh: "开始",
+    hi: "शुरू करें", ja: "開始", ko: "시작", nl: "Start", pl: "Start", uk: "Почати", id: "Mulai", ms: "Mula"
+  },
+  pause: {
+    tr: "Duraklat", en: "Pause", de: "Pause", fr: "Pause", es: "Pausar", ru: "Пауза", ar: "إيقاف مؤقت", it: "Pausa", pt: "Pausar", zh: "暂停",
+    hi: "रोकें", ja: "一時停止", ko: "일시정지", nl: "Pauze", pl: "Pauza", uk: "Пауза", id: "Jeda", ms: "Jeda"
+  },
+  reset: {
+    tr: "Sıfırla", en: "Reset", de: "Zurücksetzen", fr: "Réinitialiser", es: "Restablecer", ru: "Сброс", ar: "إعادة تعيين", it: "Reimposta", pt: "Redefinir", zh: "重置",
+    hi: "रीसेट", ja: "リセット", ko: "재설정", nl: "Reset", pl: "Resetuj", uk: "Скинути", id: "Reset", ms: "Tetapkan semula"
+  },
+  ready: {
+    tr: "Hazır", en: "Ready", de: "Bereit", fr: "Prêt", es: "Listo", ru: "Готово", ar: "جاهز", it: "Pronto", pt: "Pronto", zh: "就绪",
+    hi: "तैयार", ja: "準備完了", ko: "준비됨", nl: "Klaar", pl: "Gotowe", uk: "Готово", id: "Siap", ms: "Sedia"
+  },
+  running: {
+    tr: "Çalışıyor", en: "Running", de: "Läuft", fr: "En cours", es: "En marcha", ru: "Работает", ar: "قيد التشغيل", it: "In esecuzione", pt: "Em andamento", zh: "运行中",
+    hi: "चल रहा है", ja: "実行中", ko: "실행 중", nl: "Bezig", pl: "Działa", uk: "Працює", id: "Berjalan", ms: "Sedang berjalan"
+  },
+  paused: {
+    tr: "Duraklatıldı", en: "Paused", de: "Pausiert", fr: "En pause", es: "Pausado", ru: "На паузе", ar: "متوقف مؤقتًا", it: "In pausa", pt: "Pausado", zh: "已暂停",
+    hi: "रुका हुआ", ja: "一時停止中", ko: "일시정지됨", nl: "Gepauzeerd", pl: "Wstrzymano", uk: "На паузі", id: "Dijeda", ms: "Dijeda"
+  },
+  done: {
+    tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！",
+    hi: "समय समाप्त!", ja: "時間切れ！", ko: "시간 종료!", nl: "Tijd is om!", pl: "Czas minął!", uk: "Час вийшов!", id: "Waktu habis!", ms: "Masa tamat!"
+  },
+  close: {
+    tr: "Kapat", en: "Close", de: "Schließen", fr: "Fermer", es: "Cerrar", ru: "Закрыть", ar: "إغلاق", it: "Chiudi", pt: "Fechar", zh: "关闭",
+    hi: "बंद करें", ja: "閉じる", ko: "닫기", nl: "Sluiten", pl: "Zamknij", uk: "Закрити", id: "Tutup", ms: "Tutup"
+  },
+  alarmRinging: {
+    tr: "Alarm çalıyor", en: "Alarm is ringing", de: "Alarm klingelt", fr: "L’alarme sonne", es: "La alarma está sonando", ru: "Будильник звонит", ar: "المنبه يرن", it: "La sveglia sta suonando", pt: "O alarme está tocando", zh: "闹铃正在响",
+    hi: "अलार्म बज रहा है", ja: "アラームが鳴っています", ko: "알람이 울리고 있습니다", nl: "Alarm gaat af", pl: "Alarm dzwoni", uk: "Будильник дзвонить", id: "Alarm berbunyi", ms: "Penggera sedang berbunyi"
+  },
+  sounds: {
+    tr: "ses", en: "sounds", de: "Töne", fr: "sons", es: "sonidos", ru: "звуков", ar: "أصوات", it: "suoni", pt: "sons", zh: "种声音",
+    hi: "ध्वनियाँ", ja: "サウンド", ko: "소리", nl: "geluiden", pl: "dźwięków", uk: "звуків", id: "suara", ms: "bunyi"
+  },
+  hours: {
+    tr: "Saat", en: "Hours", de: "Stunden", fr: "Heures", es: "Horas", ru: "Часы", ar: "الساعات", it: "Ore", pt: "Horas", zh: "小时",
+    hi: "घंटे", ja: "時間", ko: "시간", nl: "Uren", pl: "Godziny", uk: "Години", id: "Jam", ms: "Jam"
+  },
+  minutes: {
+    tr: "Dakika", en: "Minutes", de: "Minuten", fr: "Minutes", es: "Minutos", ru: "Минуты", ar: "الدقائق", it: "Minuti", pt: "Minutos", zh: "分钟",
+    hi: "मिनट", ja: "分", ko: "분", nl: "Minuten", pl: "Minuty", uk: "Хвилини", id: "Menit", ms: "Minit"
+  },
+  seconds: {
+    tr: "Saniye", en: "Seconds", de: "Sekunden", fr: "Secondes", es: "Segundos", ru: "Секунды", ar: "الثواني", it: "Secondi", pt: "Segundos", zh: "秒",
+    hi: "सेकंड", ja: "秒", ko: "초", nl: "Seconden", pl: "Sekundy", uk: "Секунди", id: "Detik", ms: "Saat"
+  },
+  lap: {
+    tr: "Tur", en: "Lap", de: "Runde", fr: "Tour", es: "Vuelta", ru: "Круг", ar: "لفة", it: "Giro", pt: "Volta", zh: "圈",
+    hi: "लैप", ja: "ラップ", ko: "랩", nl: "Ronde", pl: "Okrążenie", uk: "Коло", id: "Putaran", ms: "Pusingan"
+  },
+  stopwatch: {
+    tr: "Kronometre", en: "Stopwatch", de: "Stoppuhr", fr: "Chronomètre", es: "Cronómetro", ru: "Секундомер", ar: "ساعة إيقاف", it: "Cronometro", pt: "Cronômetro", zh: "秒表",
+    hi: "स्टॉपवॉच", ja: "ストップウォッチ", ko: "스톱워치", nl: "Stopwatch", pl: "Stoper", uk: "Секундомір", id: "Stopwatch", ms: "Jam randik"
+  },
+  timer: {
+    tr: "Zamanlayıcı", en: "Timer", de: "Timer", fr: "Minuteur", es: "Temporizador", ru: "Таймер", ar: "المؤقت", it: "Timer", pt: "Temporizador", zh: "计时器",
+    hi: "टाइमर", ja: "タイマー", ko: "타이머", nl: "Timer", pl: "Timer", uk: "Таймер", id: "Timer", ms: "Pemasa"
+  },
+  pomodoro: {
+    tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro", ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟",
+    hi: "पोमोडोरो", ja: "ポモドーロ", ko: "포모도로", nl: "Pomodoro", pl: "Pomodoro", uk: "Помодоро", id: "Pomodoro", ms: "Pomodoro"
+  },
+  soundOn: {
+    tr: "Ses açık", en: "Sound on", de: "Ton an", fr: "Son activé", es: "Sonido activado", ru: "Звук açık", ar: "الصوت مفعل", it: "Suono attivo", pt: "Som ligado", zh: "声音开启",
+    hi: "ध्वनि चालू", ja: "サウンドオン", ko: "소리 켜짐", nl: "Geluid aan", pl: "Dźwięk włączony", uk: "Звук увімкнено", id: "Suara aktif", ms: "Bunyi aktif"
+  },
+  vibrationOn: {
+    tr: "Titreşim açık", en: "Vibration on", de: "Vibration an", fr: "Vibration activée", es: "Vibración activada", ru: "Вибрация включена", ar: "الاهتزاز مفعل", it: "Vibrazione attiva", pt: "Vibração ligada", zh: "振动开启",
+    hi: "वाइब्रेशन चालू", ja: "バイブレーションオン", ko: "진동 켜짐", nl: "Trillen aan", pl: "Wibracja włączona", uk: "Вібрацію увімкнено", id: "Getar aktif", ms: "Getaran aktif"
+  },
+  notifTimerTitle: {
+    tr: "Süre doldu!", en: "Time is up!", de: "Zeit ist um!", fr: "Le temps est écoulé !", es: "¡Se acabó el tiempo!", ru: "Время вышло!", ar: "انتهى الوقت!", it: "Tempo scaduto!", pt: "O tempo acabou!", zh: "时间到了！",
+    hi: "समय समाप्त!", ja: "時間切れ！", ko: "시간 종료!", nl: "Tijd is om!", pl: "Czas minął!", uk: "Час вийшов!", id: "Waktu habis!", ms: "Masa tamat!"
+  },
+  notifTimerBody: {
+    tr: "Bildirime dokunarak alarmı kapat", en: "Tap the notification to stop the alarm", de: "Tippe auf die Benachrichtigung, um den Alarm zu stoppen", fr: "Touchez la notification pour arrêter l'alarme", es: "Toca la notificación para detener la alarma", ru: "Нажмите уведомление, чтобы остановить сигнал", ar: "اضغط على الإشعار لإيقاف المنبه", it: "Tocca la notifica per fermare l'alarme", pt: "Toque na notificação para parar o alarme", zh: "点击通知以停止闹铃",
+    hi: "अलार्म बंद करने के लिए सूचना पर टैप करें", ja: "通知をタップしてアラームを停止", ko: "알람을 끄려면 알림을 누르세요", nl: "Tik op de melding om het alarm te stoppen", pl: "Dotknij powiadomienia, aby wyłączyć alarm", uk: "Натисніть сповіщення, щоб вимкнути сигнал", id: "Ketuk notifikasi untuk menghentikan alarm", ms: "Ketik pemberitahuan untuk menghentikan penggera"
+  },
+  work: {
+    tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作",
+    hi: "काम", ja: "作業", ko: "작업", nl: "Werk", pl: "Praca", uk: "Робота", id: "Kerja", ms: "Kerja"
+  },
+  break: {
+    tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso", ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息",
+    hi: "ब्रेक", ja: "休憩", ko: "휴식", nl: "Pauze", pl: "Przerwa", uk: "Перерва", id: "Istirahat", ms: "Rehat"
+  },
+  cycle: {
+    tr: "Döngü", en: "Cycle", de: "Zyklus", fr: "Cycle", es: "Ciclo", ru: "Цикл", ar: "دورة", it: "Ciclo", pt: "Ciclo", zh: "周期",
+    hi: "चक्र", ja: "サイクル", ko: "사이클", nl: "Cyclus", pl: "Cykl", uk: "Цикл", id: "Siklus", ms: "Kitaran"
+  },
+  subtitle: {
+    tr: "Odaklanma ve günlük kullanım için basit zamanlayıcı",
+    en: "Simple timer for focus and daily use",
+    de: "Einfacher Timer für Fokus und den Alltag",
+    fr: "Minuteur simple pour la concentration et l'usage quotidien",
+    es: "Temporizador simple para concentración y uso diario",
+    ru: "Простой таймер для концентрации и повседневного использования",
+    ar: "مؤقت بسيط للتركيز والاستخدام اليومي",
+    it: "Timer semplice per concentrazione e uso quotidiano",
+    pt: "Temporizador simples para foco e uso diário",
+    zh: "适合专注和日常使用的简易计时器",
+    hi: "ध्यान और रोज़मर्रा उपयोग के लिए सरल टाइमर",
+    ja: "集中と日常利用のためのシンプルなタイマー",
+    ko: "집중과 일상 사용을 위한 간단한 타이머",
+    nl: "Eenvoudige timer voor focus en dagelijks gebruik",
+    pl: "Prosty timer do skupienia i codziennego użytku",
+    uk: "Простий таймер для концентрації та щоденного використання",
+    id: "Timer sederhana untuk fokus dan penggunaan sehari-hari",
+    ms: "Pemasa ringkas untuk fokus dan kegunaan harian"
+  },
+  soundsTitle: {
+    tr: "Alarm sesleri", en: "Alarm sounds", de: "Alarmtöne", fr: "Sons d'alarme", es: "Sonidos de alarma", ru: "Звуки будильника", ar: "أصوات المنبه", it: "Suoni della sveglia", pt: "Sons de alarme", zh: "闹铃声音",
+    hi: "अलार्म ध्वनियाँ", ja: "アラーム音", ko: "알람 소리", nl: "Alarmgeluiden", pl: "Dźwięki alarmu", uk: "Звуки будильника", id: "Suara alarm", ms: "Bunyi penggera"
+  },
+  soundsDesc: {
+    tr: "Bir ses seç ve önizlemesini dinle.",
+    en: "Select a sound and preview it.",
+    de: "Wähle einen Ton und höre ihn an.",
+    fr: "Sélectionnez un son et écoutez un aperçu.",
+    es: "Selecciona un sonido y escúchalo.",
+    ru: "Выберите звук и прослушайте его.",
+    ar: "اختر صوتًا واستمع إلى المعاينة.",
+    it: "Seleziona un suono e ascolta l'anteprima.",
+    pt: "Selecione um som e ouça a prévia.",
+    zh: "选择一个声音并试听。",
+    hi: "एक ध्वनि चुनें और उसका पूर्वावलोकन सुनें।",
+    ja: "サウンドを選んで試聴してください。",
+    ko: "소리를 선택하고 미리 들어보세요.",
+    nl: "Kies een geluid en luister naar het voorbeeld.",
+    pl: "Wybierz dźwięk i odsłuchaj podgląd.",
+    uk: "Виберіть звук і прослухайте його.",
+    id: "Pilih suara dan dengarkan pratinjaunya.",
+    ms: "Pilih bunyi dan dengar pratontonnya."
+  },
+  previewSound: {
+    tr: "Sesi dinle", en: "Preview sound", de: "Ton anhören", fr: "Écouter le son", es: "Escuchar sonido", ru: "Прослушать звук", ar: "معاينة الصوت", it: "Ascolta il suono", pt: "Ouvir som", zh: "试听声音",
+    hi: "ध्वनि सुनें", ja: "音を試聴", ko: "소리 듣기", nl: "Geluid beluisteren", pl: "Odsłuchaj dźwięk", uk: "Прослухати звук", id: "Dengarkan suara", ms: "Dengar bunyi"
+  },
+  pomodoroDesc: {
+    tr: "Bir odak süresi seç ve zamanlayıcıya uygula.",
+    en: "Choose a focus preset and load it into timer.",
+    de: "Wähle eine Fokus-Voreinstellung und lade sie in den Timer.",
+    fr: "Choisissez un préréglage de concentration et appliquez-le au minuteur.",
+    es: "Elige una configuración de enfoque y cárgala en el temporizador.",
+    ru: "Выберите пресет для фокуса и загрузите его в таймер.",
+    ar: "اختر إعداد تركيز وطبقه على المؤقت.",
+    it: "Scegli una modalità di concentrazione e applicala al timer.",
+    pt: "Escolha uma predefinição de foco e aplique ao temporizador.",
+    zh: "选择一个专注预设并应用到计时器。",
+    hi: "एक फोकस प्रीसेट चुनें और उसे टाइमर में लागू करें।",
+    ja: "集中プリセットを選んでタイマーに適用します。",
+    ko: "집중 프리셋을 선택해 타이머에 적용하세요.",
+    nl: "Kies een focuspreset en laad deze in de timer.",
+    pl: "Wybierz preset skupienia i załaduj go do timera.",
+    uk: "Виберіть пресет фокусування та завантажте його в таймер.",
+    id: "Pilih preset fokus dan terapkan ke timer.",
+    ms: "Pilih pratetap fokus dan gunakan pada pemasa."
+  },
+  applyPomodoro: {
+    tr: "Pomodoro uygula", en: "Apply Pomodoro", de: "Pomodoro anwenden", fr: "Appliquer Pomodoro", es: "Aplicar Pomodoro", ru: "Применить Помодоро", ar: "تطبيق بومودورو", it: "Applica Pomodoro", pt: "Aplicar Pomodoro", zh: "应用番茄钟",
+    hi: "पोमोडोरो लागू करें", ja: "ポモドーロを適用", ko: "포모도로 적용", nl: "Pomodoro toepassen", pl: "Zastosuj Pomodoro", uk: "Застосувати Помодоро", id: "Terapkan Pomodoro", ms: "Guna Pomodoro"
+  },
+  lapsTitle: {
+    tr: "Turlar", en: "Laps", de: "Runden", fr: "Tours", es: "Vueltas", ru: "Круги", ar: "اللفات", it: "Giri", pt: "Voltas", zh: "圈数",
+    hi: "लैप्स", ja: "ラップ", ko: "랩", nl: "Rondes", pl: "Okrążenia", uk: "Кола", id: "Putaran", ms: "Pusingan"
+  },
+  clearLaps: {
+    tr: "Turları temizle", en: "Clear Laps", de: "Runden löschen", fr: "Effacer les tours", es: "Borrar vueltas", ru: "Очистить круги", ar: "مسح اللفات", it: "Cancella giri", pt: "Limpar voltas", zh: "清除圈数",
+    hi: "लैप साफ करें", ja: "ラップを消去", ko: "랩 지우기", nl: "Rondes wissen", pl: "Wyczyść okrążenia", uk: "Очистити кола", id: "Hapus putaran", ms: "Kosongkan pusingan"
+  },
+  workLabel: {
+    tr: "Çalışma", en: "Work", de: "Arbeit", fr: "Travail", es: "Trabajo", ru: "Работа", ar: "عمل", it: "Lavoro", pt: "Trabalho", zh: "工作",
+    hi: "काम", ja: "作業", ko: "작업", nl: "Werk", pl: "Praca", uk: "Робота", id: "Kerja", ms: "Kerja"
+  },
+  breakLabel: {
+    tr: "Mola", en: "Break", de: "Pause", fr: "Pause", es: "Descanso", ru: "Перерыв", ar: "استراحة", it: "Pausa", pt: "Pausa", zh: "休息",
+    hi: "ब्रेक", ja: "休憩", ko: "휴식", nl: "Pauze", pl: "Przerwa", uk: "Перерва", id: "Istirahat", ms: "Rehat"
+  },
+  resetPomodoro: {
+    tr: "Pomodoroyu sıfırla", en: "Reset Pomodoro", de: "Pomodoro zurücksetzen", fr: "Réinitialiser Pomodoro", es: "Restablecer Pomodoro", ru: "Сбросить Помодоро", ar: "إعادة ضبط بومودورو", it: "Reimposta Pomodoro", pt: "Redefinir Pomodoro", zh: "重置番茄钟",
+    hi: "पोमोडोरो रीसेट", ja: "ポモドーロをリセット", ko: "포모도로 재설정", nl: "Pomodoro resetten", pl: "Resetuj Pomodoro", uk: "Скинути Помодоро", id: "Reset Pomodoro", ms: "Tetapkan semula Pomodoro"
+  },
+  resetCycle: {
+    tr: "Döngüyü sıfırla", en: "Reset Cycle", de: "Zyklus zurücksetzen", fr: "Réinitialiser le cycle", es: "Restablecer ciclo", ru: "Сбросить цикл", ar: "إعادة ضبط الدورة", it: "Reimposta ciclo", pt: "Redefinir ciclo", zh: "重置周期",
+    hi: "चक्र रीसेट", ja: "サイクルをリセット", ko: "사이클 재설정", nl: "Cyclus resetten", pl: "Resetuj cykl", uk: "Скинути цикл", id: "Reset siklus", ms: "Tetapkan semula kitaran"
+  }
 };
 
 function t(key) {
-  const lang = $("language")?.value || appState.language || "tr";
+  const lang = $("language")?.value || appState.language || getSupportedInitialLanguage();
   if (!baseTranslations[key]) return key;
   return baseTranslations[key][lang] || baseTranslations[key].en || key;
 }
@@ -225,7 +394,15 @@ const SOUND_LIBRARY = Array.from({ length: 20 }, (_, i) => {
       ar: `صوت ${n}`,
       it: `Suono ${n}`,
       pt: `Som ${n}`,
-      zh: `声音 ${n}`
+      zh: `声音 ${n}`,
+      hi: `ध्वनि ${n}`,
+      ja: `サウンド ${n}`,
+      ko: `사운드 ${n}`,
+      nl: `Geluid ${n}`,
+      pl: `Dźwięk ${n}`,
+      uk: `Звук ${n}`,
+      id: `Suara ${n}`,
+      ms: `Bunyi ${n}`
     }
   };
 });
@@ -351,14 +528,18 @@ function updateSoundCount() {
 }
 
 function getSoundDisplayName(sound) {
-  const lang = $("language")?.value || appState.language || "tr";
+  const lang = $("language")?.value || appState.language || getSupportedInitialLanguage();
   return sound?.name?.[lang] || sound?.name?.en || sound?.rawName || "Sound";
 }
 
 function applyLanguage() {
-  const lang = $("language")?.value || "tr";
+  const lang = $("language")?.value || appState.language || getSupportedInitialLanguage();
   appState.language = lang;
   document.documentElement.lang = lang;
+
+  if ($("language")) {
+    $("language").value = lang;
+  }
 
   setText("tabTimer", "timer");
   setText("tabPomodoro", "pomodoro");
@@ -430,16 +611,16 @@ async function finishTimerInForeground() {
   setText("timerStatus", "done");
   updateTimerStartButton();
 
-alarmState.pendingPomodoroAdvance =
-  timerState.mode === "pomodoro" &&
-  pomodoroState.enabled === true &&
-  pomodoroState.autoAdvance === true;
+  alarmState.pendingPomodoroAdvance =
+    timerState.mode === "pomodoro" &&
+    pomodoroState.enabled === true &&
+    pomodoroState.autoAdvance === true;
 
-alarmState.isActive = true;
-showAlarmOverlay();
-await startPersistentAlarm();
+  alarmState.isActive = true;
+  showAlarmOverlay();
+  await startPersistentAlarm();
 
-saveTimerState();
+  saveTimerState();
 }
 
 async function handleAppForeground() {
@@ -1290,7 +1471,7 @@ function ensureValidPanel() {
 // ===============================
 function saveAppState() {
   localStorage.setItem(STORAGE_KEYS.app, JSON.stringify({
-    language: $("language")?.value || "tr",
+    language: $("language")?.value || appState.language || getSupportedInitialLanguage(),
     theme: "dark",
     lastTab: appState.lastTab
   }));
@@ -1300,9 +1481,11 @@ function loadAppState() {
   const data = safeParse(localStorage.getItem(STORAGE_KEYS.app));
   if (!data) return;
 
-  if (data.language && $("language")) {
-    $("language").value = data.language;
+  if (data.language) {
     appState.language = data.language;
+    if ($("language")) {
+      $("language").value = data.language;
+    }
   }
 
   if (data.lastTab) appState.lastTab = data.lastTab;
