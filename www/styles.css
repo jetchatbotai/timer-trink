@@ -304,7 +304,7 @@ select:focus {
 /* POMODORO PRESET ROW */
 .preset-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   margin: 18px 0 22px;
 }
@@ -320,6 +320,7 @@ select:focus {
   background: rgba(43, 62, 103, 0.96);
   box-shadow: var(--shadow);
   text-align: center;
+  padding: 16px 14px;
 }
 
 .preset-btn span {
@@ -526,6 +527,12 @@ select:focus {
 }
 
 /* RESPONSIVE */
+
+@media (max-width: 1280px) {
+  .preset-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 
 @media (max-width: 1180px) {
   .timer-ring,
