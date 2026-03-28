@@ -77,6 +77,10 @@ function getRemainingSecondsFromEndAt(endAt) {
   return Math.max(0, Math.ceil((endAt - nowMs()) / 1000));
 }
 
+function isFinishLocked() {
+  return timerState.finishing || timerState.finishedHandled;
+}
+
 function hideAlarmOverlay() {
   const overlay = $("alarmOverlay");
   if (overlay) overlay.classList.add("hidden");
@@ -138,7 +142,8 @@ const timerState = {
   totalTime: 0,
   endAt: 0,
   mode: "timer", // timer | pomodoro
-  finishing: false
+  finishing: false,
+  finishedHandled: false
 };
 
 const stopwatchState = {
@@ -236,7 +241,7 @@ const baseTranslations = {
     hi: "टाइमर", ja: "タイマー", ko: "타이머", nl: "Timer", pl: "Timer", uk: "Таймер", id: "Timer", ms: "Pemasa"
   },
   pomodoro: {
-    tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro", ru: "Помодоро", ar: "بومодورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟",
+    tr: "Pomodoro", en: "Pomodoro", de: "Pomodoro", fr: "Pomodoro", es: "Pomodoro", ru: "Помодоро", ar: "بومودورو", it: "Pomodoro", pt: "Pomodoro", zh: "番茄钟",
     hi: "पोमोडोरो", ja: "ポモドーロ", ko: "포모도로", nl: "Pomodoro", pl: "Pomodoro", uk: "Помодоро", id: "Pomodoro", ms: "Pomodoro"
   },
   soundOn: {
@@ -600,8 +605,10 @@ function isTimerExpired() {
 }
 
 async function finishTimerInForeground() {
-  if (timerState.finishing) return;
+  if (isFinishLocked()) return;
+
   timerState.finishing = true;
+  timerState.finishedHandled = true;
 
   try {
     timerState.timeLeft = 0;
@@ -640,9 +647,12 @@ async function finishTimerInForeground() {
 async function handleAppForeground() {
   visibilityState.isForeground = true;
 
-  if (timerState.running && isTimerExpired()) {
+  if (timerState.running && !isFinishLocked() && isTimerExpired()) {
     await finishTimerInForeground();
-  } else if (timerState.running && timerState.endAt > 0) {
+    return;
+  }
+
+  if (timerState.running && timerState.endAt > 0) {
     timerState.timeLeft = getRemainingSecondsFromEndAt(timerState.endAt);
     updateTimerDisplay();
   }
@@ -957,14 +967,17 @@ async function dismissAlarmFlow() {
     alarmState.pendingPomodoroAdvance === true;
 
   alarmState.pendingPomodoroAdvance = false;
+  timerState.finishing = false;
+  timerState.finishedHandled = false;
 
   if (shouldAdvancePomodoro) {
     handlePomodoroSwitch();
-  } else {
-    timerState.mode = "timer";
-    saveTimerState();
-    savePomodoroState();
+    return;
   }
+
+  timerState.mode = "timer";
+  saveTimerState();
+  savePomodoroState();
 }
 
 async function setupNotificationListeners() {
@@ -1002,7 +1015,7 @@ function updateTimerDisplay() {
 
 async function timerTick() {
   if (!timerState.running) return;
-  if (timerState.finishing) return;
+  if (isFinishLocked()) return;
 
   try {
     const now = nowMs();
@@ -1010,6 +1023,7 @@ async function timerTick() {
 
     if (timerState.timeLeft <= 0) {
       timerState.finishing = true;
+      timerState.finishedHandled = true;
 
       timerState.timeLeft = 0;
       timerState.running = false;
@@ -1043,6 +1057,8 @@ async function startTimer(fromPomodoro = false) {
   }
 
   timerState.finishing = false;
+  timerState.finishedHandled = false;
+
   stopPersistentAlarm();
   alarmState.isActive = false;
   hideAlarmOverlay();
@@ -1113,6 +1129,7 @@ async function resumeTimer() {
   if (!timerState.paused && timerState.timeLeft <= 0) return;
 
   timerState.finishing = false;
+  timerState.finishedHandled = false;
 
   const exactGranted = await ensureExactAlarmPermission();
   if (!exactGranted) return;
@@ -1137,6 +1154,7 @@ async function resumeTimer() {
 
 async function resetTimer() {
   timerState.finishing = false;
+  timerState.finishedHandled = false;
 
   clearInterval(timerState.timerId);
   timerState.timerId = null;
@@ -1187,6 +1205,7 @@ async function onTimerFinished() {
 
     updateTimerStartButton();
     saveTimerState();
+    savePomodoroState();
   } catch (err) {
     console.error("onTimerFinished error:", err);
   } finally {
@@ -1285,6 +1304,7 @@ function handlePomodoroSwitch() {
 
 async function resetPomodoro() {
   timerState.finishing = false;
+  timerState.finishedHandled = false;
 
   clearInterval(timerState.timerId);
   timerState.timerId = null;
@@ -1547,6 +1567,7 @@ function loadTimerState() {
   timerState.endAt = data.endAt || 0;
   timerState.mode = data.mode || "timer";
   timerState.finishing = false;
+  timerState.finishedHandled = false;
 
   clearInterval(timerState.timerId);
   timerState.timerId = null;
