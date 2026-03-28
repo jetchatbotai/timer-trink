@@ -8,7 +8,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 
@@ -17,10 +16,13 @@ import androidx.core.app.NotificationCompat;
 
 public class AlarmSoundService extends Service {
 
-    public static final String CHANNEL_ID = "alarm_service_channel";
+    public static final String CHANNEL_ID = "alarm_service_channel_v2";
     public static final int NOTIFICATION_ID = 7001;
 
+    private static boolean isAlarmRunning = false;
+
     private MediaPlayer mediaPlayer;
+    private boolean foregroundStarted = false;
 
     @Override
     public void onCreate() {
@@ -30,69 +32,77 @@ public class AlarmSoundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        try {
+            if (isAlarmRunning) {
+                return START_NOT_STICKY;
+            }
 
-        // 🔥 Eğer zaten çalışıyorsa tekrar başlatma (çift bildirim fix)
-        if (mediaPlayer != null) {
+            isAlarmRunning = true;
+
+            String title = "Süre doldu!";
+            String message = "Alarm çalıyor";
+            String soundName = "beep";
+
+            if (intent != null) {
+                String incomingTitle = intent.getStringExtra("title");
+                String incomingMessage = intent.getStringExtra("message");
+                String incomingSoundName = intent.getStringExtra("soundName");
+
+                if (incomingTitle != null && !incomingTitle.isEmpty()) {
+                    title = incomingTitle;
+                }
+
+                if (incomingMessage != null && !incomingMessage.isEmpty()) {
+                    message = incomingMessage;
+                }
+
+                if (incomingSoundName != null && !incomingSoundName.isEmpty()) {
+                    soundName = incomingSoundName;
+                }
+            }
+
+            Intent stopIntent = new Intent(this, AlarmStopReceiver.class);
+            stopIntent.setAction(AlarmBridgePlugin.ACTION_STOP_ALARM);
+
+            PendingIntent stopPendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    9001,
+                    stopIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
+            PendingIntent contentPendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    9002,
+                    stopIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
+            Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setOngoing(true)
+                    .setAutoCancel(false)
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setContentIntent(contentPendingIntent)
+                    .addAction(0, "Kapat", stopPendingIntent)
+                    .build();
+
+            startForeground(NOTIFICATION_ID, notification);
+            foregroundStarted = true;
+
+            startAlarmLoop(soundName);
+
+            return START_NOT_STICKY;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            safeStopSelf();
             return START_NOT_STICKY;
         }
-
-        String title = "Süre doldu!";
-        String message = "Alarm çalıyor";
-        String soundName = "beep";
-
-        if (intent != null) {
-            String incomingTitle = intent.getStringExtra("title");
-            String incomingMessage = intent.getStringExtra("message");
-            String incomingSoundName = intent.getStringExtra("soundName");
-
-            if (incomingTitle != null && !incomingTitle.isEmpty()) {
-                title = incomingTitle;
-            }
-
-            if (incomingMessage != null && !incomingMessage.isEmpty()) {
-                message = incomingMessage;
-            }
-
-            if (incomingSoundName != null && !incomingSoundName.isEmpty()) {
-                soundName = incomingSoundName;
-            }
-        }
-
-        // STOP ACTION
-        Intent stopIntent = new Intent(this, AlarmStopReceiver.class);
-        stopIntent.setAction("STOP_ALARM");
-
-        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(
-                this,
-                9001,
-                stopIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        // NOTIFICATION CLICK → STOP
-        PendingIntent contentPendingIntent = PendingIntent.getBroadcast(
-                this,
-                9002,
-                stopIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setOngoing(true)
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setContentIntent(contentPendingIntent)
-                .addAction(0, "Kapat", stopPendingIntent)
-                .build();
-
-        startForeground(NOTIFICATION_ID, notification);
-
-        startAlarmLoop(soundName);
-
-        return START_NOT_STICKY;
     }
 
     private void startAlarmLoop(String soundName) {
@@ -105,12 +115,15 @@ public class AlarmSoundService extends Service {
                 soundId = getResources().getIdentifier("beep", "raw", getPackageName());
             }
 
-            if (soundId == 0) return;
+            if (soundId == 0) {
+                return;
+            }
 
-            Uri soundUri = Uri.parse("android.resource://" + getPackageName() + "/" + soundId);
+            mediaPlayer = MediaPlayer.create(this, soundId);
 
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDataSource(this, soundUri);
+            if (mediaPlayer == null) {
+                return;
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 mediaPlayer.setAudioAttributes(
@@ -122,13 +135,18 @@ public class AlarmSoundService extends Service {
             }
 
             mediaPlayer.setLooping(true);
-            mediaPlayer.setVolume(1.0f, 1.0f);
-            mediaPlayer.prepare();
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                stopAlarmLoop();
+                safeStopSelf();
+                return true;
+            });
+
             mediaPlayer.start();
 
         } catch (Exception e) {
             e.printStackTrace();
             stopAlarmLoop();
+            safeStopSelf();
         }
     }
 
@@ -139,12 +157,45 @@ public class AlarmSoundService extends Service {
                     if (mediaPlayer.isPlaying()) {
                         mediaPlayer.stop();
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
 
-                mediaPlayer.release();
+                try {
+                    mediaPlayer.reset();
+                } catch (Exception ignored) {
+                }
+
+                try {
+                    mediaPlayer.release();
+                } catch (Exception ignored) {
+                }
+
                 mediaPlayer = null;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void safeStopSelf() {
+        try {
+            stopAlarmLoop();
+
+            try {
+                NotificationManager nm = getSystemService(NotificationManager.class);
+                if (nm != null) {
+                    nm.cancel(NOTIFICATION_ID);
+                }
+            } catch (Exception ignored) {
+            }
+
+            if (foregroundStarted) {
+                stopForeground(true);
+            }
+
+            isAlarmRunning = false;
+            stopSelf();
+        } catch (Exception ignored) {
+        }
     }
 
     private void createNotificationChannel() {
@@ -152,26 +203,21 @@ public class AlarmSoundService extends Service {
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager == null) return;
 
-            // 🔥 eski channel sil (ses tekrar bug fix)
             NotificationChannel existing = manager.getNotificationChannel(CHANNEL_ID);
-            if (existing != null) {
-                manager.deleteNotificationChannel(CHANNEL_ID);
+            if (existing == null) {
+                NotificationChannel channel = new NotificationChannel(
+                        CHANNEL_ID,
+                        "Alarm Service",
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+
+                channel.setDescription("Timer alarm service");
+                channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                channel.setSound(null, null);
+                channel.enableVibration(false);
+
+                manager.createNotificationChannel(channel);
             }
-
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Alarm Service",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-
-            channel.setDescription("Timer alarm service");
-            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-
-            // 🔥 EN KRİTİK: bildirim sesi kapalı
-            channel.setSound(null, null);
-            channel.enableVibration(false);
-
-            manager.createNotificationChannel(channel);
         }
     }
 
@@ -184,9 +230,17 @@ public class AlarmSoundService extends Service {
             if (nm != null) {
                 nm.cancel(NOTIFICATION_ID);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
-        stopForeground(true);
+        try {
+            if (foregroundStarted) {
+                stopForeground(true);
+            }
+        } catch (Exception ignored) {
+        }
+
+        isAlarmRunning = false;
         super.onDestroy();
     }
 
