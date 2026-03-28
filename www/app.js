@@ -82,7 +82,9 @@ function getRemainingSecondsFromEndAt(endAt) {
   if (!endAt || endAt <= 0) return 0;
   return Math.max(0, Math.ceil((endAt - nowMs()) / 1000));
 }
-
+function isPremiumUser() {
+  return premiumState.isPremium;
+}
 function isFinishLocked() {
   return timerState.finishing || timerState.finishedHandled;
 }
