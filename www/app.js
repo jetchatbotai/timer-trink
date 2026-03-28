@@ -713,6 +713,12 @@ async function handleAppForeground() {
 
   await cancelNativeAlarm();
 
+  const stoppedFromNotification = await consumeAlarmStoppedFromNotification();
+  if (stoppedFromNotification) {
+    advancePomodoroAfterAlarm();
+    return;
+  }
+
   if (
     timerState.running &&
     !isFinishLocked() &&
@@ -985,6 +991,18 @@ async function cancelNativeAlarm() {
     return true;
   } catch (e) {
     console.warn("Native alarm cancel failed:", e);
+    return false;
+  }
+}
+
+async function consumeAlarmStoppedFromNotification() {
+  if (!AlarmBridge?.consumeAlarmStoppedFromNotification) return false;
+
+  try {
+    const result = await AlarmBridge.consumeAlarmStoppedFromNotification();
+    return result?.stopped === true;
+  } catch (e) {
+    console.warn("consumeAlarmStoppedFromNotification failed:", e);
     return false;
   }
 }
