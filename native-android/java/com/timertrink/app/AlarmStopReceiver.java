@@ -1,58 +1,70 @@
 package com.timertrink.app;
 
-import android.app.AlarmManager;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
 public class AlarmStopReceiver extends BroadcastReceiver {
+
     @Override
     public void onReceive(Context context, Intent intent) {
+
         try {
-            AlarmManager alarmManager =
-                    (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            // 🔥 Alarmı durdur
+            AlarmBridgePlugin.cancelEverything(context);
 
-            Intent alarmIntent = new Intent(context, AlarmReceiver.class);
-            alarmIntent.setAction(AlarmBridgePlugin.ACTION_ALARM);
+            SharedPreferences prefs =
+                    AlarmBridgePlugin.getPomodoroPrefs(context);
 
-            PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(
+            boolean enabled = prefs.getBoolean("enabled", false);
+
+            if (!enabled) return;
+
+            String phase = prefs.getString("phase", "work");
+            int work = prefs.getInt("work", 25);
+            int brk = prefs.getInt("break", 5);
+            int cycle = prefs.getInt("cycle", 0);
+
+            String nextPhase;
+            int nextMinutes;
+
+            if (phase.equals("work")) {
+                nextPhase = "break";
+                nextMinutes = brk;
+            } else {
+                nextPhase = "work";
+                nextMinutes = work;
+                cycle++;
+            }
+
+            long nextEnd = System.currentTimeMillis() + (nextMinutes * 60 * 1000);
+
+            // 🔥 STATE SAVE
+            AlarmBridgePlugin.savePomodoroState(
                     context,
-                    AlarmBridgePlugin.ALARM_REQUEST_CODE,
-                    alarmIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                    true,
+                    nextPhase,
+                    work,
+                    brk,
+                    cycle,
+                    nextEnd
             );
 
-            if (alarmManager != null) {
-                alarmManager.cancel(alarmPendingIntent);
-            }
+            // 🔥 YENİ ALARM KUR
+            AlarmBridgePlugin plugin = new AlarmBridgePlugin();
+            plugin.load();
 
-            alarmPendingIntent.cancel();
-        } catch (Exception ignored) {
-        }
+            plugin.scheduleAlarmInternal(
+                    context,
+                    nextEnd,
+                    "Süre doldu!",
+                    "Alarm çalıyor",
+                    "beep"
+            );
 
-        try {
-            Intent stopIntent = new Intent(context, AlarmSoundService.class);
-            context.stopService(stopIntent);
-        } catch (Exception ignored) {
-        }
-
-        try {
-            NotificationManager nm =
-                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (nm != null) {
-                nm.cancel(AlarmSoundService.NOTIFICATION_ID);
-            }
-        } catch (Exception ignored) {
-        }
-
-        try {
-            SharedPreferences prefs =
-                    context.getSharedPreferences("timer_trink_prefs", Context.MODE_PRIVATE);
-            prefs.edit().putBoolean("alarm_stopped_from_notification", true).apply();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
