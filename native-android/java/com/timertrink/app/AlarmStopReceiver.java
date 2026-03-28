@@ -3,71 +3,70 @@ package com.timertrink.app;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 
 public class AlarmStopReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
         try {
-            // Mevcut alarm/sesi durdur
             AlarmBridgePlugin.cancelEverything(context);
+        } catch (Exception ignored) {
+        }
 
-            SharedPreferences prefs = AlarmBridgePlugin.getPomodoroPrefs(context);
+        try {
+            AlarmBridgePlugin.setAlarmStoppedFromNotification(context, true);
+        } catch (Exception ignored) {
+        }
 
-            boolean enabled = prefs.getBoolean("enabled", false);
-            if (!enabled) {
+        try {
+            boolean enabled = AlarmBridgePlugin.isPomodoroEnabled(context);
+            boolean autoAdvance = AlarmBridgePlugin.getPomodoroAutoAdvance(context);
+
+            if (!enabled || !autoAdvance) {
                 return;
             }
 
-            String phase = prefs.getString("phase", "work");
-            int work = prefs.getInt("work", 25);
-            int brk = prefs.getInt("break", 5);
-            int cycle = prefs.getInt("cycle", 0);
+            String currentPhase = AlarmBridgePlugin.getPomodoroPhase(context);
+            int work = AlarmBridgePlugin.getPomodoroWork(context);
+            int brk = AlarmBridgePlugin.getPomodoroBreak(context);
+            int cycle = AlarmBridgePlugin.getPomodoroCycle(context);
 
             String nextPhase;
+            int nextCycle = cycle;
             int nextMinutes;
 
-            if ("work".equals(phase)) {
+            if ("work".equals(currentPhase)) {
                 nextPhase = "break";
                 nextMinutes = brk;
             } else {
                 nextPhase = "work";
+                nextCycle = cycle + 1;
                 nextMinutes = work;
-                cycle++;
             }
 
-            long nextEnd = System.currentTimeMillis() + (nextMinutes * 60L * 1000L);
+            long newEndAt = System.currentTimeMillis() + (nextMinutes * 60L * 1000L);
 
-            // Yeni pomodoro state kaydet
             AlarmBridgePlugin.savePomodoroState(
                     context,
                     true,
                     nextPhase,
                     work,
                     brk,
-                    cycle,
-                    nextEnd
+                    nextCycle,
+                    true,
+                    newEndAt
             );
 
-            // JS tarafı isterse bilsin diye flag bırak
-            try {
-                SharedPreferences uiPrefs =
-                        context.getSharedPreferences("timer_trink_prefs", Context.MODE_PRIVATE);
-                uiPrefs.edit().putBoolean("alarm_stopped_from_notification", true).apply();
-            } catch (Exception ignored) {
-            }
+            String title = AlarmBridgePlugin.getLastTitle(context);
+            String message = AlarmBridgePlugin.getLastMessage(context);
+            String soundName = AlarmBridgePlugin.getLastSound(context);
 
-            // Yeni alarmı native tarafta zincirleme kur
-            AlarmBridgePlugin plugin = new AlarmBridgePlugin();
-            plugin.load();
-
-            plugin.scheduleAlarmInternal(
+            AlarmBridgePlugin.scheduleAlarmInternal(
                     context,
-                    nextEnd,
-                    "Süre doldu!",
-                    "Alarm çalıyor",
-                    "beep"
+                    newEndAt,
+                    title,
+                    message,
+                    soundName
             );
 
         } catch (Exception e) {
