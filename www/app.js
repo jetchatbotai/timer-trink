@@ -1,4 +1,10 @@
 // ===============================
+// PREMIUM STATE
+// ===============================
+const premiumState = {
+  isPremium: localStorage.getItem("isPremium") === "true"
+};
+// ===============================
 // CAPACITOR
 // ===============================
 const CapacitorLocalNotifications =
