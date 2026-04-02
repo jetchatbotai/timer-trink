@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google-mobile-ads-app-id" content="ca-app-pub-9576973508771581~8805201711" />
+  <title>Timer Trink</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="brand-wrap">
+        <h1 class="app-title">Timer Trink</h1>
+        <p id="subtitle" class="subtitle" data-i18n="subtitle">
+          Odaklanma ve günlük kullanım için basit zamanlayıcı
+        </p>
+      </div>
+
+      <div class="topbar-actions">
+        <select id="language" class="select-control">
+          <option value="tr">Türkçe</option>
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+          <option value="ru">Русский</option>
+          <option value="ar">العربية</option>
+          <option value="it">Italiano</option>
+          <option value="pt">Português</option>
+          <option value="zh">中文</option>
+          <option value="hi">हिन्दी</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+          <option value="nl">Nederlands</option>
+          <option value="pl">Polski</option>
+          <option value="uk">Українська</option>
+          <option value="id">Bahasa Indonesia</option>
+          <option value="ms">Bahasa Melayu</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs premium-tabs-5">
+      <button class="tab-btn active" data-tab="timerPanel" id="tabTimer" type="button" data-i18n="timer">Zamanlayıcı</button>
+      <button class="tab-btn" data-tab="pomodoroPanel" id="tabPomodoro" type="button" data-i18n="pomodoro">Pomodoro</button>
+      <button class="tab-btn" data-tab="stopwatchPanel" id="tabStopwatch" type="button" data-i18n="stopwatch">Kronometre</button>
+      <button class="tab-btn" data-tab="soundsPanel" id="tabSounds" type="button" data-i18n="sounds">Sesler</button>
+      <button class="tab-btn premium-tab-btn" data-tab="premiumPanel" id="tabPremium" type="button" data-i18n="premium">Premium</button>
+    </div>
+
+    <!-- TIMER PANEL -->
+    <div class="panel active" id="timerPanel">
+      <div class="card hero-card">
+        <h2 id="timerTitle" data-i18n="timer">Zamanlayıcı</h2>
+
+        <div class="timer-ring-wrap">
+          <div class="timer-ring" id="timerRing">
+            <div class="timer-ring-inner">
+              <div class="timer-display" id="timerDisplay">00:00:00</div>
+              <div class="status-text" id="timerStatus" data-i18n="ready">Hazır</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="time-inputs">
+          <div class="input-group">
+            <label id="hoursLabel" for="hours" data-i18n="hours">Saat</label>
+            <input id="hours" type="number" min="0" value="0" />
+          </div>
+
+          <div class="input-group">
+            <label id="minutesLabel" for="minutes" data-i18n="minutes">Dakika</label>
+            <input id="minutes" type="number" min="0" value="0" />
+          </div>
+
+          <div class="input-group">
+            <label id="secondsLabel" for="seconds" data-i18n="seconds">Saniye</label>
+            <input id="seconds" type="number" min="0" value="0" />
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button id="timerStartBtn" class="primary-btn full-btn" type="button" data-i18n="start">Başlat</button>
+          <button id="timerPauseBtn" class="full-btn" type="button" data-i18n="pause">Duraklat</button>
+          <button id="timerResetBtn" class="full-btn" type="button" data-i18n="reset">Sıfırla</button>
+        </div>
+
+        <div id="adContainer" class="ad-box">Reklam Alanı</div>
+      </div>
+    </div>
+
+    <!-- POMODORO PANEL -->
+    <div class="panel" id="pomodoroPanel">
+      <div class="card">
+        <h2 id="pomodoroTitle" data-i18n="pomodoro">Pomodoro</h2>
+        <p id="pomodoroDesc" data-i18n="pomodoroDesc">Bir odak süresi seç ve zamanlayıcıya uygula.</p>
+
+        <div class="preset-row">
+          <button class="preset-btn active" data-work="25" data-break="5" type="button">
+            <span id="presetClassicText" data-i18n="presetClassic">Klasik</span>
+            <small>25 / 5</small>
+          </button>
+
+          <button class="preset-btn" data-work="50" data-break="10" type="button">
+            <span id="presetQuickText" data-i18n="presetQuick">Derin Odak</span>
+            <small>50 / 10</small>
+          </button>
+
+          <button class="preset-btn" data-work="15" data-break="3" type="button">
+            <span id="presetShortText" data-i18n="presetShort">Kısa</span>
+            <small>15 / 3</small>
+          </button>
+
+          <button class="preset-btn" data-work="90" data-break="20" type="button">
+            <span id="presetLongText" data-i18n="presetLong">Uzun</span>
+            <small>90 / 20</small>
+          </button>
+
+          <button class="preset-btn" data-work="120" data-break="30" type="button">
+            <span id="presetUltraText" data-i18n="presetUltra">Ultra</span>
+            <small>120 / 30</small>
+          </button>
+
+          <button class="preset-btn" data-work="60" data-break="15" type="button">
+            <span id="presetBalancedText" data-i18n="presetBalanced">Dengeli</span>
+            <small>60 / 15</small>
+          </button>
+        </div>
+
+        <div class="pomodoro-inputs">
+          <div class="input-group">
+            <label id="workLabel" for="pomodoroWork" data-i18n="workLabel">Çalışma</label>
+            <input id="pomodoroWork" type="number" min="1" value="25" />
+          </div>
+
+          <div class="input-group">
+            <label id="breakLabel" for="pomodoroBreak" data-i18n="breakLabel">Mola</label>
+            <input id="pomodoroBreak" type="number" min="1" value="5" />
+          </div>
+        </div>
+
+        <div class="button-column">
+          <button id="applyPomodoroBtn" class="primary-btn" type="button" data-i18n="applyPomodoro">Pomodoro uygula</button>
+          <button id="pomodoroResetBtn" type="button" data-i18n="resetPomodoro">Pomodoroyu sıfırla</button>
+          <button id="pomodoroCycleResetBtn" type="button" data-i18n="resetCycle">Döngüyü sıfırla</button>
+        </div>
+
+        <div id="pomodoroStatus" class="status-text bottom-status">Hazır</div>
+      </div>
+    </div>
+
+    <!-- STOPWATCH PANEL -->
+    <div class="panel" id="stopwatchPanel">
+      <div class="card hero-card">
+        <h2 id="stopwatchTitle" data-i18n="stopwatch">Kronometre</h2>
+
+        <div class="stopwatch-ring-wrap">
+          <div class="stopwatch-ring">
+            <div class="stopwatch-ring-inner">
+              <div class="stopwatch-display" id="stopwatchDisplay">00:00:00.0</div>
+              <div class="status-text" id="stopwatchStatus" data-i18n="ready">Hazır</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stopwatch-buttons">
+          <button id="swStartBtn" type="button" data-i18n="start">Başlat</button>
+          <button id="swLapBtn" type="button" data-i18n="lap">Tur</button>
+          <button id="swResetBtn" type="button" data-i18n="reset">Sıfırla</button>
+        </div>
+
+        <button id="swClearLapsBtn" class="top-gap" type="button" data-i18n="clearLaps">Turları temizle</button>
+
+        <div class="laps-title" id="lapsTitle" data-i18n="lapsTitle">Turlar</div>
+        <div id="lapsList" class="laps-list"></div>
+      </div>
+    </div>
+
+    <!-- SOUNDS PANEL -->
+    <div class="panel" id="soundsPanel">
+      <div class="card settings-card">
+        <h2 id="soundsTitle" data-i18n="soundsTitle">Alarm sesleri</h2>
+        <p id="soundsDesc" data-i18n="soundsDesc">Bir ses seç ve önizlemesini dinle.</p>
+
+        <div class="toggle-row">
+          <label class="toggle-item">
+            <input type="checkbox" id="soundToggle" checked />
+            <span id="soundLabel" data-i18n="soundOn">Ses açık</span>
+          </label>
+
+          <label class="toggle-item">
+            <input type="checkbox" id="vibrationToggle" checked />
+            <span id="vibrationLabel" data-i18n="vibrationOn">Titreşim açık</span>
+          </label>
+        </div>
+
+        <button id="previewSoundBtn" class="top-gap" type="button" data-i18n="previewSound">Sesi dinle</button>
+
+        <div class="under-preview">
+          <div id="soundCountLabel" class="sound-count"></div>
+        </div>
+
+        <div id="soundList" class="sound-list"></div>
+      </div>
+    </div>
+
+    <!-- PREMIUM PANEL -->
+    <div class="panel" id="premiumPanel">
+      <div class="card premium-card">
+        <h2 id="premiumTitle" data-i18n="premium">Premium</h2>
+        <p id="premiumDesc" class="premium-desc" data-i18n="premiumDesc">
+          Reklamsız kullanım ve özel süreler
+        </p>
+
+        <div class="premium-feature-list">
+          <div class="premium-feature-item" data-i18n="premiumFeature1">✅ Reklamsız kullanım</div>
+          <div class="premium-feature-item" data-i18n="premiumFeature2">✅ Özel pomodoro süreleri</div>
+          <div class="premium-feature-item" data-i18n="premiumFeature3">✅ Daha temiz kullanım deneyimi</div>
+          <div class="premium-feature-item" data-i18n="premiumFeature4">✅ Gelecekte premium özelliklere erişim</div>
+        </div>
+
+        <div class="premium-plan-grid">
+          <div class="premium-plan-btn" data-plan="monthly">
+            <span data-i18n="planMonthly">Aylık</span>
+            <small>79 TL</small>
+            <button class="plan-buy-btn" data-plan="monthly" type="button" data-i18n="buyPremium">Satın Al</button>
+          </div>
+
+          <div class="premium-plan-btn" data-plan="quarterly">
+            <span data-i18n="planQuarterly">3 Aylık</span>
+            <small>199 TL</small>
+            <button class="plan-buy-btn" data-plan="quarterly" type="button" data-i18n="buyPremium">Satın Al</button>
+          </div>
+
+          <div class="premium-plan-btn" data-plan="halfyear">
+            <span data-i18n="planHalfyear">6 Aylık</span>
+            <small>299 TL</small>
+            <button class="plan-buy-btn" data-plan="halfyear" type="button" data-i18n="buyPremium">Satın Al</button>
+          </div>
+
+          <div class="premium-plan-btn premium-highlight" data-plan="yearly">
+            <span data-i18n="planYearly">Yıllık</span>
+            <small>549 TL</small>
+            <button class="plan-buy-btn" data-plan="yearly" type="button" data-i18n="buyPremium">Satın Al</button>
+          </div>
+        </div>
+
+        <div id="premiumStatusText" class="status-text bottom-status" data-i18n="premiumDesc">
+          Reklamsız kullanım ve özel süreler
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ALARM OVERLAY -->
+  <div id="alarmOverlay" class="alarm-overlay hidden">
+    <div class="alarm-box">
+      <h2 id="alarmTitle" data-i18n="done">Süre doldu!</h2>
+      <p id="alarmMessage" data-i18n="alarmRinging">Alarm çalıyor</p>
+      <button id="dismissAlarmBtn" type="button" data-i18n="close">Kapat</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
