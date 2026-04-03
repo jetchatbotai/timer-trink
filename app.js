@@ -1,3 +1,12 @@
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    startApp();
+  } catch (e) {
+    console.log("APP CRASH:", e);
+  }
+});
+
+function startApp() {
 // ===============================
 // PART 1 / 5
 // ===============================
@@ -3955,4 +3964,4 @@ console.log("🔥 APP FULLY READY");
 
   console.log("🛡️ Crash guard aktif");
 })();
-
+}
