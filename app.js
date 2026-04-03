@@ -1,3 +1,4 @@
+// FULL APP JS START
 document.addEventListener("DOMContentLoaded", () => {
   try {
     startApp();
@@ -3965,3 +3966,4 @@ console.log("🔥 APP FULLY READY");
   console.log("🛡️ Crash guard aktif");
 })();
 }
+// FULL APP JS END
