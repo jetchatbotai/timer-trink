@@ -3921,3 +3921,33 @@ console.log("🔥 APP FULLY READY");
   window.rsPrepareInterstitial = rsPrepareInterstitial;
   window.rsShowInterstitial = rsShowInterstitial;
 })();
+// ===============================
+// 🔥 GLOBAL CRASH GUARD
+// ===============================
+
+(function () {
+  // Tüm async hataları yakala
+  window.addEventListener("unhandledrejection", function (event) {
+    console.error("UNHANDLED PROMISE:", event.reason);
+  });
+
+  // Tüm JS hatalarını yakala
+  window.onerror = function (msg, src, line, col, err) {
+    console.error("GLOBAL ERROR:", msg, src, line, col, err);
+    return true; // crash engeller
+  };
+
+  // Safe async wrapper
+  window.safeAsync = function (fn) {
+    return async function (...args) {
+      try {
+        return await fn.apply(this, args);
+      } catch (e) {
+        console.error("SAFE ASYNC ERROR:", e);
+      }
+    };
+  };
+
+  console.log("🛡️ Crash guard aktif");
+})();
+
