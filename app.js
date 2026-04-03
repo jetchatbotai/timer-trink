@@ -3210,8 +3210,13 @@ function onReady(fn) {
   if (document.readyState !== "loading") fn();
   else document.addEventListener("DOMContentLoaded", fn);
 }
-
-onReady(initApp);
+onReady(() => {
+  try {
+    initApp();
+  } catch (e) {
+    console.error("INIT CRASH:", e);
+  }
+});
 
 // test helpers
 window.enablePremium = enablePremium;
