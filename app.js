@@ -3967,3 +3967,156 @@ console.log("🔥 APP FULLY READY");
 })();
 }
 // FULL APP JS END
+// ===============================
+// 🔥 FINAL PATCH (PREMIUM OFF + SINGLE ADMOB)
+// ===============================
+(function () {
+
+  // ---------------------------
+  // PREMIUM TAM KAPAT
+  // ---------------------------
+  try {
+    window.premiumState = { isPremium: false };
+
+    window.isPremiumUser = function () { return false; };
+    window.enablePremium = function () {};
+    window.disablePremium = function () {};
+
+    window.updatePremiumUI = function () {
+      const el = document.getElementById("premiumStatusText");
+      if (el) el.textContent = "Ücretsiz sürüm";
+
+      document.querySelectorAll(".plan-buy-btn").forEach(btn => {
+        btn.style.display = "none";
+      });
+    };
+
+    window.showPremiumModal = function () {
+      console.log("Premium disabled");
+    };
+
+    window.isAllowedFreePomodoro = function () { return true; };
+
+    console.log("✅ PREMIUM OFF");
+  } catch (e) {
+    console.log("premium patch error", e);
+  }
+
+  // ---------------------------
+  // BILLING TAM KAPAT
+  // ---------------------------
+  try {
+    window.initBilling = async () => false;
+    window.buyPremiumPlan = async () => {};
+    window.restorePremiumPurchases = async () => {};
+
+    console.log("✅ BILLING OFF");
+  } catch (e) {
+    console.log("billing patch error", e);
+  }
+
+  // ---------------------------
+  // ADMOB TEK SİSTEM
+  // ---------------------------
+  const AdMob = window.Capacitor?.Plugins?.AdMob || null;
+
+  const adState = {
+    initialized: false,
+    lastShown: 0,
+    counter: 0,
+    minGap: 60000
+  };
+
+  async function initAdsSafe() {
+    if (!AdMob || adState.initialized) return;
+
+    try {
+      await AdMob.initialize({
+        requestTrackingAuthorization: false,
+        initializeForTesting: false
+      });
+
+      adState.initialized = true;
+
+      await AdMob.showBanner({
+        adId: "ca-app-pub-9576973508771581/8701259937",
+        position: "BOTTOM_CENTER"
+      });
+
+      console.log("✅ ADMOB READY");
+    } catch (e) {
+      console.log("AdMob init error:", e);
+    }
+  }
+
+  async function showInterstitialSafe() {
+    if (!AdMob || !adState.initialized) return;
+
+    const now = Date.now();
+
+    if (now - adState.lastShown < adState.minGap) return;
+
+    adState.counter++;
+    if (adState.counter % 3 !== 0) return;
+
+    try {
+      await AdMob.prepareInterstitial({
+        adId: "ca-app-pub-9576973508771581/9381788346"
+      });
+
+      await AdMob.showInterstitial();
+
+      adState.lastShown = now;
+    } catch (e) {
+      console.log("Interstitial error:", e);
+    }
+  }
+
+  // ---------------------------
+  // TIMER BİTİNCE REKLAM
+  // ---------------------------
+  try {
+    const original = window.onTimerFinished;
+
+    window.onTimerFinished = async function (...args) {
+
+      try {
+        await showInterstitialSafe();
+      } catch (e) {}
+
+      if (original) {
+        return original.apply(this, args);
+      }
+    };
+
+    console.log("✅ TIMER HOOK OK");
+  } catch (e) {
+    console.log("timer hook error", e);
+  }
+
+  // ---------------------------
+  // CRASH GUARD
+  // ---------------------------
+  window.onerror = function (msg) {
+    console.error("ERROR:", msg);
+    return true;
+  };
+
+  window.addEventListener("unhandledrejection", function (e) {
+    console.error("PROMISE:", e.reason);
+  });
+
+  // ---------------------------
+  // AUTO INIT
+  // ---------------------------
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      await initAdsSafe();
+    } catch (e) {
+      console.log("ads start error", e);
+    }
+  });
+
+  console.log("🔥 PATCH ACTIVE");
+
+})();
