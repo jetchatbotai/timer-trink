@@ -1529,50 +1529,7 @@ function setText(id, key) {
 // ===============================
 // PART 3 / 5
 // SOUND + AUDIO + UI (18 LANG SAFE)
-// ===============================
-
-// ===============================
-// SOUND LIBRARY
-// ===============================
-const SOUND_LIBRARY = Array.from({ length: 20 }, (_, i) => {
-  const n = i + 1;
-  return {
-    id: `s${n}`,
-    rawName: `sound${n}`,
-    assetPath: getExistingSoundExtension(`sound${n}`),
-    name: {
-      tr: `Ses ${n}`,
-      en: `Sound ${n}`,
-      de: `Ton ${n}`,
-      fr: `Son ${n}`,
-      es: `Sonido ${n}`,
-      ru: `Звук ${n}`,
-      ar: `صوت ${n}`,
-      it: `Suono ${n}`,
-      pt: `Som ${n}`,
-      zh: `声音 ${n}`,
-      hi: `ध्वनि ${n}`,
-      ja: `サウンド ${n}`,
-      ko: `사운드 ${n}`,
-      nl: `Geluid ${n}`,
-      pl: `Dźwięk ${n}`,
-      uk: `Звук ${n}`,
-      id: `Suara ${n}`,
-      ms: `Bunyi ${n}`
-    }
-  };
-});
-
-let selectedSoundId = "s1";
-
-function getSelectedSound() {
-  return SOUND_LIBRARY.find(s => s.id === selectedSoundId) || SOUND_LIBRARY[0];
-}
-
-function getSelectedSoundRawName() {
-  const s = getSelectedSound();
-  return fileNameWithoutExt(s.assetPath) || s.rawName || "beep";
-}
+// 
 
 // ===============================
 // AUDIO CONTROL
