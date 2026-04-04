@@ -2743,3 +2743,68 @@ $("languageSelect")?.addEventListener("change", (e) => {
 
 $("vibrationToggle")?.addEventListener("change", saveSettings);
 $("soundToggle")?.addEventListener("change", saveSettings);
+// ===============================
+// 🔥 SAFE EXTENSIONS (NO BREAK)
+// ===============================
+
+// -------- REWARDED LOCK UI --------
+function updatePomodoroRewardUI() {
+  const status = document.getElementById("pomodoroRewardStatus");
+  const btn = document.getElementById("rewardUnlockBtn");
+
+  if (status) {
+    status.textContent = rewardedCustomPomodoroUnlocked
+      ? "Custom Açık"
+      : "Custom Kilitli";
+  }
+
+  if (btn) {
+    btn.style.display = rewardedCustomPomodoroUnlocked ? "none" : "inline-block";
+  }
+}
+
+// -------- REWARD FLOW --------
+async function rewardUnlockPomodoroFlow() {
+  await showRewardedAd(() => {
+    unlockRewardedCustomPomodoroAccess();
+    updatePomodoroRewardUI();
+    saveSettingsSafe();
+  });
+}
+
+// -------- SAFE SETTINGS --------
+function saveSettingsSafe() {
+  try {
+    const s = JSON.parse(localStorage.getItem("settings") || "{}");
+
+    s.rewardPomodoro = rewardedCustomPomodoroUnlocked;
+
+    localStorage.setItem("settings", JSON.stringify(s));
+  } catch {}
+}
+
+// -------- SAFE LOAD --------
+function loadRewardSafe() {
+  try {
+    const s = JSON.parse(localStorage.getItem("settings") || "{}");
+
+    if (typeof s.rewardPomodoro === "boolean") {
+      rewardedCustomPomodoroUnlocked = s.rewardPomodoro;
+    }
+  } catch {}
+}
+
+// -------- HOOK INIT --------
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    loadRewardSafe();
+    updatePomodoroRewardUI();
+
+    const btn = document.getElementById("rewardUnlockBtn");
+    if (btn) {
+      btn.addEventListener("click", rewardUnlockPomodoroFlow);
+    }
+  } catch (e) {
+    console.log("Reward init error", e);
+  }
+});
