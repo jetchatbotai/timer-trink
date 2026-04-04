@@ -2808,3 +2808,10 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Reward init error", e);
   }
 });
+window.addEventListener("error", (e) => {
+  console.log("GLOBAL ERROR:", e.message);
+});
+
+window.addEventListener("unhandledrejection", (e) => {
+  console.log("PROMISE ERROR:", e.reason);
+});
