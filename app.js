@@ -3964,159 +3964,497 @@ console.log("🔥 APP FULLY READY");
   };
 
   console.log("🛡️ Crash guard aktif");
-})();
+})();// ===============================
+// PREMIUM REMOVED + REWARDED CUSTOM POMODORO
+// ===============================
+
+// premium state artık tamamen kapalı
+premiumState.isPremium = false;
+localStorage.removeItem("isPremium");
+
+let rewardedCustomPomodoroUnlocked =
+  localStorage.getItem("tt_rewarded_custom_pomodoro") === "true";
+
+function saveRewardedCustomPomodoroState() {
+  localStorage.setItem(
+    "tt_rewarded_custom_pomodoro",
+    rewardedCustomPomodoroUnlocked ? "true" : "false"
+  );
 }
-// FULL APP JS END
+
+function clearRewardedCustomPomodoroAccess() {
+  rewardedCustomPomodoroUnlocked = false;
+  saveRewardedCustomPomodoroState();
+  updatePomodoroUI();
+}
+
+function unlockRewardedCustomPomodoroAccess() {
+  rewardedCustomPomodoroUnlocked = true;
+  saveRewardedCustomPomodoroState();
+  updatePomodoroUI();
+}
+
+function isFreePomodoroPreset(work, brk) {
+  const allowed = [
+    { w: 15, b: 3 },
+    { w: 25, b: 5 },
+    { w: 50, b: 10 },
+    { w: 60, b: 15 },
+    { w: 90, b: 20 },
+    { w: 120, b: 30 }
+  ];
+
+  return allowed.some((p) => p.w === work && p.b === brk);
+}
+
+function canUsePomodoroPair(work, brk) {
+  return isFreePomodoroPreset(work, brk) || rewardedCustomPomodoroUnlocked;
+}
+
+function removePremiumUICompletely() {
+  const premiumStatus = $("premiumStatusText");
+  if (premiumStatus) premiumStatus.textContent = "Ücretsiz sürüm";
+
+  const tabPremium = $("tabPremium");
+  if (tabPremium) tabPremium.style.display = "none";
+
+  const premiumPanel = $("premiumPanel");
+  if (premiumPanel) premiumPanel.style.display = "none";
+
+  document.querySelectorAll(".plan-buy-btn").forEach((btn) => {
+    btn.style.display = "none";
+  });
+
+  document.querySelectorAll(".premium-plan-btn").forEach((btn) => {
+    btn.style.display = "none";
+  });
+}
+
+function isPremiumUser() {
+  return false;
+}
+
+function enablePremium() {
+  premiumState.isPremium = false;
+  localStorage.removeItem("isPremium");
+  removePremiumUICompletely();
+  updateAdsVisibility();
+}
+
+function disablePremium() {
+  premiumState.isPremium = false;
+  localStorage.removeItem("isPremium");
+  removePremiumUICompletely();
+  updateAdsVisibility();
+}
+
+function updatePremiumUI() {
+  removePremiumUICompletely();
+}
+
+function showPremiumModal() {
+  showRewardedUnlockModal();
+}
+
+// premium billing tamamen devre dışı
+async function initBilling() {
+  premiumState.isPremium = false;
+  localStorage.removeItem("isPremium");
+  return false;
+}
+
+async function buyPremiumPlan() {
+  return false;
+}
+
+async function restorePremiumPurchases() {
+  return false;
+}
+
 // ===============================
-// 🔥 FINAL PATCH (PREMIUM OFF + SINGLE ADMOB)
+// ADMOB SAFE CORE
 // ===============================
-(function () {
+const AdMobPlugin = window.Capacitor?.Plugins?.AdMob || null;
 
-  // ---------------------------
-  // PREMIUM TAM KAPAT
-  // ---------------------------
+const adRuntime = {
+  initialized: false,
+  interstitialReady: false,
+  rewardedReady: false,
+  lastInterstitialAt: 0,
+  interstitialCounter: 0,
+  minInterstitialGapMs: 60000
+};
+
+const ADMOB_IDS = {
+  banner: "ca-app-pub-9576973508771581/8701259937",
+  interstitial: "ca-app-pub-9576973508771581/9381788346",
+  rewarded: "ca-app-pub-9576973508771581/8139989327"
+};
+
+async function initAds() {
+  if (!AdMobPlugin || adRuntime.initialized) return false;
+
   try {
-    window.premiumState = { isPremium: false };
-
-    window.isPremiumUser = function () { return false; };
-    window.enablePremium = function () {};
-    window.disablePremium = function () {};
-
-    window.updatePremiumUI = function () {
-      const el = document.getElementById("premiumStatusText");
-      if (el) el.textContent = "Ücretsiz sürüm";
-
-      document.querySelectorAll(".plan-buy-btn").forEach(btn => {
-        btn.style.display = "none";
-      });
-    };
-
-    window.showPremiumModal = function () {
-      console.log("Premium disabled");
-    };
-
-    window.isAllowedFreePomodoro = function () { return true; };
-
-    console.log("✅ PREMIUM OFF");
-  } catch (e) {
-    console.log("premium patch error", e);
-  }
-
-  // ---------------------------
-  // BILLING TAM KAPAT
-  // ---------------------------
-  try {
-    window.initBilling = async () => false;
-    window.buyPremiumPlan = async () => {};
-    window.restorePremiumPurchases = async () => {};
-
-    console.log("✅ BILLING OFF");
-  } catch (e) {
-    console.log("billing patch error", e);
-  }
-
-  // ---------------------------
-  // ADMOB TEK SİSTEM
-  // ---------------------------
-  const AdMob = window.Capacitor?.Plugins?.AdMob || null;
-
-  const adState = {
-    initialized: false,
-    lastShown: 0,
-    counter: 0,
-    minGap: 60000
-  };
-
-  async function initAdsSafe() {
-    if (!AdMob || adState.initialized) return;
-
-    try {
-      await AdMob.initialize({
+    if (typeof AdMobPlugin.initialize === "function") {
+      await AdMobPlugin.initialize({
         requestTrackingAuthorization: false,
         initializeForTesting: false
       });
-
-      adState.initialized = true;
-
-      await AdMob.showBanner({
-        adId: "ca-app-pub-9576973508771581/8701259937",
-        position: "BOTTOM_CENTER"
-      });
-
-      console.log("✅ ADMOB READY");
-    } catch (e) {
-      console.log("AdMob init error:", e);
     }
+
+    adRuntime.initialized = true;
+    await showBannerAd();
+    await prepareInterstitialAd();
+    await prepareRewardedAd();
+
+    console.log("✅ AdMob initialized");
+    return true;
+  } catch (err) {
+    console.error("initAds error:", err);
+    return false;
   }
+}
 
-  async function showInterstitialSafe() {
-    if (!AdMob || !adState.initialized) return;
-
-    const now = Date.now();
-
-    if (now - adState.lastShown < adState.minGap) return;
-
-    adState.counter++;
-    if (adState.counter % 3 !== 0) return;
-
-    try {
-      await AdMob.prepareInterstitial({
-        adId: "ca-app-pub-9576973508771581/9381788346"
-      });
-
-      await AdMob.showInterstitial();
-
-      adState.lastShown = now;
-    } catch (e) {
-      console.log("Interstitial error:", e);
-    }
-  }
-
-  // ---------------------------
-  // TIMER BİTİNCE REKLAM
-  // ---------------------------
+async function showBannerAd() {
+  if (!AdMobPlugin || !adRuntime.initialized) return;
   try {
-    const original = window.onTimerFinished;
+    if (typeof AdMobPlugin.showBanner === "function") {
+      await AdMobPlugin.showBanner({
+        adId: ADMOB_IDS.banner,
+        adSize: "ADAPTIVE_BANNER",
+        position: "BOTTOM_CENTER",
+        margin: 0,
+        isTesting: false
+      });
+    }
+  } catch (err) {
+    console.error("showBannerAd error:", err);
+  }
+}
 
-    window.onTimerFinished = async function (...args) {
+async function hideBannerAd() {
+  if (!AdMobPlugin) return;
+  try {
+    if (typeof AdMobPlugin.hideBanner === "function") {
+      await AdMobPlugin.hideBanner();
+    }
+  } catch (err) {
+    console.error("hideBannerAd error:", err);
+  }
+}
 
-      try {
-        await showInterstitialSafe();
-      } catch (e) {}
+async function prepareInterstitialAd() {
+  if (!AdMobPlugin || !adRuntime.initialized) return false;
 
-      if (original) {
-        return original.apply(this, args);
+  try {
+    if (typeof AdMobPlugin.prepareInterstitial !== "function") return false;
+
+    await AdMobPlugin.prepareInterstitial({
+      adId: ADMOB_IDS.interstitial,
+      isTesting: false
+    });
+
+    adRuntime.interstitialReady = true;
+    return true;
+  } catch (err) {
+    console.error("prepareInterstitialAd error:", err);
+    adRuntime.interstitialReady = false;
+    return false;
+  }
+}
+
+function canShowInterstitial() {
+  const now = Date.now();
+
+  if (!adRuntime.initialized) return false;
+  if (now - adRuntime.lastInterstitialAt < adRuntime.minInterstitialGapMs) return false;
+
+  adRuntime.interstitialCounter += 1;
+
+  // her 3 aksiyonda bir
+  return adRuntime.interstitialCounter % 3 === 0;
+}
+
+async function maybeShowInterstitial() {
+  if (!AdMobPlugin || !canShowInterstitial()) return;
+
+  try {
+    if (!adRuntime.interstitialReady) {
+      await prepareInterstitialAd();
+    }
+
+    if (typeof AdMobPlugin.showInterstitial !== "function") return;
+
+    await AdMobPlugin.showInterstitial();
+    adRuntime.lastInterstitialAt = Date.now();
+    adRuntime.interstitialReady = false;
+
+    setTimeout(() => {
+      prepareInterstitialAd().catch((err) => {
+        console.error("prepareInterstitialAd retry error:", err);
+      });
+    }, 1200);
+  } catch (err) {
+    console.error("maybeShowInterstitial error:", err);
+  }
+}
+
+async function prepareRewardedAd() {
+  if (!AdMobPlugin || !adRuntime.initialized) return false;
+
+  try {
+    if (typeof AdMobPlugin.prepareRewardVideoAd === "function") {
+      await AdMobPlugin.prepareRewardVideoAd({
+        adId: ADMOB_IDS.rewarded,
+        isTesting: false
+      });
+      adRuntime.rewardedReady = true;
+      return true;
+    }
+
+    if (typeof AdMobPlugin.prepareRewardVideo === "function") {
+      await AdMobPlugin.prepareRewardVideo({
+        adId: ADMOB_IDS.rewarded,
+        isTesting: false
+      });
+      adRuntime.rewardedReady = true;
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.error("prepareRewardedAd error:", err);
+    adRuntime.rewardedReady = false;
+    return false;
+  }
+}
+
+async function showRewardedAdAndUnlock() {
+  if (!AdMobPlugin || !adRuntime.initialized) return false;
+
+  try {
+    if (!adRuntime.rewardedReady) {
+      await prepareRewardedAd();
+    }
+
+    if (typeof AdMobPlugin.showRewardVideoAd === "function") {
+      await AdMobPlugin.showRewardVideoAd();
+      unlockRewardedCustomPomodoroAccess();
+      adRuntime.rewardedReady = false;
+
+      setTimeout(() => {
+        prepareRewardedAd().catch((err) => {
+          console.error("prepareRewardedAd retry error:", err);
+        });
+      }, 1200);
+
+      return true;
+    }
+
+    if (typeof AdMobPlugin.showRewardVideo === "function") {
+      await AdMobPlugin.showRewardVideo();
+      unlockRewardedCustomPomodoroAccess();
+      adRuntime.rewardedReady = false;
+
+      setTimeout(() => {
+        prepareRewardedAd().catch((err) => {
+          console.error("prepareRewardedAd retry error:", err);
+        });
+      }, 1200);
+
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.error("showRewardedAdAndUnlock error:", err);
+    return false;
+  }
+}
+
+// ===============================
+// REWARDED MODAL
+// ===============================
+function showRewardedUnlockModal() {
+  let modal = $("rewardedUnlockModal");
+  if (modal) return;
+
+  modal = document.createElement("div");
+  modal.id = "rewardedUnlockModal";
+  modal.style.position = "fixed";
+  modal.style.inset = "0";
+  modal.style.background = "rgba(0,0,0,0.72)";
+  modal.style.display = "flex";
+  modal.style.alignItems = "center";
+  modal.style.justifyContent = "center";
+  modal.style.padding = "20px";
+  modal.style.zIndex = "99999";
+
+  modal.innerHTML = `
+    <div style="
+      width:min(430px,100%);
+      background:linear-gradient(145deg,#1c2b4a,#0d1a2d);
+      border-radius:20px;
+      padding:24px;
+      text-align:center;
+      color:#fff;
+      box-shadow:0 20px 60px rgba(0,0,0,0.45);
+      border:1px solid rgba(255,255,255,0.08);
+    ">
+      <h2 style="margin:0 0 12px;font-size:1.4rem;font-weight:800;">Özel Pomodoro</h2>
+      <p style="margin:0;font-size:14px;line-height:1.7;color:#d7e2ff;">
+        Hazır süreler ücretsizdir.<br><br>
+        Özel süre kullanmak için bir ödüllü reklam izle.<br>
+        Bu hak, Timer Sıfırla veya Pomodoroyu Sıfırla sonrası kapanır.
+      </p>
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <button id="rewardedUnlockWatchBtn" style="flex:1;padding:12px;border:none;border-radius:12px;background:linear-gradient(90deg,#6a5cff,#00d4ff);color:white;font-weight:700;cursor:pointer;">
+          Reklam İzle
+        </button>
+        <button id="rewardedUnlockCloseBtn" style="flex:1;padding:12px;border:none;border-radius:12px;background:#2b3550;color:white;font-weight:700;cursor:pointer;">
+          Kapat
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const watchBtn = $("rewardedUnlockWatchBtn");
+  const closeBtn = $("rewardedUnlockCloseBtn");
+
+  if (watchBtn) {
+    watchBtn.onclick = async () => {
+      watchBtn.disabled = true;
+      watchBtn.textContent = "Yükleniyor...";
+
+      const ok = await showRewardedAdAndUnlock();
+
+      if (ok) {
+        modal.remove();
+      } else {
+        watchBtn.disabled = false;
+        watchBtn.textContent = "Reklam İzle";
+        alert("Ödüllü reklam açılamadı. Lütfen tekrar dene.");
       }
     };
-
-    console.log("✅ TIMER HOOK OK");
-  } catch (e) {
-    console.log("timer hook error", e);
   }
 
-  // ---------------------------
-  // CRASH GUARD
-  // ---------------------------
-  window.onerror = function (msg) {
-    console.error("ERROR:", msg);
-    return true;
-  };
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      modal.remove();
+    };
+  }
+}
 
-  window.addEventListener("unhandledrejection", function (e) {
-    console.error("PROMISE:", e.reason);
+// ===============================
+// ADS VISIBILITY
+// ===============================
+function updateAdsVisibility() {
+  const ad = $("adContainer");
+  if (ad) ad.style.display = "block";
+
+  showBannerAd().catch((err) => {
+    console.error("updateAdsVisibility/showBannerAd error:", err);
   });
+}
 
-  // ---------------------------
-  // AUTO INIT
-  // ---------------------------
-  document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      await initAdsSafe();
-    } catch (e) {
-      console.log("ads start error", e);
-    }
+// ===============================
+// APPLY POMODORO OVERRIDE
+// ===============================
+function applyPomodoro() {
+  const work = safeNumber($("pomodoroWork")?.value, 25);
+  const brk = safeNumber($("pomodoroBreak")?.value, 5);
+
+  if (work <= 0 || brk <= 0) return;
+
+  if (!canUsePomodoroPair(work, brk)) {
+    showRewardedUnlockModal();
+    return;
+  }
+
+  const freePreset = isFreePomodoroPreset(work, brk);
+
+  clearInterval(timerState.timerId);
+  timerState.timerId = null;
+
+  timerState.running = false;
+  timerState.paused = false;
+  timerState.timeLeft = 0;
+  timerState.totalTime = 0;
+  timerState.endAt = 0;
+  timerState.mode = "pomodoro";
+
+  pomodoroState.enabled = true;
+  pomodoroState.phase = "work";
+  pomodoroState.workMinutes = work;
+  pomodoroState.breakMinutes = brk;
+  alarmState.pendingPomodoroAdvance = false;
+
+  if (!freePreset) {
+    // özel süre açma hakkı, pomodoro kurulunca kullanılmaya başlanmış sayılır
+    // ama timer/pomodoro resetlenene kadar devam eder
+    saveRewardedCustomPomodoroState();
+  }
+
+  loadPomodoroPhase();
+  updatePomodoroUI();
+  savePomodoroState();
+
+  startTimer(true).catch((err) => {
+    console.error("applyPomodoro/startTimer error:", err);
   });
+}
 
-  console.log("🔥 PATCH ACTIVE");
+// ===============================
+// RESET OVERRIDES
+// ===============================
+const originalResetTimer = resetTimer;
+resetTimer = async function () {
+  clearRewardedCustomPomodoroAccess();
+  await originalResetTimer();
+};
 
-})();
+const originalResetPomodoro = resetPomodoro;
+resetPomodoro = async function () {
+  clearRewardedCustomPomodoroAccess();
+  await originalResetPomodoro();
+};
+
+// timer bitince interstitial
+const originalOnTimerFinished = onTimerFinished;
+onTimerFinished = async function (...args) {
+  try {
+    await maybeShowInterstitial();
+  } catch (err) {
+    console.error("onTimerFinished interstitial error:", err);
+  }
+
+  return originalOnTimerFinished.apply(this, args);
+};
+
+// pomodoro UI bilgilendirme
+const originalSetPomodoroStatus = setPomodoroStatus;
+setPomodoroStatus = function () {
+  originalSetPomodoroStatus();
+
+  const el = $("pomodoroStatus");
+  if (!el) return;
+
+  if (rewardedCustomPomodoroUnlocked) {
+    el.textContent += " • Özel süre açık";
+  }
+};
+
+// init sonrası premium sekmesini gizle + admob başlat
+const originalInitApp = initApp;
+initApp = async function () {
+  await originalInitApp();
+
+  removePremiumUICompletely();
+  await initAds();
+  updateAdsVisibility();
+};
+}
+
+// FULL APP JS END
