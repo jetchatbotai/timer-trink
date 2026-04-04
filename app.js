@@ -281,6 +281,82 @@ function startApp() {
     interstitial: "ca-app-pub-9576973508771581/9381788346",
     rewarded: "ca-app-pub-9576973508771581/8139989327"
   };
+  async function initAds() {
+  if (!AdMobPlugin) return;
+
+  try {
+    await AdMobPlugin.initialize();
+
+    // Banner
+    await AdMobPlugin.showBanner({
+      adId: ADMOB_IDS.banner,
+      position: "BOTTOM_CENTER"
+    });
+
+    // preload interstitial
+    await loadInterstitial();
+
+    // preload rewarded
+    await loadRewarded();
+
+    adRuntime.initialized = true;
+
+    console.log("ADS READY ✅");
+  } catch (e) {
+    console.log("Ad init error", e);
+  }
+}
+  async function loadInterstitial() {
+  try {
+    await AdMobPlugin.prepareInterstitial({
+      adId: ADMOB_IDS.interstitial
+    });
+    adRuntime.interstitialReady = true;
+  } catch {
+    adRuntime.interstitialReady = false;
+  }
+}
+
+async function showInterstitialSmart() {
+  if (!AdMobPlugin || !adRuntime.interstitialReady) return;
+
+  const now = Date.now();
+
+  if (now - adRuntime.lastInterstitialAt < adRuntime.minInterstitialGapMs) return;
+
+  try {
+    await AdMobPlugin.showInterstitial();
+    adRuntime.lastInterstitialAt = now;
+    adRuntime.interstitialReady = false;
+
+    setTimeout(loadInterstitial, 1000);
+  } catch {}
+}
+  async function loadRewarded() {
+  try {
+    await AdMobPlugin.prepareRewardVideoAd({
+      adId: ADMOB_IDS.rewarded
+    });
+    adRuntime.rewardedReady = true;
+  } catch {
+    adRuntime.rewardedReady = false;
+  }
+}
+
+async function showRewardedAd(onReward) {
+  if (!AdMobPlugin || !adRuntime.rewardedReady) return;
+
+  try {
+    await AdMobPlugin.showRewardVideoAd();
+
+    // kullanıcı izledi → ödül ver
+    if (onReward) onReward();
+
+    adRuntime.rewardedReady = false;
+    setTimeout(loadRewarded, 1000);
+  } catch {}
+}
+  
 
   // ===============================
   // FINISH / ALARM HELPERS
