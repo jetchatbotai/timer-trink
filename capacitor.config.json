@@ -1,7 +1,7 @@
 {
   "appId": "com.timertrink.app",
   "appName": "Timer Trink",
-  "webDir": "www"
+  "webDir": "dist"
   "plugins": {
     "SplashScreen": {
       "launchAutoHide": false
