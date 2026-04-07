@@ -1454,44 +1454,7 @@ setInterval(() => {
       stopPersistentAlarm?.();
     }
   } catch {}
-}, 10000);
-
-// ===============================
-// SAFE LOCALSTORAGE
-// ===============================
-function safeSet(key, val) {
-  try {
-    localStorage.setItem(key, JSON.stringify(val));
-  } catch {}
-}
-
-function safeGet(key, fallback = null) {
-  try {
-    return JSON.parse(localStorage.getItem(key)) || fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-// ===============================
-// FINAL DEBUG LOG
-// ===============================
-console.log("🔥 TIMER TRINK FULL SYSTEM LOADED");
-// ===============================
-// PART 6 / 6
-// FINAL INIT + STABILIZER
-// ===============================
-
-// ===============================
-// SAFE INIT WRAPPER
-// ===============================
-function safeInit(fn) {
-  try {
-    fn();
-  } catch (e) {
-    console.error("INIT ERROR:", e);
-  }
-}
+}, 
 
 // ===============================
 // GLOBAL ERROR HANDLER (CRASH ENGEL)
